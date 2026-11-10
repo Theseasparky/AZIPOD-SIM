@@ -13,7 +13,7 @@
   --gutR: max(16px, env(safe-area-inset-right, 0px));
   /* the console: one dark look for every control, in every chart palette (applied by the console block below) */
   --c-panel: rgba(20, 26, 32, 0.86); --c-panel-solid: #171e25; --c-rule: #303b45;
-  --c-ink: #eef3f5; --c-muted: #8d9aa4; --c-own: #f39a2b; --c-port: #ef4452; --c-stbd: #33c46a;
+  --c-ink: #eef3f5; --c-muted: #9aa7b1; --c-own: #f39a2b; --c-port: #ef4452; --c-stbd: #33c46a;
   --c-warn: #ff6b3d; --c-ok: #33c46a; --c-predict: #d65aad; --c-alt-crash: #e7b54b; --c-alt-coast: #a3b1bc; --c-guide: #41c9c0;
   --c-face: #2a333c; --c-face-2: #12181d; --c-cur: #3cc8d8; --c-edge: rgba(255, 255, 255, 0.08);
   --c-tile: linear-gradient(180deg, #2c353e 0%, #1c2329 100%);
@@ -31,6 +31,7 @@
   --sh-press: inset 0 1px 3px rgba(0, 0, 0, 0.5); --sh-track: inset 0 1px 2px rgba(0, 0, 0, 0.6);
   --sh-thumb: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   --sh-on: 0 0 0 1px rgba(243, 154, 43, 0.25), 0 0 12px rgba(243, 154, 43, 0.18);
+  --sh-focus: 0 0 0 5px rgba(8, 12, 16, 0.92);
   --lamp-red: #e5342b; --lamp-green: #1fbf5b; --lock-water: #3a8fd0; --alarm-wash: rgba(255, 90, 61, 0.22); --dmg-amber: #e8a33a;
 }
 @media (prefers-color-scheme: dark) {
@@ -79,6 +80,8 @@ body { background: var(--water); color: var(--ink); font-family: var(--font-body
 
 button { font: inherit; color: inherit; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--own); outline-offset: 2px; }
+/* over the pale day chart the orange ring has almost the luminance of the chart (about 1.1:1), so the chart buttons put a dark halo under it */
+.mb:focus-visible, .mb.on:focus-visible, .mb[aria-pressed="true"]:focus-visible { box-shadow: var(--lift), var(--sh-focus); }
 
 /* ---------- readouts ---------- */
 .hud {
@@ -244,7 +247,8 @@ kbd { font-family: var(--font-num); font-size: 11px; border: 1px solid var(--rul
   display: flex; flex-direction: column; gap: 6px; max-height: 55%; overflow-y: auto;
 }
 .panel-head { display: flex; justify-content: space-between; align-items: center; }
-.x { background: transparent; border: 1px solid var(--rule); border-radius: 3px; width: 28px; height: 28px; cursor: pointer; font-size: 16px; color: var(--ink); }
+.x { background: transparent; border: 1px solid var(--rule); border-radius: 3px; width: 28px; height: 28px; cursor: pointer; font-size: 16px; color: var(--ink); position: relative; }
+.x::after { content: ""; position: absolute; inset: -9px; }
 .hint { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
 .lrow { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 4px 8px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--rule); }
 .lrow .nm { font-family: var(--font-label); font-weight: 600; font-size: 13px; letter-spacing: 0.04em; }
@@ -276,7 +280,7 @@ kbd { font-family: var(--font-num); font-size: 11px; border: 1px solid var(--rul
 .seg, .chips { display: flex; gap: 4px; flex-wrap: wrap; }
 .lbl { font-size: 14px; }
 select.pick { min-width: 0; width: 100%; height: 34px; padding: 0 8px; border-radius: 3px; border: 1px solid var(--rule); background: var(--panel-solid); color: var(--ink); font: 13px var(--font-body); }
-.seg button:disabled { opacity: 0.45; cursor: default; }
+.seg button:disabled, .coach-list .cb:disabled { opacity: 0.55; cursor: not-allowed; color: var(--muted); background: var(--face-2); border-color: var(--rule); box-shadow: none; }
 .note { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 65ch; }
 .poster-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
 .poster-grid h3 { font-family: var(--font-label); font-weight: 600; font-size: 14px; letter-spacing: 0.06em; margin: 4px 0; text-transform: uppercase; }
@@ -469,7 +473,7 @@ details.sec[open] { display: flex; flex-direction: column; gap: 10px; padding-bo
 .st-gen .cell > .tag { text-transform: uppercase; align-self: stretch; display: flex; justify-content: space-between; gap: 10px; font-size: 11px; }
 .st-gen .cell > .tag b { color: var(--ink); font-weight: 600; }
 .st-gen .row { display: flex; gap: 6px; align-items: center; }
-.st-gen .unit-tag { font: 600 10px var(--font-label); letter-spacing: 0.08em; writing-mode: vertical-rl; transform: rotate(180deg); }
+.st-gen .unit-tag { font: 600 11px/12px var(--font-label); letter-spacing: 0.08em; writing-mode: vertical-rl; transform: rotate(180deg); }
 .st-gen canvas { display: block; touch-action: none; }
 .st-gen .tel { width: 128px; height: var(--stH); cursor: ns-resize; }
 .st-gen .lev { width: 56px; height: var(--stH); cursor: ns-resize; }
@@ -477,7 +481,7 @@ details.sec[open] { display: flex; flex-direction: column; gap: 10px; padding-bo
 .st-gen .gauges .row { flex-direction: column; gap: 2px; }
 .st-gen .helm { width: 220px; height: calc(var(--stH) * 0.72); cursor: ew-resize; }
 .st-gen .stat { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; width: 210px; font: 500 12px var(--font-num); align-items: baseline; }
-.st-gen .stat .k { font: 600 10.5px var(--font-label); letter-spacing: 0.08em; color: var(--muted); white-space: nowrap; }
+.st-gen .stat .k { font: 600 11px var(--font-label); letter-spacing: 0.08em; color: var(--muted); white-space: nowrap; }
 .st-gen .stat .v { color: var(--ink); }
 .st-gen .stat .v.warn { color: var(--warn); }
 .st-gen .meter { height: 5px; border-radius: 3px; background: var(--rule); margin-top: 3px; position: relative; overflow: hidden; }
@@ -502,12 +506,13 @@ details.sec[open] { display: flex; flex-direction: column; gap: 10px; padding-bo
 .scen.ships { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .st-gen .combi, .st-gen .vsppad { width: calc(var(--stH) * 0.78); height: calc(var(--stH) * 0.78); cursor: grab; }
 .st-gen .unitbox { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.st-gen .unit-tag2 { font: 600 10.5px var(--font-label); letter-spacing: 0.08em; }
+.st-gen .unit-tag2 { font: 600 11px var(--font-label); letter-spacing: 0.08em; }
 .st-gen .heel { width: 150px; height: calc(var(--stH) * 0.55); }
 .st-gen .towg { width: 130px; height: calc(var(--stH) * 0.55); }
 .st-gen .tow .stat { width: 190px; }
 .st-gen .row.wrap { flex-wrap: wrap; justify-content: center; max-width: 340px; }
-.st-gen .row.wrap .cb { height: 26px; font-size: 11px; padding: 0 8px; }
+.st-gen .row.wrap .cb { height: 26px; font-size: 11px; padding: 0 8px; position: relative; }
+.st-gen .row.wrap .cb::after { content: ""; position: absolute; inset: -4px 0; }
 @media (max-width: 600px) { .st-gen .heelc { display: none; } }
 .st-gen .jetg { width: 44px; height: calc(var(--stH) * 0.72); }
 .st-gen .jjoy { width: calc(var(--stH) * 0.72); height: calc(var(--stH) * 0.72 + 26px); cursor: grab; }
@@ -696,7 +701,6 @@ details.sec[open] { display: flex; flex-direction: column; gap: 10px; padding-bo
 .coach-list { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 13.5px; }
 .coach-list small { display: block; color: var(--muted); font-size: 11.5px; }
 .coach-list .cb { height: 30px; padding: 0 12px; font-size: 12px; flex: none; }
-.coach-list .cb:disabled { opacity: 0.45; cursor: default; }
 .coach-steps { margin: 2px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; line-height: 1.35; color: var(--muted); }
 .coach-steps .ds-now { color: var(--ink); font-weight: 600; }
 .coach-steps .ds-done { color: var(--ok); }
