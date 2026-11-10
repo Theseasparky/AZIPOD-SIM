@@ -94,11 +94,11 @@ function idleHtml() {
 
 function procView(s: Extract<Session, { kind: 'proc' }>, level: Level) {
   const r = s.runner, p = s.proc, n = p.steps.length, i = r.index;
-  if (r.finished) return { head: 'COACH · DRILL', body: `<p class="coach-title">${esc(p.title)}: done</p>${rowsHtml(r.rows(SHIP.L))}`, btns: btn('again', 'AGAIN') + btn('close', 'CLOSE') };
+  if (r.finished) return { head: 'Coach: drill', body: `<p class="coach-title">${esc(p.title)}: done</p>${rowsHtml(r.rows(SHIP.L))}`, btns: btn('again', 'AGAIN') + btn('close', 'CLOSE') };
   const list = level === 'explain'
     ? `<ol class="coach-steps">${p.steps.map((st, k) => `<li class="ds-${r.states[k]}">${esc(fill(st.text, SHIP))}</li>`).join('')}</ol>${explainHtml(p)}` : '';
   return {
-    head: `COACH · STEP ${i + 1} OF ${n}`,
+    head: `Coach: step ${i + 1} of ${n}`,
     body: `<p class="coach-title">${esc(p.title)}${level === 'explain' ? draftChip(p) : ''}</p><p class="coach-brief">${esc(fill(r.current!.text, SHIP))}</p>${list}`,
     btns: btn('next', r.current!.check === 'ack' ? 'NEXT' : 'SKIP') + btn('stop', 'STOP') + btn('more', level === 'explain' ? 'LESS' : 'MORE'),
   };
@@ -109,14 +109,14 @@ function exView(s: Extract<Session, { kind: 'ex' }>, level: Level) {
   const rows = c ? run.rows(c) : [];
   if (run.finished) {
     return {
-      head: 'COACH · DEBRIEF',
+      head: 'Coach: debrief',
       body: `<p class="coach-title">${esc(ex.title)}${run.timedOut ? ': time ran out' : ''}</p>${rowsHtml(rows)}<p class="hint">No score: the references are published figures and this model's own limits. Judge it against them.</p>${level === 'explain' ? claimsHtml(ex.real) : ''}`,
       btns: btn('again', 'AGAIN') + btn('close', 'CLOSE') + btn('more', level === 'explain' ? 'LESS' : 'MORE'),
     };
   }
   const mm = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
   return {
-    head: 'COACH · EXERCISE',
+    head: 'Coach: exercise',
     body: `<p class="coach-title">${esc(ex.title)}${level === 'explain' ? draftChip(ex) : ''}</p><ul class="coach-obj">${ex.objectives.map(o => `<li>${esc(fill(o, SHIP))}</li>`).join('')}</ul>`
       + `<p class="hint">${run.started ? `Measuring: ${mm(run.elapsed)}` : 'Measuring starts with your first order.'}</p>${run.started ? rowsHtml(rows) : ''}`,
     btns: btn('finish', 'FINISH') + btn('stop', 'STOP'),
@@ -126,8 +126,8 @@ function exView(s: Extract<Session, { kind: 'ex' }>, level: Level) {
 function render(force = false) {
   const g = S.guide, body = $('coach-body'), btns = $('coach-btns');
   const more = g.level === 'explain' ? 'LESS' : 'MORE';
-  let head = 'COACH', html = '', bh = '';
-  if (view === 'tip' && coach.current) { head = 'COACH · TIP'; html = cardHtml(coach.current, g.level); bh = btn('more', more) + btn('ok', 'GOT IT'); }
+  let head = 'Coach', html = '', bh = '';
+  if (view === 'tip' && coach.current) { head = 'Coach: tip'; html = cardHtml(coach.current, g.level); bh = btn('more', more) + btn('ok', 'GOT IT'); }
   else if (view === 'intro') {
     html = '<p class="coach-title">Training guide</p><p class="coach-brief">Tips, steps and suggestions built on published sources. Each says whether it is measured data, published guidance or what this simulator\'s model does. There is no single global standard for handling podded or azimuthing propulsion: your ship\'s manual and your company\'s procedures come first.</p>';
     bh = btn('intro', 'GOT IT');
@@ -209,7 +209,7 @@ export function renderReference() {
   const procs = CONTENT.procedures.filter(p => appliesTo(p, SHIP)), exs = CONTENT.exercises.filter(e => e.fam.includes(fam));
   const drill = (p: Procedure) => `<details><summary>${esc(p.title)} · drill${draftChip(p)}</summary><p class="coach-brief">${esc(fill(p.brief, SHIP))}</p><ol class="coach-steps">${p.steps.map(st => `<li>${esc(fill(st.text, SHIP))}</li>`).join('')}</ol>${explainHtml(p)}<p class="hint">Start it from COACH.</p></details>`;
   const exercise = (e: Exercise) => `<details><summary>${esc(e.title)} · exercise${draftChip(e)}</summary><p class="coach-brief">${esc(fill(e.brief, SHIP))}</p><ul class="coach-obj">${e.objectives.map(o => `<li>${esc(fill(o, SHIP))}</li>`).join('')}</ul>${claimsHtml(e.real)}<p class="hint">Start it from COACH.</p></details>`;
-  el.innerHTML = `<h3 class="gref-h">Reference · ${esc(FAM_NAME[fam])} · ${esc(SHIP.name)}</h3>`
+  el.innerHTML = `<h3 class="gref-h">Reference: ${esc(FAM_NAME[fam])}, ${esc(SHIP.name)}</h3>`
     + (cards.length ? cards.map(k => `<details><summary>${esc(k.title)}${draftChip(k)}</summary>${cardHtml(k, 'explain', false)}</details>`).join('')
       : '<p class="note">No reference cards for this ship yet.</p>')
     + procs.map(drill).join('') + exs.map(exercise).join('');

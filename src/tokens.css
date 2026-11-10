@@ -1,0 +1,91 @@
+/* The console system: Hallmark Vantage (dark instrument quiet), dealt for the app's control surfaces.
+   Every colour and face the console uses comes through these tokens; the chart's own palettes (day, dusk,
+   night, after IEC 62288 / IHO S-52) live in style.css and do not change with this file. */
+:root {
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px;
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
+  --text-figure: 1.75rem; --text-figure-s: 1.25rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  --z-base: 1; --z-raised: 2; --z-panel: 3; --z-bar: 4; --z-sheet: 5; --z-toast: 6; --z-gate: 9;
+
+  --color-paper: oklch(13.5% 0.012 235); --color-paper-2: oklch(17% 0.014 235); --color-paper-3: oklch(21% 0.016 235); --color-paper-4: oklch(25% 0.017 235);
+  --color-ink: oklch(95% 0.006 230); --color-ink-2: oklch(82% 0.012 230); --color-muted: oklch(68% 0.016 230);
+  --color-rule: oklch(27% 0.014 235); --color-rule-2: oklch(36% 0.016 235);
+  /* the signal is the own-ship colour of the chart (orange), lifted for the dark ground: on a bridge green means starboard, so Vantage's lime stays ashore */
+  --color-accent: oklch(81% 0.15 62); --color-accent-hi: oklch(86% 0.14 64); --color-accent-ink: oklch(20% 0.04 62); --color-focus: oklch(81% 0.15 62);
+  --color-port: oklch(68% 0.2 22); --color-stbd: oklch(76% 0.17 150); --color-warn: oklch(74% 0.17 38); --color-predict: oklch(70% 0.17 340);
+  --color-guide: oklch(80% 0.1 195); --color-current: oklch(80% 0.1 215); --color-coast: oklch(74% 0.02 235); --color-crash: oklch(84% 0.13 85);
+  --color-lamp-red: oklch(62% 0.22 25); --color-lamp-green: oklch(72% 0.2 148); --color-lock-water: oklch(62% 0.12 245); --color-amber: oklch(78% 0.14 75);
+  --color-alarm-wash: oklch(45% 0.12 35 / 0.35); --color-halo: oklch(10% 0.01 235 / 0.92);
+  --color-on-3d: oklch(95% 0.006 230 / 0.6);
+
+  --font-display: "Geologica", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Geologica", ui-sans-serif, system-ui, sans-serif;
+  --font-label: var(--font-body);
+  --font-num: var(--font-body);
+  --radius-card: 4px; --radius-ctl: 4px; --rule-hair: 1px; --tick: 10px;
+  --tracking-display: -0.035em; --display-weight: 300;
+}
+
+/* ================= the chart: day / dusk / night palettes after IEC 62288 and IHO S-52 =================
+   Ochre land, pale water, magenta predictor. These tokens colour the chart canvas and its labels only. */
+:root {
+  --water: #e6eff2; --water-2: #d3e3ea; --grid: #c3d4dc; --land: #d8c993; --land-edge: #8f7d45; --shoal: #b9d4e2;
+  --ink: #14242d; --muted: #566a74; --panel: rgba(247, 250, 251, 0.94); --panel-solid: #f4f8f9; --rule: #c2d0d6;
+  --own: #cf6410; --hull: #fbfcfc; --port: #c4142f; --stbd: #0b8a3e; --predict: #b5137f; --warn: #b8290f; --ok: #0b8a3e;
+  --alt-crash: #a8740c; --alt-coast: #5d6f7a; --guide: #0e7c86;
+  --dep-dw: #f2f7f9; --dep-md: #d5e9f0; --dep-ms: #b3d8ea; --dep-vs: #86bfe6; --dep-it: #a9c79a;
+  --sound: #66808c; --sound-sh: #14242d; --contour: #8fa7b3; --safety: #14242d; --aid-light: #b5137f;
+  color-scheme: light;
+  --gutL: max(16px, env(safe-area-inset-left, 0px));
+  --gutR: max(16px, env(safe-area-inset-right, 0px));
+  /* a hairline frame drawn only at its corners: the console's one surface device */
+  --ticks:
+    linear-gradient(var(--color-rule-2), var(--color-rule-2)) 0 0 / var(--tick) var(--rule-hair) no-repeat,
+    linear-gradient(var(--color-rule-2), var(--color-rule-2)) 0 0 / var(--rule-hair) var(--tick) no-repeat,
+    linear-gradient(var(--color-rule-2), var(--color-rule-2)) 100% 0 / var(--tick) var(--rule-hair) no-repeat,
+    linear-gradient(var(--color-rule-2), var(--color-rule-2)) 100% 0 / var(--rule-hair) var(--tick) no-repeat,
+    linear-gradient(var(--color-rule-2), var(--color-rule-2)) 0 100% / var(--tick) var(--rule-hair) no-repeat,
+    linear-gradient(var(--color-rule-2), var(--color-rule-2)) 0 100% / var(--rule-hair) var(--tick) no-repeat,
+    linear-gradient(var(--color-rule-2), var(--color-rule-2)) 100% 100% / var(--tick) var(--rule-hair) no-repeat,
+    linear-gradient(var(--color-rule-2), var(--color-rule-2)) 100% 100% / var(--rule-hair) var(--tick) no-repeat;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --water: #06121a; --water-2: #0a1c27; --grid: #10283a; --land: #2b2513; --land-edge: #5e512a; --shoal: #0d2a3a;
+    --ink: #d4c49a; --muted: #7d7660; --panel: rgba(6, 13, 18, 0.9); --panel-solid: #08121a; --rule: #1e3242;
+    --own: #d27a2a; --hull: #13232e; --port: #d2475a; --stbd: #36ad66; --predict: #c4489a; --warn: #e0583a; --ok: #36ad66;
+    --alt-crash: #d9a43a; --alt-coast: #8a9aa6; --guide: #41c9c0;
+    --dep-dw: #04101a; --dep-md: #062031; --dep-ms: #0a3046; --dep-vs: #104364; --dep-it: #1d2c18;
+    --sound: #5f7380; --sound-sh: #c9d6dd; --contour: #2c4757; --safety: #9db4c0; --aid-light: #c4489a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"], :root[data-palette="night"] {
+  --water: #06121a; --water-2: #0a1c27; --grid: #10283a; --land: #2b2513; --land-edge: #5e512a; --shoal: #0d2a3a;
+  --ink: #d4c49a; --muted: #7d7660; --panel: rgba(6, 13, 18, 0.9); --panel-solid: #08121a; --rule: #1e3242;
+  --own: #d27a2a; --hull: #13232e; --port: #d2475a; --stbd: #36ad66; --predict: #c4489a; --warn: #e0583a; --ok: #36ad66;
+  --alt-crash: #d9a43a; --alt-coast: #8a9aa6; --guide: #41c9c0;
+  --dep-dw: #04101a; --dep-md: #062031; --dep-ms: #0a3046; --dep-vs: #104364; --dep-it: #1d2c18;
+  --sound: #5f7380; --sound-sh: #c9d6dd; --contour: #2c4757; --safety: #9db4c0; --aid-light: #c4489a;
+  color-scheme: dark;
+}
+:root[data-palette="day"] {
+  --water: #e6eff2; --water-2: #d3e3ea; --grid: #c3d4dc; --land: #d8c993; --land-edge: #8f7d45; --shoal: #b9d4e2;
+  --ink: #14242d; --muted: #566a74; --panel: rgba(247, 250, 251, 0.94); --panel-solid: #f4f8f9; --rule: #c2d0d6;
+  --own: #cf6410; --hull: #fbfcfc; --port: #c4142f; --stbd: #0b8a3e; --predict: #b5137f; --warn: #b8290f; --ok: #0b8a3e;
+  --alt-crash: #a8740c; --alt-coast: #5d6f7a; --guide: #0e7c86;
+  --dep-dw: #f2f7f9; --dep-md: #d5e9f0; --dep-ms: #b3d8ea; --dep-vs: #86bfe6; --dep-it: #a9c79a;
+  --sound: #66808c; --sound-sh: #14242d; --contour: #8fa7b3; --safety: #14242d; --aid-light: #b5137f;
+  color-scheme: light;
+}
+:root[data-palette="dusk"] {
+  --water: #16232c; --water-2: #1d2f3b; --grid: #243a49; --land: #4a4128; --land-edge: #7b6b3d; --shoal: #20394a;
+  --ink: #e2d6b4; --muted: #9a917a; --panel: rgba(20, 30, 38, 0.92); --panel-solid: #16222b; --rule: #33495a;
+  --own: #e58a34; --hull: #24343f; --port: #e0566a; --stbd: #47bd75; --predict: #d65aad; --warn: #f06a48; --ok: #47bd75;
+  --alt-crash: #e7b54b; --alt-coast: #a3b1bc; --guide: #41c9c0;
+  --dep-dw: #13212b; --dep-md: #19303f; --dep-ms: #213f54; --dep-vs: #2b5170; --dep-it: #2e3a24;
+  --sound: #8494a0; --sound-sh: #e2d6b4; --contour: #3f5a6b; --safety: #c9bfa2; --aid-light: #d65aad;
+  color-scheme: dark;
+}
