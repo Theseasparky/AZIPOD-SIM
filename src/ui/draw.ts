@@ -331,14 +331,14 @@ export function drawEnvGauge() {
   // wind: in from the rim on the side it blows from
   if (ENV.wV > 0.5) { const [x0, y0] = at(ENV.from, Rg + 2), [x1, y1] = at(ENV.from, Rg * 0.3); head(x0, y0, x1, y1, K.ink, 3); }
   // figures
-  g.font = `600 11px ${K.fontNum}`; g.textAlign = 'left'; g.textBaseline = 'middle';
+  g.font = `500 11px ${K.fontNum}`; g.textAlign = 'left'; g.textBaseline = 'middle';
   const p3 = (b: number) => String(Math.round(((b / DEG) % 360 + 360) % 360)).padStart(3, '0');
   const ty = cy + Rg + 14, tx = cx0 + 10;
   g.fillStyle = K.muted; g.fillText('W', tx, ty); g.fillText('C', tx, ty + 15);
   g.fillStyle = K.ink;
   const kn = ENV.wV / KN, gk = ENV.peak / KN;
-  g.fillText(ENV.wV > 0.5 ? `${p3(ENV.from)}° ${kn.toFixed(0)}${gk > kn + 3 ? ` G${gk.toFixed(0)}` : ' kn'}` : 'calm', tx + 12, ty);
-  g.fillStyle = K.cur; g.fillText(ENV.cV > 0.03 ? `${p3(ENV.set)}° ${(ENV.cV / KN).toFixed(1)} kn` : 'nil', tx + 12, ty + 15);
+  g.fillText(ENV.wV > 0.5 ? `${p3(ENV.from)}° ${kn.toFixed(0)}${gk > kn + 3 ? ` G${gk.toFixed(0)}` : ' kn'}` : 'calm', tx + 16, ty);
+  g.fillStyle = K.cur; g.fillText(ENV.cV > 0.03 ? `${p3(ENV.set)}° ${(ENV.cV / KN).toFixed(1)} kn` : 'nil', tx + 16, ty + 15);
   g.restore();
 }
 

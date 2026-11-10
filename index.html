@@ -37,7 +37,7 @@
       <div class="cell"><span class="lab">UKC</span><span class="val" id="r-ukc">—</span><span class="unit">m</span></div>
     </div>
     <div class="hud-row env">
-      <span id="r-wind">WIND —</span><span id="r-cur">CURRENT —</span><span id="r-depth">—</span><span id="r-pwr">PWR —</span><span id="r-time">00:00</span>
+      <span id="r-wind">Wind —</span><span id="r-cur">Current —</span><span id="r-depth">—</span><span id="r-pwr">Power —</span><span id="r-time">00:00</span>
     </div>
     <span class="more" aria-hidden="true"></span>
     <div class="flag" id="r-flag" hidden></div>
@@ -65,9 +65,9 @@
   <aside class="legend" id="legend" hidden role="button" tabindex="0" aria-expanded="false"></aside>
 
   <div class="edit-bar" id="edit-bar" hidden role="toolbar" aria-label="Edit fenders and bollards">
-    <span class="tag">EDIT BERTH</span>
-    <button class="cb" data-em="bollard">+ BOLLARD</button><button class="cb" data-em="fender">+ FENDER</button><button class="cb" data-em="remove">REMOVE</button>
-    <button class="cb" id="edit-reset">RESET</button><button class="cb" id="edit-done">DONE</button>
+    <span class="tag">Edit berth</span>
+    <button class="cb" data-em="bollard">+ Bollard</button><button class="cb" data-em="fender">+ Fender</button><button class="cb" data-em="remove">Remove</button>
+    <button class="cb" id="edit-reset">Reset</button><button class="cb" id="edit-done">Done</button>
     <span class="hint" id="edit-hint">Tap near a quay edge.</span>
   </div>
 
@@ -77,31 +77,31 @@
   </aside>
 
   <section class="panel" id="p-lines" hidden aria-label="Mooring lines">
-    <div class="panel-head"><span class="tag">MOORING LINES · WINCHES</span><button class="x" data-close="p-lines" aria-label="Close">×</button></div>
+    <div class="panel-head"><span class="tag">Mooring lines and winches</span><button class="x" data-close="p-lines" aria-label="Close">×</button></div>
     <div id="lines"></div>
     <p class="hint">Lines go ashore when the fairlead is within 60 m of a bollard. HEAVE stalls at 16 t, the brake renders above 61 t, lines part at 100 t.</p>
   </section>
   <section class="panel" id="p-dmg" hidden aria-label="Damage control">
-    <div class="panel-head"><span class="tag">DAMAGE CONTROL</span><button class="x" data-close="p-dmg" aria-label="Close">×</button></div>
+    <div class="panel-head"><span class="tag">Damage control</span><button class="x" data-close="p-dmg" aria-label="Close">×</button></div>
     <canvas class="dmg-plan" id="dmg-plan" aria-label="Hull plan: damage by section, flooding, propulsion"></canvas>
     <div class="stat dmg-stat" id="dmg-stat"></div>
     <div class="dmg-log" id="dmg-log"></div>
   </section>
   <section class="panel" id="p-lock" hidden aria-label="The lock">
-    <div class="panel-head"><span class="tag" id="lock-head">LOCK</span><button class="x" data-close="p-lock" aria-label="Close">×</button></div>
-    <button class="cb" id="lock-call">CALL LOCK ON VHF</button>
+    <div class="panel-head"><span class="tag" id="lock-head">Lock</span><button class="x" data-close="p-lock" aria-label="Close">×</button></div>
+    <button class="cb" id="lock-call">Call the lock on VHF</button>
     <div id="lock-state"></div>
     <div class="lk-log" id="lock-log" aria-live="polite"></div>
     <p class="hint">Call before you reach the gate. Enter on green at no more than 2 knots, make fast at least two lines, and tend them while the chamber levels. Red and green together: get ready, the gate is opening.</p>
   </section>
   <section class="panel" id="p-tugs" hidden aria-label="Tugs">
-    <div class="panel-head"><span class="tag" id="tug-head">TUGS</span><button class="x" data-close="p-tugs" aria-label="Close">×</button></div>
+    <div class="panel-head"><span class="tag" id="tug-head">Tugs</span><button class="x" data-close="p-tugs" aria-label="Close">×</button></div>
     <div id="tugs"></div>
     <p class="hint">About 20 s to change power, 60 s to swap between pushing and pulling. Tugs lose their grip above about 6 kn.</p>
   </section>
 
   <section class="panel" id="p-coach" hidden aria-label="Training guide">
-    <div class="panel-head"><span class="tag" id="coach-head">COACH</span><button class="x" data-close="p-coach" aria-label="Close">×</button></div>
+    <div class="panel-head"><span class="tag" id="coach-head">Coach</span><button class="x" data-close="p-coach" aria-label="Close">×</button></div>
     <div id="coach-body" aria-live="polite"></div>
     <div class="coach-btns" id="coach-btns"></div>
   </section>
@@ -117,7 +117,7 @@
     </div>
     <div class="center">
       <div class="btwrap">
-        <label for="bt" class="tag" id="bt-label">BOW THRUSTER</label>
+        <label for="bt" class="tag" id="bt-label">Bow thruster</label>
         <span class="btslide"><input type="range" id="bt" min="-100" max="100" step="1" value="0" /><i class="btghost" id="bt-ghost" hidden></i></span>
         <div class="btscale"><span id="bt-l">PORT</span><span id="bt-val">0</span><span id="bt-r">STBD</span></div>
       </div>
@@ -145,10 +145,10 @@
     <div class="gate-card">
       <h1 id="gate-h">SHIPSHAPE</h1>
       <p>Take the controls of a real-size ship and bring her safely into port. Choose from 25 ships, from harbour tugs and ferries to cruise ships, tankers, an icebreaker and a 24,000-container giant, each with the controls her crew would use.</p>
-      <p>Sail into PortMiami and Los Angeles–Long Beach on their real charts, take a ship through the IJmuiden sea lock to Amsterdam, or go along a river, through ice or out at sea. Wind, current and shallow water push you around just as they do in real life, and a forecast line shows where you're heading.</p>
-      <p><b>For training and fun only, not for navigation.</b> The ships behave like real ones, but never exactly the same. Don't use it to plan a real manoeuvre.</p>
-      <p class="credit">Developed by <b>Khalil Mahboub</b>, Captain &amp; Maritime Systems Enthusiast.<br />Questions, feedback, or collaborations:<br />Instagram: <a href="https://www.instagram.com/snowskyz/" target="_blank" rel="noopener">@snowskyz</a> | WhatsApp: <a href="https://wa.me/15145741719" target="_blank" rel="noopener">+1 (514) 574-1719</a></p>
-      <button id="gate-ok" class="cb">I UNDERSTAND</button>
+      <p>Sail into PortMiami and Los Angeles–Long Beach on their real charts, take a ship through the IJmuiden sea lock to Amsterdam, or go along a river, through ice or out at sea. Wind, current and shallow water push you around just as they do in real life, and a forecast line shows where you’re heading.</p>
+      <p><b>For training and fun only, not for navigation.</b> The ships behave like real ones, but never exactly the same. Don’t use it to plan a real manoeuvre.</p>
+      <p class="credit">Developed by <b>Khalil Mahboub</b>, Captain &amp; Maritime Systems Enthusiast.<br />Questions, feedback, or collaborations:<br />Instagram: <a href="https://www.instagram.com/snowskyz/" target="_blank" rel="noopener">@snowskyz</a>, WhatsApp: <a href="https://wa.me/15145741719" target="_blank" rel="noopener">+1 (514) 574-1719</a></p>
+      <button id="gate-ok" class="cb">I understand</button>
     </div>
   </section>
 
@@ -156,7 +156,7 @@
     <div class="sheet-inner">
       <div class="sheet-head">
         <h1>SHIPSHAPE</h1>
-        <button id="b-close" class="cb">CLOSE</button>
+        <button id="b-close" class="cb">Close</button>
       </div>
       <p class="ship" id="shipline"></p>
 
@@ -189,7 +189,7 @@
         <span class="lbl">Fenders and bollards</span>
         <div class="seg"><button id="b-editberth">Edit on the chart</button></div>
       </div>
-      <p class="note">Every quay, pier and dolphin face is fitted out for the biggest ship that fits it: fenders sized for her berthing energy, bollards all along. Put your own on any of them too: tap near a face to add a bollard on it or a fender on it, or tap one to take it away. Your changes are kept for each scenario on this device; RESET puts the scenario's own back.</p>
+      <p class="note">Every quay, pier and dolphin face is fitted out for the biggest ship that fits it: fenders sized for her berthing energy, bollards all along. Put your own on any of them too: tap near a face to add a bollard on it or a fender on it, or tap one to take it away. Your changes are kept for each scenario on this device; RESET puts the scenario’s own back.</p>
       </details>
       <details class="sec" id="sec-guide"><summary><h2>Training guide <span class="sub">optional, off by default</span></h2></summary>
       <div class="env-grid">
@@ -202,7 +202,7 @@
         <span class="lbl">Tips seen</span>
         <div class="seg"><button id="g-forget">Show them all again</button></div>
       </div>
-      <p class="note">A training aid, not a procedure. Every statement says whether it is measured data, published guidance or what this simulator's model does. There is no single global standard for handling podded or azimuthing propulsion, so the ship's manual and your company's procedures always come first. Like the rest of SHIPSHAPE it is not for navigation.</p>
+      <p class="note">A training aid, not a procedure. Every statement says whether it is measured data, published guidance or what this simulator’s model does. There is no single global standard for handling podded or azimuthing propulsion, so the ship’s manual and your company’s procedures always come first. Like the rest of SHIPSHAPE it is not for navigation.</p>
       <div id="guide-ref" class="gref-list"></div>
       </details>
       <details class="sec"><summary><h2>Damage</h2></summary>
@@ -266,14 +266,15 @@
       <div class="keys">
         <p><b>Levers.</b> LINKED drives both pods together: either dial sets both azimuths and either RPM lever sets both rpm. INDEP gives each pod its own dial and RPM lever; with one pod fore-and-aft and the other athwartships, the control system holds the athwartships pod to 70 %. JOY replaces the levers with a joystick for harbour speeds below about 5 kn (left pad: surge and sway; slider: yaw, both spring back to centre) and enables heading and position hold. At neutral stick the pods pull inward against each other so small orders change thrust rather than swing the pods.</p>
         <p><b>Pods.</b> The dial sets azimuth only: drag the handle to where the pod should pull the stern; the coloured needle shows the actual thrust direction and strength. The RPM lever beside each dial sets rpm: ahead up, astern down, with a detent at zero; the handle is the order, the coloured bar the actual rpm, which lags (about 30 s to full rpm, 60 s from full ahead to full astern). Dashed lines mark the astern limit and any power or berthing-split ceiling. Astern rpm reverses the propeller, but the system ignores a reverse order above 28 % rpm, so take the rpm off first or swing the pod instead. Pods and bow thruster share one switchboard. Double-tap an RPM lever to stop that pod.</p>
-        <p><b>Keys.</b> Port pod <kbd>A</kbd><kbd>D</kbd> azimuth, <kbd>W</kbd><kbd>S</kbd> rpm · stbd pod <kbd>J</kbd><kbd>L</kbd>, <kbd>I</kbd><kbd>K</kbd> · bow thruster or yaw <kbd>Q</kbd><kbd>E</kbd> · joystick <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> · <kbd>M</kbd> lever mode · <kbd>X</kbd> zero · <kbd>Space</kbd> pause · <kbd>[</kbd><kbd>]</kbd> time · <kbd>P</kbd> predictor · <kbd>H</kbd> head-up · <kbd>F</kbd> follow · <kbd>V</kbd> chart / split / 3D · <kbd>C</kbd> 3D camera (PODS: underwater view of the Azipods; in CHASE, drag down to go below the surface)</p>
+        <p><b>Keys.</b> Port pod <kbd>A</kbd><kbd>D</kbd> azimuth, <kbd>W</kbd><kbd>S</kbd> rpm; stbd pod <kbd>J</kbd><kbd>L</kbd>, <kbd>I</kbd><kbd>K</kbd>; bow thruster or yaw <kbd>Q</kbd><kbd>E</kbd>; joystick <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>; <kbd>M</kbd> lever mode; <kbd>X</kbd> zero; <kbd>Space</kbd> pause; <kbd>[</kbd><kbd>]</kbd> time; <kbd>P</kbd> predictor; <kbd>H</kbd> head-up; <kbd>F</kbd> follow; <kbd>V</kbd> chart / split / 3D; <kbd>C</kbd> 3D camera (PODS: underwater view of the Azipods; in CHASE, drag down to go below the surface)</p>
       </div>
       </details>
       <details class="sec"><summary><h2>Credits</h2></summary>
         <div class="keys credits">
           <p><b>Developed by Khalil Mahboub</b>, Captain &amp; Maritime Systems Enthusiast.</p>
           <p>Questions, feedback, or collaborations:<br />Instagram: <a href="https://www.instagram.com/snowskyz/" target="_blank" rel="noopener">@snowskyz</a> | WhatsApp: <a href="https://wa.me/15145741719" target="_blank" rel="noopener">+1 (514) 574-1719</a></p>
-          <p><b>Training guide.</b> Its tips, drills and exercises follow published model tests, standards, port towage guidelines and manufacturers' documents; each statement lists its source and how sure it is (Menu → Training guide → Reference). It is a training aid, not a handling standard: the ship's own manual comes first. Not for navigation.</p>
+          <p><b>Typeface.</b> Geologica, by the Geologica Project Authors, under the SIL Open Font License 1.1.</p>
+          <p><b>Training guide.</b> Its tips, drills and exercises follow published model tests, standards, port towage guidelines and manufacturers' documents; each statement lists its source and how sure it is (Menu → Training guide → Reference). It is a training aid, not a handling standard: the ship’s own manual comes first. Not for navigation.</p>
         </div>
       </details>
       <details class="sec"><summary><h2>Install &amp; offline</h2></summary>

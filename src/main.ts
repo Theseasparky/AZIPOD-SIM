@@ -1,11 +1,3 @@
-import '@fontsource/barlow-condensed/latin-500.css';
-import '@fontsource/barlow-condensed/latin-600.css';
-import '@fontsource/barlow-condensed/latin-700.css';
-import '@fontsource/barlow/latin-400.css';
-import '@fontsource/barlow/latin-500.css';
-import '@fontsource/ibm-plex-mono/latin-400.css';
-import '@fontsource/ibm-plex-mono/latin-500.css';
-import '@fontsource/ibm-plex-mono/latin-500-italic.css';
 import './style.css';
 import { initApp, persist, toast } from './app';
 addEventListener('azb-model-failed', e => toast(`Couldn't download the 3D model of ${(e as CustomEvent<string>).detail}, so it is drawn in plain shapes. Check the connection${location.hostname === 'volartech.github.io' ? ', and open SHIPSHAPE from its new address' : ''}.`,
@@ -327,18 +319,18 @@ function updateHud() {
   const ukcEl = $('r-ukc');
   ukcEl.textContent = isFinite(ukc) ? ukc.toFixed(1) : '—';
   ukcEl.className = 'val' + (isFinite(ukc) && ukc < 0.5 ? ' port' : '');
-  $('r-wind').textContent = r.windTrueSpeed > 0.5 ? `WIND ${pad3(r.windTrueFrom / DEG)}° ${(r.windTrueSpeed / KN).toFixed(0)} kn · REL ${sgn(r.windRelAngle / DEG)}°` : 'WIND calm';
+  $('r-wind').textContent = r.windTrueSpeed > 0.5 ? `Wind ${pad3(r.windTrueFrom / DEG)}° ${(r.windTrueSpeed / KN).toFixed(0)} kn, rel ${sgn(r.windRelAngle / DEG)}°` : 'Wind calm';
   const cs = Math.hypot(r.curEst[0], r.curEst[1]);
-  $('r-cur').textContent = cs > 0.03 ? `CURRENT est ${pad3(Math.atan2(r.curEst[1], r.curEst[0]) / DEG)}° ${(cs / KN).toFixed(1)} kn` : 'CURRENT est nil';
+  $('r-cur').textContent = cs > 0.03 ? `Current est ${pad3(Math.atan2(r.curEst[1], r.curEst[0]) / DEG)}° ${(cs / KN).toFixed(1)} kn` : 'Current est nil';
   const d = rt.depthHere;
-  $('r-depth').textContent = isFinite(d) ? `DEPTH ${d.toFixed(1)} m · SQUAT ${rt.sq.toFixed(2)} m` : 'DEPTH deep';
+  $('r-depth').textContent = isFinite(d) ? `Depth ${d.toFixed(1)} m, squat ${rt.sq.toFixed(2)} m` : 'Depth deep';
   const st = rt.status, used = st.podPower.reduce((a, b) => a + b, 0) + st.btPower;
   // independent diesels (tugs, two-strokes): show the installed power, not a switchboard
   const avail = st.avail > 1e8 || !SHIP.pods.some(p => !p.kind || p.kind === 'azipod' || p.shaft?.engine.type === 'electric')
     ? SHIP.pods.reduce((a, p) => a + p.P, 0) + SHIP.bowThruster.P + (SHIP.sternThruster?.P ?? 0) : st.avail;
-  $('r-pwr').textContent = `PWR ${(used / 1e6).toFixed(1)}/${(avail / 1e6).toFixed(1)} MW${st.limited ? ' LIM' : ''}`;
+  $('r-pwr').textContent = `Power ${(used / 1e6).toFixed(1)}/${(avail / 1e6).toFixed(1)} MW${st.limited ? ' limited' : ''}`;
   const t = Math.floor(rt.state.t);
-  $('r-time').textContent = `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')} ${SPEEDS[S.speedIdx]}×${S.paused ? ' PAUSED' : ''}`;
+  $('r-time').textContent = `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')} ${SPEEDS[S.speedIdx]}×${S.paused ? ' paused' : ''}`;
   updateFlag();
   if (station) station.update(); else updateTray();
   updateLegend();
@@ -358,8 +350,8 @@ function updateFlag() {
     else if (v <= 0.1) { word = 'Landed gently'; cls = 'good'; }
     else if (v <= 0.2) { word = 'Firm landing'; cls = ''; }
     else { word = 'Heavy landing'; cls = 'heavy'; }
-    const fend = last.fenders ? ` · fender ${(last.maxDefl * 100).toFixed(0)} %` : '';
-    return show(`${word} · ${(v * 100).toFixed(0)} cm/s · ${(last.energy / 1e3).toFixed(0)} kJ${fend}`, cls);
+    const fend = last.fenders ? `, fender ${(last.maxDefl * 100).toFixed(0)} %` : '';
+    return show(`${word}: ${(v * 100).toFixed(0)} cm/s, ${(last.energy / 1e3).toFixed(0)} kJ${fend}`, cls);
   }
   if (alert && st.t - alert.t < 10) return show(alert.text, alert.cls);
   const cur = S.pred.tracks.find(t => t.alt === 'current');
@@ -371,11 +363,11 @@ function updateFlag() {
   if (tg) {
     const bp = tg.psi * DEG, dn = est.n - tg.n, de = est.e - tg.e;
     const along = dn * Math.cos(bp) + de * Math.sin(bp), off = -dn * Math.sin(bp) + de * Math.cos(bp);
-    if (Math.hypot(dn, de) < 400) return show(`${tg.id ? tg.name.toUpperCase() : 'BERTH'} · ${along >= 0 ? 'past' : 'short'} ${Math.abs(along).toFixed(0)} m · off ${Math.abs(off).toFixed(1)} m · hdg ${sgn(wrap(est.psi - bp) / DEG, 1)}°`, '');
+    if (Math.hypot(dn, de) < 400) return show(`${tg.id ? tg.name : 'Berth'}: ${along >= 0 ? 'past' : 'short'} ${Math.abs(along).toFixed(0)} m, off ${Math.abs(off).toFixed(1)} m, hdg ${sgn(wrap(est.psi - bp) / DEG, 1)}°`, '');
   }
   // no berth to make for: name the one she is lying near, and the water there
   const nb = S.sc.berths?.length && r_sog(rt) < 4 * KN ? nearestBerth(S.sc.berths, est.n, est.e, 2 * SHIP.B) : null;
-  if (nb && !tg) return show(`${nb.berth.name.toUpperCase()} · ${nb.berth.depth.toFixed(1)} m alongside · ${nb.d.toFixed(0)} m off`, '');
+  if (nb && !tg) return show(`${nb.berth.name}: ${nb.berth.depth.toFixed(1)} m alongside, ${nb.d.toFixed(0)} m off`, '');
   flag.hidden = true;
 }
 
@@ -385,19 +377,19 @@ function updateLegend() {
   const lg = $('legend'), rt = S.rt;
   const rows: string[] = [];
   const fx: string[] = [];
-  if (Math.abs(rt.bank.Y) > 15e3) fx.push(`BANK ${(Math.abs(rt.bank.Y) / 9.81e3).toFixed(0)} t · stern to ${rt.bank.Y < 0 ? 'port' : 'stbd'}`);
-  if (Math.hypot(rt.wash.X, rt.wash.Y) > 15e3) fx.push(`WASH OFF WALL ${(Math.hypot(rt.wash.X, rt.wash.Y) / 9.81e3).toFixed(0)} t`);
-  if (rt.sq > 0.15) fx.push(`SQUAT ${rt.sq.toFixed(2)} m · UKC ${rt.ukc.toFixed(2)} m`);
+  if (Math.abs(rt.bank.Y) > 15e3) fx.push(`Bank ${(Math.abs(rt.bank.Y) / 9.81e3).toFixed(0)} t, stern to ${rt.bank.Y < 0 ? 'port' : 'stbd'}`);
+  if (Math.hypot(rt.wash.X, rt.wash.Y) > 15e3) fx.push(`Wash off the wall ${(Math.hypot(rt.wash.X, rt.wash.Y) / 9.81e3).toFixed(0)} t`);
+  if (rt.sq > 0.15) fx.push(`Squat ${rt.sq.toFixed(2)} m, UKC ${rt.ukc.toFixed(2)} m`);
   const shown = S.pred.mode ? S.pred.tracks.filter(t => t.alt === 'current' || (S.pred.mode === 2 && S.pred.alts.has(t.alt))) : [];
   const row = (t: Track) => { const o = D.trackOutcome(t); return `<div class="row"><span class="sw" style="background:${D.altColor(t.alt)}"></span><span class="nm">${D.ALT_SHORT[t.alt]}</span><span class="oc${o.bad ? ' bad' : ''}">${o.text}</span></div>`; };
   if (legendOpen) {
-    if (S.pred.mode) { rows.push(`<div class="hd">PREDICTION · ${S.pred.count} × ${S.pred.interval} s · ${S.pred.source === 'onboard' ? 'ONBOARD' : 'IDEAL'} ▴</div>`); shown.forEach(t => rows.push(row(t))); }
-    if (fx.length) rows.push(`<div class="hd">EFFECTS</div>` + fx.map(t => `<div class="row"><span class="oc">${t}</span></div>`).join(''));
+    if (S.pred.mode) { rows.push(`<div class="hd">Prediction ${S.pred.count} × ${S.pred.interval} s, ${S.pred.source === 'onboard' ? 'onboard' : 'ideal'} ▴</div>`); shown.forEach(t => rows.push(row(t))); }
+    if (fx.length) rows.push(`<div class="hd">Effects</div>` + fx.map(t => `<div class="row"><span class="oc">${t}</span></div>`).join(''));
   } else if (shown.length || fx.length) {
     // collapsed: the as-set track plus anything that ends badly
     const bad = shown.filter(t => t.alt !== 'current' && D.trackOutcome(t).bad).length;
     const cur = shown.find(t => t.alt === 'current');
-    rows.push(`<div class="hd">PRED ${S.pred.interval} s${bad ? ` · ${bad} WHAT-IF ⚠` : ''}${fx.length ? ` · ${fx.length} EFFECT${fx.length > 1 ? 'S' : ''}` : ''} ▾</div>`);
+    rows.push(`<div class="hd">Prediction ${S.pred.interval} s${bad ? `, ${bad} what-if ⚠` : ''}${fx.length ? `, ${fx.length} effect${fx.length > 1 ? 's' : ''}` : ''} ▾</div>`);
     if (cur) rows.push(row(cur));
   }
   const html = rows.join('');
@@ -662,7 +654,7 @@ function setLever(m: LeverMode) {
   $('b-mode').textContent = { twin: 'LINKED', indep: 'INDEP', joy: 'JOY' }[m];
   $('b-mode').setAttribute('aria-pressed', String(m === 'twin'));
   document.querySelectorAll<HTMLElement>('.joyonly').forEach(b => (b.hidden = !joy));
-  $('bt-label').textContent = joy ? 'YAW' : 'BOW THRUSTER';
+  $('bt-label').textContent = joy ? 'Yaw' : 'Bow thruster';
   btIn.value = '0';
   if (m === 'twin' && S.rt.canJoy) { S.cmd.pods[1].alpha = S.cmd.pods[0].alpha; S.cmd.pods[1].rpm = S.cmd.pods[0].rpm; }
   if (!joy) S.cmd.bt = 0;
@@ -705,12 +697,12 @@ function updateLinesPanel() {
 }
 function buildTugs() {
   const box = $('tugs');
-  $('tug-head').textContent = `TUGS · ${Math.round((S.rt.tugs[0]?.Fmax ?? 0) / 9.81e3)} t BOLLARD PULL`;
+  $('tug-head').textContent = `Tugs, ${Math.round((S.rt.tugs[0]?.Fmax ?? 0) / 9.81e3)} t bollard pull`;
   box.innerHTML = S.rt.tugs.map((t, i) => `
     <div class="tugrow"><span class="tag">${t.name}</span>
       <span class="btslide"><input type="range" id="tg-${i}" min="-100" max="100" step="25" value="0" aria-label="${t.name} order: pull to push" /><i class="btghost" id="tgg-${i}" hidden></i></span>
       <span class="t" id="tt-${i}">idle</span></div>
-    <div class="btscale"><span></span><span>PULL ← · → PUSH (${t.side > 0 ? 'toward port' : 'toward stbd'})</span><span></span></div>
+    <div class="btscale"><span></span><span>PULL ← → PUSH (${t.side > 0 ? 'toward port' : 'toward stbd'})</span><span></span></div>
     <div class="tugsug" id="tgs-${i}" hidden></div>`).join('');
   S.rt.tugs.forEach((t, i) => { ($('tg-' + i) as HTMLInputElement).oninput = e => (t.order = +(e.target as HTMLInputElement).value / 100); });
 }

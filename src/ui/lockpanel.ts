@@ -18,7 +18,7 @@ export function initLockPanel() {
   const lock = S.water?.lock;
   $('b-lock').hidden = !lock;
   if (!lock) { $('p-lock').hidden = true; return; }
-  $('lock-head').textContent = `${lock.def.name.toUpperCase()} · ${lock.def.vhf}`;
+  $('lock-head').textContent = `${lock.def.name}, ${lock.def.vhf}`;
   ($('lock-call') as HTMLButtonElement).onclick = () => { S.rt && lock.call(SHIP, S.rt.state); updateLockPanel(true); };
 }
 let logN = -1;
