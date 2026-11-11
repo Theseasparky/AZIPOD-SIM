@@ -17,7 +17,7 @@ export type Fam = 'pod' | 'asd' | 'vsp' | 'rotor' | 'twostroke' | 'cpp' | 'jet' 
 export type Track = 'azipod' | 'tugs' | 'special';
 /** Brief: one line. Explain: why, the real-world note and its sources. */
 export type Level = 'brief' | 'explain';
-/** Only the user promotes a card from draft, after reading the claims register. */
+/** A card is promoted from draft by hand, after reading the claims register. */
 export type Review = 'draft' | 'reviewed';
 
 export type SourceKind = 'standard' | 'paper' | 'manual' | 'guidance' | 'incident' | 'textbook' | 'web';

@@ -66,7 +66,7 @@ function explainHtml(k: Card | Procedure) {
   if (k.sim) parts.push(`<h4>In SHIPSHAPE</h4><p>${esc(fill(k.sim, SHIP))}</p>`);
   return `<div class="coach-more">${parts.join('')}</div>`;
 }
-const draftChip = (k: { review: string }) => (k.review === 'draft' ? '<span class="gc draft" title="Not yet reviewed by the captain">DRAFT</span>' : '');
+const draftChip = (k: { review: string }) => (k.review === 'draft' ? '<span class="gc draft" title="Not yet reviewed">DRAFT</span>' : '');
 function cardHtml(k: Card, level: Level, title = true) {
   return `${title ? `<p class="coach-title">${esc(k.title)}${level === 'explain' ? draftChip(k) : ''}</p>` : ''}<p class="coach-brief">${esc(fill(k.brief, SHIP))}</p>${level === 'explain' ? explainHtml(k) : ''}`;
 }

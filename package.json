@@ -15,7 +15,7 @@
     "golden": "tsx scripts/golden.ts",
     "guide:dossier": "tsx scripts/guide-dossier.ts"
   },
-  "author": "VOLARtech",
+  "author": "Khalil Mahboub (VOLARtech)",
   "license": "UNLICENSED",
   "devDependencies": {
     "@types/node": "^22.9.0",

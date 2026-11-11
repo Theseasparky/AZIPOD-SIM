@@ -79,6 +79,7 @@ On a phone or tablet, just use the levers and wheels on screen. On a computer yo
 
 ## What's new
 
+- **Version 5.2: a cleaner console.** The readouts, buttons and panels are redrawn as a flat, dark instrument console with one typeface and larger figures: each reading sits under its label with its unit, panels are marked at their corners, and the menu is a plain ruled list. The chart, the colours for port, starboard and the predictor, and every control work as before.
 - **Version 5.1: an optional training guide.** Drills for a crash stop with Azipods, a crash astern on a direct-reversing engine, stopping a waterjet ship, working two assist tugs and releasing a tug's line before it girts; practice exercises (a VLCC crash stop, a fast ferry alongside, holding position on DP through a fault, escorting a tanker, alongside with tugs) that end in a debrief, not a score; and dashed suggestions: a closing-speed guideline on the quay lines, the pivot point, the pod settings that would close a gap, and the tug orders that would do it. Every statement is tagged measured, published or rule, with its source. The sources, what was actually read, and what is still unverified are in [docs/TRAINING.md](docs/TRAINING.md).
 - **Version 5: real charts and harbours, and a lock.** Two new real-chart areas (Los Angeles–Long Beach and IJmuiden–Amsterdam) and PortMiami out to its sea buoy; depth contours, soundings and every buoy, beacon and light on every chart, the schematic harbours included; fenders and bollards at every berth, sized for the biggest ship that fits it; the IJmuiden Zeesluis worked by its lock master, with the tide outside and the canal level inside; the areas download for offline use from the Install & offline section; links straight to a scenario (for example `?scenario=ijm-lock-in&view=3d`).
 - **New name: SHIPSHAPE.** Azipod Bridge is now SHIPSHAPE, since it has grown from Azipod cruise ships into every kind of ship. The address stays the same, and an installed copy keeps working.
@@ -107,6 +108,7 @@ On a phone or tablet, just use the levers and wheels on screen. On a computer yo
 - **Buildings and roads:** © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the Open Database License.
 - **Spirit-class cruise ship:** 1:300 Carnival Spirit hobby model (3D Warehouse, converted by iconic3dmodels).
 - **Paspaley Pearl:** 3D model supplied by VOLARtech.
+- **Typeface:** [Geologica](https://github.com/googlefonts/geologica) by the Geologica Project Authors, under the SIL Open Font License 1.1.
 - **Other 3D ship models:** from [Sketchfab](https://sketchfab.com), used under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each model shows the type of ship, not that exact vessel.
   - Large Azipod cruise ship (Lady class): “[Viking Cruise Ship](https://sketchfab.com/3d-models/none-c82a7e2bbf4c44e3ac1d1e7bac42e2b7)” by jfactory
   - Twin-propeller cruise ship: “[Carnival Fantasy](https://sketchfab.com/3d-models/none-eced5ea7f7b8460aaf91e8d9bb34427f)” by gmanisdabossatbeastmode
@@ -136,8 +138,8 @@ npm test           # check the physics still behaves
 npm run build:all  # build the app and the offline copy
 ```
 
-Every change to `main` is tested and published automatically. The physics, data sources, ship-model tools and every command are described in [docs/TECHNICAL.md](docs/TECHNICAL.md), and how it all compares with real ships in [docs/PHYSICS_AUDIT.md](docs/PHYSICS_AUDIT.md); the plan behind the fleet expansion is in [docs/expansion/PLAN.md](docs/expansion/PLAN.md).
+Every change to `main` is tested and published automatically. The physics, data sources, ship-model tools and every command are described in [docs/TECHNICAL.md](docs/TECHNICAL.md), and how it all compares with real ships in [docs/PHYSICS_AUDIT.md](docs/PHYSICS_AUDIT.md); the original plan for the fleet expansion is kept in [docs/expansion/PLAN.md](docs/expansion/PLAN.md).
 
 ## Licence
 
-Not chosen yet: all rights reserved by VOLARtech until a licence is added.
+Not chosen yet. Until a licence is added, all rights are reserved by Khalil Mahboub (VOLARtech).

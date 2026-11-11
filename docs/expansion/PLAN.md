@@ -2,7 +2,7 @@
 
 **Goal:** turn Azipod Bridge from a twin-Azipod cruise-ship trainer into a ship-handling simulator that covers every common propulsion system, from a 31 m tractor tug to a 400 m container ship, without losing what makes the current app good: a published-model physics core that is checked against real data, a station a trainee can read at a glance, and one build that runs on a phone, a desktop and offline.
 
-**Status:** proposal. Nothing in this document is implemented yet. The mockups in [`mockups/`](mockups/) are design targets rendered from code (`node docs/expansion/mockups/render.mjs`), not screenshots of the app.
+**Status:** carried out. This is the original proposal, kept for reference; the fleet and propulsion systems it describes are now in the app, and [TECHNICAL.md](../TECHNICAL.md) describes what was built. The mockups in [`mockups/`](mockups/) are design targets rendered from code (`node docs/expansion/mockups/render.mjs`), not screenshots of the app.
 
 ---
 
