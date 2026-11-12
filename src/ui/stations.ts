@@ -7,7 +7,8 @@ import type { PodSpec } from '../physics/ship';
 import { S } from './state';
 import * as D from './draw';
 import { uiTick } from './audio';
-import { AngleDetent, LinearDetent, detentSlider } from './controls';
+import { AngleDetent, LinearDetent, detentSlider, nudgeAngle, nudgeLinear, nudgeOrder } from './controls';
+import { nudged, nudgeButton, nudgeSlider } from './nudge';
 import { BAND, jetJoystick, jetToLever, leverToJet } from '../physics/units/jet';
 import { capability } from '../physics/dp';
 
@@ -67,6 +68,7 @@ class Telegraph extends Canvas {
     for (const i of this.units) S.cmd.pods[i].rpm = v;
   }
   step(d: number) { this.set(Math.max(0, Math.min(this.steps.length - 1, this.index(S.cmd.pods[this.units[0]].rpm) + d))); }
+  nudge(dir: number) { this.step(-dir); }
   draw() {
     if (this.h < 60) return;
     const g = this.begin(), x = 26, i0 = this.units[0];
@@ -123,6 +125,11 @@ class PitchLever extends Canvas {
   /** The ship's own bridge programme: the lever is the order (pitch and rpm follow it). */
   get program() { return this.mode === 'pitch' ? SHIP.pods[this.units[0]].shaft?.prop.cpp?.program : undefined; }
   set(v: number) { for (const i of this.units) { const c = S.cmd.pods[i]; if (this.mode === 'pitch') { c.pitch = v; c.rpm = combinatorRpm(v); } else c.rpm = v; } }
+  /** A fine-control press: 2 % of travel, or the next order on a ship with her own bridge programme. */
+  nudge(dir: number) {
+    const orders = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1].filter(o => o >= -this.astern - 1e-9);
+    this.set(this.program ? nudgeOrder(orders, this.get(), dir) : nudgeLinear(this.get(), dir, -this.astern, 1));
+  }
   y(v: number) { return 14 + (this.h - 28) / 2 * (1 - v); }
   draw() {
     if (this.h < 60) return;
@@ -272,7 +279,7 @@ export function buildStation(host: HTMLElement): Station {
   for (const [p, i] of units) {
     const w = cpp ? new PitchLever([i], p.shaft!.prop.cpp!.asternPitch) : elec ? new PitchLever([i], 1, 'rpm') : new Telegraph([i], p.shaft!.telegraph);
     if (units.length > 1) { const t = document.createElement('span'); t.className = 'unit-tag'; t.textContent = sideTag(p); t.style.color = sideCol(p); engRow.appendChild(t); }
-    engRow.appendChild(w.c); levers.push(w); canvases.push(w);
+    engRow.appendChild(nudged(w.c, 'side', `${sideTag(p) || 'Engine'} order`, () => w.nudge(-1), () => w.nudge(1))); levers.push(w); canvases.push(w);
   }
   const relink = () => {
     // each lever drives its own shaft, and the others too while linked
@@ -291,7 +298,7 @@ export function buildStation(host: HTMLElement): Station {
   let helm: Helm | null = null;
   if (ruddered.length) {
     const hc = cell('Helm', ruddered.length > 1 ? `${ruddered.length} RUDDERS · LINKED` : 'FOLLOW-UP', 'helm');
-    helm = new Helm(ruddered); hc.appendChild(helm.c); canvases.push(helm);
+    helm = new Helm(ruddered); const hm = helm; hc.appendChild(nudged(hm.c, 'ends', 'Rudder 5°', () => hm.nudge(-5 * DEG), () => hm.nudge(5 * DEG), ['◀', '▶'], ['to port', 'to starboard'])); canvases.push(helm);
   }
   // engine room / status
   const sc = cell('Engine room', '', 'status');
@@ -305,6 +312,7 @@ export function buildStation(host: HTMLElement): Station {
     tCell!.appendChild(w);
     const el = w.querySelector('input')!;
     detentSlider(el, v => { S.cmd[key] = v; }, () => S.cmd[key] ?? 0);
+    nudgeSlider(el, `${label} thruster`, v => { S.cmd[key] = v; }, () => S.cmd[key] ?? 0);
     thr.push({ el, key });
   };
   if (SHIP.bowThruster.Tmax > 0) addThr('bt', 'BOW');
@@ -419,6 +427,9 @@ class CombiLever extends Canvas {
     const end = (e: PointerEvent) => { if (this.c.hasPointerCapture(e.pointerId)) { const rpm = lin.release(raw), a = ang.release(); for (const i of this.units) { S.cmd.pods[i].alpha = a; S.cmd.pods[i].rpm = rpm; } } };
     this.c.addEventListener('pointerup', end); this.c.addEventListener('pointercancel', end);
   }
+  /** Fine-control presses: power by 2 %, direction by 5°. */
+  nudge(dir: number) { const v = nudgeLinear(S.cmd.pods[this.units[0]].rpm, dir, 0, 1); for (const i of this.units) S.cmd.pods[i].rpm = v; }
+  turn(dir: number) { const a = nudgeAngle(S.cmd.pods[this.units[0]].alpha, dir); for (const i of this.units) S.cmd.pods[i].alpha = a; }
   draw() {
     if (this.w < 60) return;
     const g = this.begin(), cx = this.w / 2, cy = this.h / 2, R = Math.min(this.w, this.h) / 2 - 12;
@@ -548,7 +559,13 @@ export function buildTugStation(host: HTMLElement, vsp: boolean): Station {
     const w = vsp ? new VspPad([i], p.label) : new CombiLever([i], p.label);
     const box = document.createElement('div'); box.className = 'unitbox';
     box.innerHTML = `<span class="unit-tag2" style="color:${sideCol(p)}">${p.label}</span>`;
-    box.appendChild(w.c); row.appendChild(box); ctl.push(w); canvases.push(w);
+    if (w instanceof CombiLever) {
+      box.appendChild(nudged(w.c, 'side', `${p.label} power`, () => w.nudge(-1), () => w.nudge(1)));
+      const tr = document.createElement('div'); tr.className = 'nudge ends turn';
+      tr.append(nudgeButton('↺', `${p.label} direction 5° anticlockwise`, () => w.turn(-1)), nudgeButton('↻', `${p.label} direction 5° clockwise`, () => w.turn(1)));
+      box.appendChild(tr);
+    } else box.appendChild(w.c);
+    row.appendChild(box); ctl.push(w); canvases.push(w);
   }
   let linked = false;
   const linkB = uc.querySelector('b')!;
@@ -656,6 +673,7 @@ class JetLever extends Canvas {
     this.v = v;
     for (const i of this.units) { const o = leverToJet(v, SHIP.pods[i].jet!.idle), c = S.cmd.pods[i]; c.bucket = o.bucket; c.rpm = o.rpm; }
   }
+  nudge(dir: number) { this.set(nudgeLinear(this.v, dir)); }
   y(v: number) { return 14 + (this.h - 28) / 2 * (1 - v); }
   draw() {
     if (this.h < 60) return;
@@ -765,7 +783,7 @@ export function buildJetStation(host: HTMLElement): Station {
   const lc = cell('Jets', 'LINKED', 'eng');
   const lrow = document.createElement('div'); lrow.className = 'row'; lc.appendChild(lrow);
   const levers = [new JetLever(port, 'Port'), new JetLever(stbd, 'Starboard')];
-  levers.forEach((l, k) => { const t = document.createElement('span'); t.className = 'unit-tag'; t.textContent = k ? 'STBD' : 'PORT'; t.style.color = k ? D.K.stbd : D.K.port; lrow.appendChild(t); lrow.appendChild(l.c); canvases.push(l); });
+  levers.forEach((l, k) => { const t = document.createElement('span'); t.className = 'unit-tag'; t.textContent = k ? 'STBD' : 'PORT'; t.style.color = k ? D.K.stbd : D.K.port; lrow.appendChild(t); lrow.appendChild(nudged(l.c, 'side', `${k ? 'Starboard' : 'Port'} jet`, () => l.nudge(-1), () => l.nudge(1))); canvases.push(l); });
   const linkB = lc.querySelector('b')!; linkB.style.cursor = 'pointer';
   const relink = () => { levers[0].units = linked ? all : port; levers[1].units = linked ? all : stbd; linkB.textContent = linked ? 'LINKED' : 'SPLIT'; };
   linkB.onclick = () => { linked = !linked; relink(); };
@@ -776,7 +794,7 @@ export function buildJetStation(host: HTMLElement): Station {
   for (const [, i] of units) { const gq = new JetGauge(i); grow.appendChild(gq.c); canvases.push(gq); }
   // helm and joystick share a cell
   const hc = cell('Helm', 'TRANSIT', 'helm');
-  const helm = new Helm(all, SHIP.pods[all[0]].jet!.nozzleMax); hc.appendChild(helm.c); canvases.push(helm);
+  const helm = new Helm(all, SHIP.pods[all[0]].jet!.nozzleMax); hc.appendChild(nudged(helm.c, 'ends', 'Nozzles 5°', () => helm.nudge(-5 * DEG), () => helm.nudge(5 * DEG), ['◀', '▶'], ['to port', 'to starboard'])); canvases.push(helm);
   const joy = new JetJoy(); joy.c.hidden = true; hc.appendChild(joy.c); canvases.push(joy);
   const modeB = hc.querySelector('b')!; modeB.style.cursor = 'pointer';
   const setMode = (m: typeof mode) => {
@@ -798,6 +816,7 @@ export function buildJetStation(host: HTMLElement): Station {
     w.innerHTML = `<label class="tag">BOW <span class="mono" data-k="bt">0</span></label><input type="range" min="-100" max="100" step="1" value="0" aria-label="Bow thruster" /><div class="btscale"><span>PORT</span><span>STBD</span></div>`;
     tc.appendChild(w); btEl = w.querySelector('input')!;
     detentSlider(btEl, v => { if (mode !== 'joy') S.cmd.bt = v; }, () => S.cmd.bt);
+    nudgeSlider(btEl, 'Bow thruster', v => { if (mode !== 'joy') S.cmd.bt = v; }, () => S.cmd.bt);
   }
   const bc = cell('', '', 'btns');
   bc.innerHTML = '<button class="cb warn" data-a="zero">BUCKETS ZERO</button><button class="cb" data-a="mid">MIDSHIPS</button>';

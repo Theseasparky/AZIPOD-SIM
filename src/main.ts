@@ -26,7 +26,8 @@ import { ensureScenario } from './scenes/loaders';
 import { AREAS } from './scenes/areas';
 import { loadChart } from './ui/chart';
 import { haptic, suspendAudio, uiTick, unlockAudio, updateAudio } from './ui/audio';
-import { AngleDetent, LinearDetent, detentSlider, onFeel } from './ui/controls';
+import { AngleDetent, LinearDetent, detentSlider, nudgeAngle, nudgeLinear, onFeel } from './ui/controls';
+import { nudgeButton, nudgeSlider } from './ui/nudge';
 onFeel(uiTick);
 import { S, SPEEDS, ghostInterval } from './ui/state';
 import * as D from './ui/draw';
@@ -618,6 +619,15 @@ class RpmLever {
 }
 const dials = [new Dial(0), new Dial(1)];
 const levers = [new RpmLever(0), new RpmLever(1)];
+// fine control under each pod: azimuth by 5°, rpm by 2 % (both pods together while LINKED; not in joystick mode)
+[0, 1].forEach(i => {
+  const side = i ? 'Starboard' : 'Port', row = document.createElement('div'); row.className = 'nudge ends podnudge';
+  const az = (d: number) => { if (S.rt.lever !== 'joy') dials[i].write(nudgeAngle(S.cmd.pods[i].alpha, d)); };
+  const rpm = (d: number) => { if (S.rt.lever !== 'joy') levers[i].set(nudgeLinear(S.cmd.pods[i].rpm, d)); };
+  row.append(nudgeButton('↺', `${side} pod azimuth 5° anticlockwise`, () => az(-1)), nudgeButton('−', `${side} pod rpm down`, () => rpm(-1)),
+    nudgeButton('+', `${side} pod rpm up`, () => rpm(1)), nudgeButton('↻', `${side} pod azimuth 5° clockwise`, () => az(1)));
+  $('pr-' + i).closest('.pod')!.appendChild(row);
+});
 
 function updateTray() {
   const rt = S.rt, joy = rt.lever === 'joy';
@@ -663,6 +673,7 @@ function setLever(m: LeverMode) {
 const btIn = $('bt') as HTMLInputElement;
 // bow thruster (or yaw, on the joystick): zero deadband and stop; the yaw twist springs back to centre
 detentSlider(btIn, v => { if (S.rt.lever === 'joy') S.rt.joy.r = v; else S.cmd.bt = v; }, () => (S.rt.lever === 'joy' ? S.rt.joy.r : S.cmd.bt));
+nudgeSlider(btIn, 'Bow thruster', v => { if (S.rt.lever !== 'joy') S.cmd.bt = v; }, () => S.cmd.bt);
 const btRelease = () => { if (S.rt.lever === 'joy') { btIn.value = '0'; S.rt.joy.r = 0; } };
 btIn.addEventListener('pointerup', btRelease); btIn.addEventListener('change', btRelease);
 // ---------------------------------------------------------------- panels: lines & tugs

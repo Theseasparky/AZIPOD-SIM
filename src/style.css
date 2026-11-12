@@ -247,6 +247,20 @@ h2 .sub { font-weight: 300; font-size: var(--text-sm); letter-spacing: 0; color:
 .scen span.who { font-size: var(--text-xs); color: var(--color-muted); }
 .ships .grp-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .grp-body { display: flex; flex-direction: column; }
+/* fine-control buttons beside levers, helms, dials and sliders */
+.nudge { display: flex; align-items: center; gap: var(--space-2xs); min-width: 0; }
+.nudge.ends > input { flex: 1 1 auto; min-width: 0; }
+.nudge > canvas { flex: none; }
+.st-gen .cell.helm { width: auto; height: auto; }
+.nudge-col { display: flex; flex-direction: column; gap: var(--space-xs); }
+.nb { flex: none; width: 30px; height: 30px; padding: 0; position: relative; background: var(--color-paper-3); border: 0; box-shadow: inset 0 0 0 var(--rule-hair) var(--color-rule-2);
+  border-radius: var(--radius-ctl); color: var(--color-ink); font-size: var(--text-md); font-weight: 400; line-height: 1; touch-action: manipulation; }
+.nb::after { content: ""; position: absolute; inset: -5px -2px; }
+.nb:active { transform: translateY(1px); background: var(--color-paper-4); }
+@media (hover: hover) { .nb:hover { background: var(--color-paper-4); } }
+.podnudge { justify-content: center; gap: 3px; }
+.nudge.turn { justify-content: center; }
+.nudge.ends > .btslide { flex: 1 1 auto; min-width: 0; }
 /* the menu's tabs, search box and collapsible groups */
 .tabs { display: flex; border-bottom: var(--rule-hair) solid var(--color-rule); }
 .tabs button { flex: 1; height: 44px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--color-muted); font-size: var(--text-md); }
@@ -469,6 +483,12 @@ kbd { font-size: var(--text-xs); font-weight: 400; box-shadow: inset 0 0 0 var(-
   .primary .val { font-size: 1.625rem; }
   .hud-row.secondary { justify-content: space-between; gap: var(--space-3xs) 10px; }
   .podread .tag { display: none; }
+  /* a narrow tray: the thruster's buttons go under its slider, and the two mode buttons stack */
+  .center .nudge.ends { flex-wrap: wrap; justify-content: space-between; row-gap: 0; }
+  .center .nudge.ends > .btslide { flex-basis: 100%; order: -1; }
+  .center .btscale { display: none; }
+  .st-az .ctl { grid-template-columns: 1fr; }
+  .st-az .ctl .cb { height: 34px; }
   .panel { left: var(--gutL); right: var(--gutR); max-width: none; }
   .ais { width: clamp(150px, 42vw, 190px); }
   .ais-info { font-size: 0.625rem; }

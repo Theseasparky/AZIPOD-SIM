@@ -234,7 +234,7 @@ test('Paspaley Pearl tracks straight with her pods centred: < 0.5°/min swing', 
 });
 
 console.log('control feel');
-import { AngleDetent, LinearDetent, CONTROL, onFeel, type Feel } from '../src/ui/controls';
+import { AngleDetent, LinearDetent, CONTROL, onFeel, nudgeAngle, nudgeLinear, nudgeOrder, type Feel } from '../src/ui/controls';
 {
   const felt: [Feel, boolean][] = [];
   onFeel((k, vib) => felt.push([k, vib]));
@@ -1497,5 +1497,20 @@ import { lineForces, passLine, updateWinches } from '../src/physics/mooring';
     assert.ok(Math.abs(now.depthAt(c.n, c.e) - (18 + w.level('outer'))) < 1e-9);
   });
 }
+
+test('fine-control buttons: 2 % steps inside the lever travel, 5° steps on dials and helms, one order on a telegraph', () => {
+  assert.equal(nudgeLinear(0, 1), 0.02); assert.equal(nudgeLinear(0.02, -1), 0); assert.equal(nudgeLinear(0.37, 1), 0.39);
+  assert.equal(nudgeLinear(0.99, 1), 1); assert.equal(nudgeLinear(1, 1), 1);                    // held at the end stop
+  assert.equal(nudgeLinear(-0.29, -1, -0.3), -0.3); assert.equal(nudgeLinear(0, -1, 0), 0);    // an astern limit, a lever with no astern
+  const deg = (a: number) => Math.round(a / DEG * 1e6) / 1e6;
+  assert.equal(deg(nudgeAngle(0, 1)), 5); assert.equal(deg(nudgeAngle(0, -1)), -5);
+  assert.equal(deg(nudgeAngle(12 * DEG, 1)), 15); assert.equal(deg(nudgeAngle(12 * DEG, -1)), 10);   // onto the 5° grid first
+  assert.equal(deg(nudgeAngle(15 * DEG, 1)), 20);
+  assert.equal(Math.abs(deg(nudgeAngle(178 * DEG, 1))), 180); assert.equal(deg(nudgeAngle(Math.PI, 1)), -175);   // a dial wraps
+  assert.equal(deg(nudgeAngle(33 * DEG, 1, 5, -35 * DEG, 35 * DEG)), 35); assert.equal(deg(nudgeAngle(35 * DEG, 1, 5, -35 * DEG, 35 * DEG)), 35);   // a rudder stops hard over
+  const orders = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4];
+  assert.equal(nudgeOrder(orders, 0, 1), 0.2); assert.equal(nudgeOrder(orders, 0, -1), -0.2);
+  assert.equal(nudgeOrder(orders, 0.61, 1), 0.8); assert.equal(nudgeOrder(orders, 1, 1), 1); assert.equal(nudgeOrder(orders, -0.4, -1), -0.4);
+});
 
 console.log(`\n${pass} passed${process.exitCode ? ', some failed' : ''}`);
