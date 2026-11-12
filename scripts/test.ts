@@ -234,6 +234,7 @@ test('Paspaley Pearl tracks straight with her pods centred: < 0.5°/min swing', 
 });
 
 console.log('control feel');
+import { ANCHOR, SHACKLE, anchorGear, catenary } from '../src/physics/anchor';
 import { comeBack, countUrl, daysBand, gapBand, mayCount } from '../src/stats';
 import { AngleDetent, LinearDetent, CONTROL, onFeel, nudgeAngle, nudgeLinear, nudgeOrder, type Feel } from '../src/ui/controls';
 {
@@ -1496,6 +1497,82 @@ import { lineForces, passLine, updateWinches } from '../src/physics/mooring';
     assert.equal(now.obstacles.length, base.obstacles.length + 2);
     const L = w.lock!, c = P(L, 272);
     assert.ok(Math.abs(now.depthAt(c.n, c.e) - (18 + w.level('outer'))) < 1e-9);
+  });
+}
+
+console.log('anchors');
+{
+  const bay = (h: number) => ({ ...OPEN, depthAt: () => h });
+  const idle = () => ({ pods: [{ alpha: 0, rpm: 0 }, { alpha: 0, rpm: 0 }], bt: 0 });
+  const northerly = (kn: number): Env => ({ ...calm, windSpeed: kn * KN, windFrom: 0 });
+  /** Let go the port bow anchor head to wind, hold at `scope` × depth of chain, and ride for `min` minutes. */
+  const ride = (kn: number, h: number, scope: number, min: number) => {
+    const rt = new Runtime(SHIP, makeState(SHIP, 0, 0, 0, 0), idle(), northerly(kn), bay(h));
+    rt.anchor(0, 'letgo');
+    let held = false;
+    for (let i = 0; i < min * 1200; i++) {
+      rt.step();
+      if (!held && rt.anchors[0].out >= scope * h) { rt.anchor(0, 'brake'); held = true; }
+    }
+    return rt;
+  };
+  test('every ship has two bow anchors sized to her, and the ferries, yachts and the river convoy a stern anchor too', () => {
+    for (const sp of Object.values(FLEET)) {
+      const g = anchorGear(sp), bow = g.filter(a => /BOW/.test(a.name));
+      assert.equal(bow.length, 2, sp.id);
+      assert.ok(bow[0].hawse[1] < 0 && bow[1].hawse[1] > 0 && bow[0].hawse[0] > 0, `${sp.id}: hawse pipes`);
+      assert.ok(bow[0].mass > 60 && bow[0].mass < 40000, `${sp.id}: anchor ${bow[0].mass.toFixed(0)} kg`);
+      assert.ok(bow[0].chain >= 6 * SHACKLE && bow[0].chain <= 14 * SHACKLE, `${sp.id}: chain ${bow[0].chain} m`);
+      assert.ok(bow[0].MBL > 20 * bow[0].mass * 9.81, `${sp.id}: the chain is far stronger than the anchor is heavy`);
+      assert.equal(g.length === 3, ['ropax', 'hsc-cat', 'paspaley-pearl', 'superyacht', 'push-convoy'].includes(sp.id), `${sp.id}: stern anchor`);
+    }
+    const big = anchorGear(FLEET.ulcv)[0], small = anchorGear(FLEET['paspaley-pearl'])[0];
+    assert.ok(big.mass > 15000 && big.mass < 36000, `ULCV anchor ${big.mass.toFixed(0)} kg`);         // the largest container ships carry about 30 t
+    assert.ok(small.mass > 300 && small.mass < 2500, `yacht anchor ${small.mass.toFixed(0)} kg`);
+  });
+  test('the chain is a catenary: nil with slack in it, the closed form as it lifts off the bottom, stiff once taut', () => {
+    const S = 100, h = 20, w = 600, EA = 1.5e8;
+    assert.equal(catenary(15, h, 5, w, EA).H, 0);                               // the anchor still hanging
+    assert.equal(catenary(S, h, 79, w, EA).H, 0);                               // up and down
+    const Hl = w * (S * S - h * h) / (2 * h), Xl = (Hl / w) * Math.acosh(1 + w * h / Hl);
+    const at = catenary(S, h, Xl - 1e-6, w, EA);
+    assert.ok(Math.abs(at.H - Hl) / Hl < 1e-3 && at.onBottom < 0.01, `H=${at.H.toFixed(0)} against ${Hl.toFixed(0)}`);
+    // part way: the hanging length and its span satisfy the catenary equations
+    const mid = catenary(S, h, 90, w, EA), s = S - mid.onBottom;
+    assert.ok(Math.abs(s - h * Math.sqrt(1 + 2 * mid.H / (w * h))) < 1e-6);
+    assert.ok(Math.abs(mid.onBottom + (mid.H / w) * Math.acosh(1 + w * h / mid.H) - 90) < 1e-3);
+    let last = -1; for (let X = 80; X <= Xl + 2; X += 0.5) { const H = catenary(S, h, X, w, EA).H; assert.ok(H >= last, `rises with distance at ${X}`); last = H; }
+    assert.ok(catenary(S, h, Xl + 1, w, EA).H - Hl > 1e6, 'taut');
+  });
+  test('anchored with five times the depth of chain in 20 kn of wind: she brings up and rides to her anchor, sheering either side of the wind', () => {
+    const rt = ride(20, 15, 5, 20), a = rt.anchors[0];
+    assert.equal(a.state, 'down'); assert.ok(a.pos, 'on the bottom');
+    assert.ok(Math.abs(a.out - 75) < 4, `chain out ${a.out.toFixed(0)} m`);
+    assert.equal(a.dragV, 0, 'not dragging');
+    // a high-sided ship does not lie still at a single anchor: she sheers about, inside her swinging circle
+    assert.ok(Math.hypot(rt.state.u, rt.state.v) < 0.6, `moving at ${Math.hypot(rt.state.u, rt.state.v).toFixed(2)} m/s`);
+    assert.ok(Math.abs(Math.atan2(Math.sin(rt.state.psi), Math.cos(rt.state.psi))) < 60 * DEG, `heading ${(rt.state.psi / DEG).toFixed(0)}°`);
+    const bow = [rt.state.n + a.hawse[0] * Math.cos(rt.state.psi), rt.state.e + a.hawse[0] * Math.sin(rt.state.psi)];
+    assert.ok(Math.hypot(bow[0] - a.pos![0], bow[1] - a.pos![1]) < a.out, 'inside the swinging circle');
+    assert.ok(rt.state.n < -30, 'she lies downwind of her anchor');
+    assert.ok(a.T > a.w * 15, 'the chain carries its own weight at least');
+    assert.ok(Math.hypot(a.pos![0], a.pos![1]) < 3, 'the anchor has not moved');
+  });
+  test('on a short stay in a gale the anchor drags, and says so', () => {
+    const rt = ride(45, 15, 1.4, 10), a = rt.anchors[0];
+    assert.ok(Math.hypot(a.pos![0], a.pos![1]) > 20, `dragged ${Math.hypot(a.pos![0], a.pos![1]).toFixed(0)} m`);
+    assert.ok(rt.alerts.some(x => /DRAGGING/.test(x.text)) || rt.state.n < -100, 'announced');
+  });
+  test('heaving in brings the anchor aweigh and home; water too deep is refused', () => {
+    const rt = ride(5, 15, 3, 4), a = rt.anchors[0];
+    rt.env.windSpeed = 0; rt.anchor(0, 'heave');
+    for (let i = 0; i < 15 * 1200 && a.state !== 'stowed'; i++) rt.step();
+    assert.equal(a.state, 'stowed'); assert.equal(a.out, 0); assert.equal(a.pos, null);
+    const deep = new Runtime(SHIP, makeState(SHIP, 0, 0, 0, 0), idle(), calm, bay(200));
+    deep.anchor(0, 'letgo');
+    assert.equal(deep.anchors[0].state, 'stowed');
+    assert.ok(/too deep/.test(deep.alerts[0].text), deep.alerts[0]?.text);
+    assert.ok(ANCHOR.maxDepth < 100);
   });
 }
 

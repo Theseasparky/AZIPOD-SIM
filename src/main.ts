@@ -293,6 +293,7 @@ function requestPrediction(now: number) {
     depth: isFinite(rt.depthHere) ? rt.depthHere : Infinity,
     lines: rt.lines.map(l => ({ fair: l.fair, bollard: l.bollard, L0: l.L0, state: l.state, bp: l.state === 'fast' ? rt.harbour.bollards[l.bollard] : undefined })),
     ext: { ...rt.world.ext! },
+    ...(rt.anchors.some(a => a.pos) ? { anchors: rt.anchors.filter(a => a.pos).map(a => ({ ...a, pos: [...a.pos!] as [number, number], mode: 'brake' as const })) } : {}),
     horizon: S.pred.horizon, alts,
     ...(S.water ? { water: S.water.snap() } : {}),
     ...(rt.harbour.lineZ ? (() => { const z = rt.harbour.lineZ!(rt.state); return { lineZ: { fair: z.fair, bol: rt.lines.map(l => (l.state === 'fast' ? z.bol(l.bollard) : z.fair)) } }; })() : {}),

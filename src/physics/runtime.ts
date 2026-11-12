@@ -6,6 +6,7 @@ import { ContactInfo, Fender, Obstacle, Pt } from './contact';
 import { DepthField, bankEffect, groundingForces, squat, washReflection } from './harbour';
 import { Damage, Hit } from './damage';
 import { MooringLine, Tug, LINE, makeLines, makeTugs, passLine, tugEngaged, tugForces, updateTugs, updateWinches } from './mooring';
+import { type Anchor, type Seabed, type WindlassMode, anchorGear, orderAnchor, stepAnchor } from './anchor';
 import { DPState, JoyInput, allocate, dpForces, joyLimits } from './allocation';
 import { Sensors } from './sensors';
 import { isPod } from './units/kinds';
@@ -54,6 +55,8 @@ export class Runtime {
   sensors: Sensors;
   world: World;
   lines: MooringLine[] = [];
+  anchors: Anchor[] = [];                  // bow anchors (and a stern anchor where carried)
+  seabed: Seabed = 'good';
   tugs: Tug[] = [];
   lever: LeverMode = 'twin';
   joy: JoyInput = { x: 0, y: 0, r: 0 };
@@ -91,9 +94,11 @@ export class Runtime {
     if (harbour.mooringSide) this.lines = makeLines(spec.L, spec.B, spec.xg, harbour.mooringSide);
     if (harbour.tugSide) this.tugs = makeTugs(spec.L, spec.xg, harbour.tugSide, harbour.tugBP);
     this.damage = new Damage(spec);
+    this.anchors = anchorGear(spec);
     this.world = {
       obstacles: harbour.obstacles, fenders: harbour.fenders, lines: this.lines, bollards: harbour.bollards,
       lineT: this.lines.map(() => 0), ext: { X: 0, Y: 0, N: 0 }, depthAt: harbour.depthAt, squat: 0, aground: 0,
+      anchors: this.anchors,
     };
     this.reindex();
     this.sensors.step(state, 0, env.current(state.n, state.e), this.wind());
@@ -145,6 +150,13 @@ export class Runtime {
     return ok;
   }
   letGo(i: number) { const l = this.lines[i]; l.state = 'stowed'; l.T = 0; }
+  /** An order to an anchor's windlass: let go, walk out, hold on the brake or heave in. */
+  anchor(i: number, mode: WindlassMode) {
+    const a = this.anchors[i]; if (!a) return;
+    const no = orderAnchor(a, mode, this.state, this.harbour.depthAt);
+    if (no) this.alert(no, '');
+    else if (mode === 'letgo' && !a.pos) this.alert(`${a.name} anchor let go`, '');
+  }
   /** Rig the mooring lines on the other side (none may be fast). Returns whether it was done. */
   setMooringSide(side: -1 | 1) {
     if (this.lines.some(l => l.state === 'fast')) return false;
@@ -301,6 +313,7 @@ export class Runtime {
       if (phi > r.vanish) { this.capsized = true; this.alert('CAPSIZED', 'heavy'); }
       else if (phi > deckEdge(spec) && st.t % 2 < dt) this.alert(`DECK EDGE UNDER · HEEL ${(phi * 180 / Math.PI).toFixed(0)}°${tow && tow.T > 0 ? ' · GIRTING' : ''}`, 'heavy');
     }
+    for (const a of this.anchors) for (const m of stepAnchor(a, st, this.harbour.depthAt, dt, this.seabed)) this.alert(m, /DRAGGING|PARTED/.test(m) ? 'heavy' : '');
     this.lines.forEach((l, i) => (l.T = this.world.lineT![i]));
     for (const name of updateWinches(this.lines, dt)) this.alert(`${name} PARTED`, 'heavy');
     for (const l of this.lines) if (l.state === 'fast' && l.T > 0.8 * LINE.MBL && st.t % 2 < dt) this.alert(`${l.name} ${(l.T / 9.81e3).toFixed(0)} t — near breaking`, 'heavy');
