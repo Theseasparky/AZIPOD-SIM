@@ -930,53 +930,97 @@ function keyControl(dt: number) {
 }
 
 // ---------------------------------------------------------------- sheet
+/** The menu: three tabs (Ships, Places, Settings), collapsible groups and a search box over the two lists. */
+const menu = { tab: 'ships' as 'ships' | 'places' | 'settings', open: {} as Record<string, boolean>, q: '' };
+const SHIP_GROUPS = ['Cruise ships and yachts', 'Ferries', 'Cargo ships', 'Tugs', 'Offshore', 'Special ships'];
+const shipGroup = (sp: ShipSpec) => { const t = sp.type ?? 'cruise'; return /cruise|yacht/.test(t) ? 0 : /ferry|ropax/.test(t) ? 1 : /tanker|container|bulk|gas/.test(t) ? 2 : /tug/.test(t) ? 3 : /psv|ahts/.test(t) ? 4 : 5; };
+/** A collapsible group in a list; it opens by itself when it holds the current choice, until the player says otherwise. */
+function menuGroup(box: HTMLElement, key: string, title: string, count: number, hasCur: boolean) {
+  const d = document.createElement('details'); d.className = 'grp'; d.dataset.key = key;
+  d.open = menu.open[key] ?? hasCur;
+  d.innerHTML = `<summary><span>${title}</span><span class="n">${count}</span></summary><div class="grp-body"></div>`;
+  d.addEventListener('toggle', () => { if (!menu.q) menu.open[key] = d.open; });
+  box.appendChild(d);
+  return d.lastElementChild as HTMLElement;
+}
+function setMenuTab(t: typeof menu.tab) {
+  menu.tab = t; $('sheet').dataset.tab = t;
+  document.querySelectorAll<HTMLElement>('.tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  const q = $<HTMLInputElement>('menu-q'); q.placeholder = t === 'places' ? 'Search places' : 'Search ships';
+  filterMenu();
+}
+/** The search box: hide what does not match, open every group that still has something in it. */
+function filterMenu() {
+  const q = menu.q.trim().toLowerCase();
+  for (const id of ['ships', 'scenarios']) {
+    const box = $(id);
+    box.querySelectorAll<HTMLElement>('button').forEach(b => { b.hidden = !!q && !b.textContent!.toLowerCase().includes(q); });
+    box.querySelectorAll<HTMLDetailsElement>('details.grp').forEach(d => {
+      const any = !!d.querySelector('button:not([hidden])');
+      d.hidden = !any; d.open = q ? any : menu.open[d.dataset.key!] ?? !!d.querySelector('button.cur');
+    });
+    let none = box.querySelector<HTMLElement>('.none');
+    if (!none) { none = document.createElement('p'); none.className = 'note none'; box.appendChild(none); }
+    none.hidden = !q || !!box.querySelector('button:not([hidden])');
+    none.textContent = `Nothing matches “${menu.q.trim()}”.`;
+  }
+}
+document.querySelectorAll<HTMLElement>('details.sec:not([data-tab])').forEach(d => (d.dataset.tab = 'settings'));
+document.querySelectorAll<HTMLElement>('.tabs [role=tab]').forEach(b => (b.onclick = () => setMenuTab(b.dataset.tab as typeof menu.tab)));
+$<HTMLInputElement>('menu-q').oninput = e => { menu.q = (e.target as HTMLInputElement).value; filterMenu(); };
+
+const fitsHere = (s: Scenario, sp: ShipSpec) => !!s.needsData || fits(s, sp.T, s.berthFace ? berthFor(s, sp.B, 0) : s.berth, !!sp.towPoints, sp.station === 'dp');
 function renderShipList() {
   const box = $('ships'); box.innerHTML = '';
   const def = SHIPS[S.sc.ship ?? 'becancour'];
-  const row = (sp: ShipSpec): [string, string, string] => [sp.id, sp.name, `LOA ${sp.LOA} m · B ${sp.B} m · T ${sp.T} m · ${propulsionSummary(sp)}`];
-  // the real ships lead the list (Paspaley Pearl, CB Baltic laden and in ballast); the rest follow in fleet order
-  const lead = ['paspaley-pearl', 'cb-baltic', 'cb-baltic-ballast'];
-  const opts: [string | null, string, string][] = [...lead.map(id => row(SHIPS[id])), [null, `Scenario's ship · ${def.name}`, 'The ship the scenario was written for.'],
-    ...Object.values(SHIPS).filter(sp => !lead.includes(sp.id)).map(row)];
-  for (const [id, name, line] of opts) {
+  const add = (to: HTMLElement, id: string | null, name: string, line: string) => {
     const b = document.createElement('button');
     b.className = (S.shipId ?? null) === id ? 'cur' : '';
-    b.innerHTML = `<b>${name}</b><span>${line}</span>`;
     const sp = SHIPS[id ?? S.sc.ship ?? 'becancour'];
+    const ok = fitsHere(S.sc, sp);
+    b.innerHTML = `<b>${name}</b><span>${line}</span>${ok ? '' : `<span class="who">${S.sc.tugsOnly && !sp.towPoints ? 'This place needs a tug' : 'Too deep for this place'}: opens another</span>`}`;
     b.onclick = () => {
       S.shipId = id;
       // stay in this scenario if she fits, otherwise go to the first one that does
-      const target = fits(S.sc, sp.T, S.sc.berthFace ? berthFor(S.sc, sp.B, 0) : S.sc.berth, !!sp.towPoints, sp.station === 'dp') || S.sc.needsData ? S.sc
-        : SCENARIOS.find(sc => sc.ship === sp.id) ?? SCENARIOS.find(sc => sc.id === 'trials')!;
+      const target = ok ? S.sc : SCENARIOS.find(sc => sc.ship === sp.id) ?? SCENARIOS.find(sc => sc.id === 'trials')!;
       if (target !== S.sc) toast(`${S.sc.name} ${S.sc.tugsOnly && !sp.towPoints ? 'needs a tug' : `is too shallow for the ${sp.name}`}: switched to ${target.name}.`);
       openScenario(target).then(() => { renderShipList(); $('b-close').click(); });
     };
-    box.appendChild(b);
-  }
+    to.appendChild(b);
+  };
+  const top = document.createElement('div'); top.className = 'grp-body'; box.appendChild(top);
+  add(top, null, `Scenario's ship · ${def.name}`, 'The ship this place was written for.');
+  // within a group the real ships lead (Paspaley Pearl, CB Baltic laden and in ballast); the rest follow in fleet order
+  const lead = ['paspaley-pearl', 'cb-baltic', 'cb-baltic-ballast'];
+  const all = [...lead.map(id => SHIPS[id]), ...Object.values(SHIPS).filter(sp => !lead.includes(sp.id))];
+  SHIP_GROUPS.forEach((title, g) => {
+    const list = all.filter(sp => shipGroup(sp) === g); if (!list.length) return;
+    const body = menuGroup(box, 'ship:' + g, title, list.length, list.some(sp => sp.id === S.shipId));
+    for (const sp of list) add(body, sp.id, sp.name, `LOA ${sp.LOA} m · B ${sp.B} m · T ${sp.T} m · ${propulsionSummary(sp)}`);
+  });
+  filterMenu();
 }
 /** Which group a scenario is listed under: its real-chart area, else schematic harbours or open water. */
 const OPEN_WATER = new Set(['escort', 'ice', 'rotor', 'dp', 'trials']);
-const groupOf = (s: Scenario) => s.area ? AREAS[s.area].meta.name : OPEN_WATER.has(s.id) ? 'Open water and special operations' : 'Schematic harbours and channels';
+const groupOf = (s: Scenario) => s.area ? AREAS[s.area].meta.name : OPEN_WATER.has(s.id) ? 'Open water and special operations' : 'Practice harbours and channels';
 function renderScenarioList() {
   const box = $('scenarios'); box.innerHTML = '';
-  let group = '';
-  for (const s of SCENARIOS) {
-    const g = groupOf(s);
-    if (g !== group) {
-      group = g;
-      const h = document.createElement('h3'); h.className = 'scen-group';
-      h.textContent = s.area ? `${g} · real chart` : g;
-      box.appendChild(h);
+  const groups = new Map<string, Scenario[]>();
+  for (const s of SCENARIOS) { const g = groupOf(s); groups.set(g, [...(groups.get(g) ?? []), s]); }
+  for (const [g, list] of groups) {
+    const body = menuGroup(box, 'place:' + g, g, list.length, list.includes(S.sc));
+    for (const s of list) {
+      const b = document.createElement('button');
+      b.className = s === S.sc ? 'cur' : '';
+      const sp = S.shipId ? SHIPS[S.shipId] : null;
+      const shallow = sp && !fitsHere(s, sp);
+      const own = SHIPS[s.ship ?? 'becancour'];
+      b.innerHTML = `<b>${s.name}</b><span>${s.brief}</span><span class="who">${shallow ? `${s.tugsOnly && !sp!.towPoints ? 'Needs a tug' : `Too shallow for the ${sp!.name}`} · opens with the ${own.name}` : sp ? `With the ${sp.name}` : own.name}</span>`;
+      b.onclick = () => { openScenario(s).then(() => $('b-close').click()); };
+      body.appendChild(b);
     }
-    const b = document.createElement('button');
-    b.className = s === S.sc ? 'cur' : '';
-    const sp = S.shipId ? SHIPS[S.shipId] : null;
-    const shallow = sp && !s.needsData && !fits(s, sp.T, s.berthFace ? berthFor(s, sp.B, 0) : s.berth, !!sp.towPoints, sp.station === 'dp');
-    const own = SHIPS[s.ship ?? 'becancour'];
-    b.innerHTML = `<b>${s.name}</b><span>${s.brief}</span><span class="who">${shallow ? `${s.tugsOnly && !sp!.towPoints ? 'Needs a tug' : `Too shallow for the ${sp!.name}`} · opens with the ${own.name}` : sp ? `With the ${sp.name}` : own.name}</span>`;
-    b.onclick = () => { openScenario(s).then(() => $('b-close').click()); };
-    box.appendChild(b);
   }
+  filterMenu();
 }
 const bindRange = (id: string, get: () => number, set: (v: number) => void, after = applyEnv) => {
   const el = $(id) as HTMLInputElement;
@@ -1157,6 +1201,8 @@ persist('azb-settings',
     if (typeof v.speedIdx === 'number') S.speedIdx = v.speedIdx;
     if (S.disp.palette !== 'auto') document.documentElement.setAttribute('data-palette', S.disp.palette);
   });
+persist('azb-menu', () => ({ tab: menu.tab, open: menu.open }),
+  v => { if (v.open && typeof v.open === 'object') menu.open = v.open; setMenuTab(v.tab === 'places' || v.tab === 'settings' ? v.tab : 'ships'); });
 persist('azb-guide',
   () => ({ on: S.guide.on, tips: S.guide.tips, steps: S.guide.steps, vectors: S.guide.vectors, level: S.guide.level, seen: [...S.guide.seen] }),
   v => {

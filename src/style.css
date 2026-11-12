@@ -245,7 +245,27 @@ h2 .sub { font-weight: 300; font-size: var(--text-sm); letter-spacing: 0; color:
 .scen b { font-size: var(--text-md); font-weight: 400; }
 .scen span { font-size: var(--text-sm); color: var(--color-ink-2); line-height: 1.45; }
 .scen span.who { font-size: var(--text-xs); color: var(--color-muted); }
-.scen.ships { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.ships .grp-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.grp-body { display: flex; flex-direction: column; }
+/* the menu's tabs, search box and collapsible groups */
+.tabs { display: flex; border-bottom: var(--rule-hair) solid var(--color-rule); }
+.tabs button { flex: 1; height: 44px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--color-muted); font-size: var(--text-md); }
+.tabs button[aria-selected="true"] { color: var(--color-ink); border-bottom-color: var(--color-accent); }
+.tabs button:focus-visible { outline-offset: -2px; }
+#menu-q { height: 40px; padding: 0 var(--space-sm); margin: var(--space-xs) 0 var(--space-2xs); font-size: var(--text-md); -webkit-user-select: text; user-select: text; }
+#menu-q::placeholder { color: var(--color-muted); }
+.sheet[data-tab="settings"] #menu-q { display: none; }
+.sheet[data-tab="ships"] details.sec:not([data-tab="ships"]), .sheet[data-tab="places"] details.sec:not([data-tab="places"]),
+.sheet[data-tab="settings"] details.sec:not([data-tab="settings"]) { display: none; }
+details.sec[data-tab="ships"], details.sec[data-tab="places"] { border-top: 0; padding: 0; }
+details.sec[data-tab="ships"] > summary, details.sec[data-tab="places"] > summary { display: none; }
+details.grp { border-bottom: var(--rule-hair) solid var(--color-rule); }
+details.grp > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 48px; font-size: var(--text-md); font-weight: 400; }
+details.grp > summary::-webkit-details-marker { display: none; }
+details.grp > summary .n { color: var(--color-muted); font-size: var(--text-sm); margin-right: auto; }
+details.grp > summary::after { content: "+"; color: var(--color-muted); font-size: var(--text-xl); font-weight: 300; line-height: 1; }
+details.grp[open] > summary::after { content: "−"; }
+details.grp[open] { padding-bottom: var(--space-xs); }
 .env-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-sm) 14px; align-items: center; font-size: var(--text-sm); }
 .env-grid output { font-size: var(--text-sm); font-weight: 400; color: var(--color-ink-2); margin-left: 6px; }
 .env-grid .chk { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; min-height: 28px; }

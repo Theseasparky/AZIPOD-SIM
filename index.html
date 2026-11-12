@@ -158,11 +158,17 @@
         <button id="b-close" class="cb">Close</button>
       </div>
       <p class="ship" id="shipline"></p>
+      <div class="tabs" role="tablist" aria-label="Menu sections">
+        <button role="tab" data-tab="ships" aria-selected="true">Ships</button>
+        <button role="tab" data-tab="places" aria-selected="false">Places</button>
+        <button role="tab" data-tab="settings" aria-selected="false">Settings</button>
+      </div>
+      <input type="search" id="menu-q" class="pick" placeholder="Search ships" aria-label="Search ships and places" autocomplete="off" />
 
-      <details class="sec" open><summary><h2>Ship</h2></summary>
+      <details class="sec" data-tab="ships" open><summary><h2>Ship</h2></summary>
       <div id="ships" class="scen ships"></div>
       </details>
-      <details class="sec" open><summary><h2>Scenario</h2></summary>
+      <details class="sec" data-tab="places" open><summary><h2>Scenario</h2></summary>
       <div id="scenarios" class="scen"></div>
       </details>
       <details class="sec"><summary><h2>Environment</h2></summary>
