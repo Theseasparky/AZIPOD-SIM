@@ -3,7 +3,8 @@
 Design targets for [`../PLAN.md`](../PLAN.md), drawn from code with the app's own palettes and fonts. They are not screenshots of the app; the values on screen are illustrative.
 
 ```bash
-npm ci                                   # fonts come from node_modules/@fontsource
+npm ci
+npm i --no-save @fontsource/barlow @fontsource/barlow-condensed @fontsource/ibm-plex-mono   # the mockups use the app's earlier typefaces
 node docs/expansion/mockups/render.mjs   # all; or pass part of a name, e.g. `render.mjs 02 tug`
 ```
 

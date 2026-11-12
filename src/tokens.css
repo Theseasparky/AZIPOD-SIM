@@ -1,4 +1,4 @@
-/* The console system: Hallmark Vantage (dark instrument quiet), dealt for the app's control surfaces.
+/* The console system: a dark, quiet instrument look for the app's control surfaces.
    Every colour and face the console uses comes through these tokens; the chart's own palettes (day, dusk,
    night, after IEC 62288 / IHO S-52) live in style.css and do not change with this file. */
 :root {

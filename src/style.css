@@ -1,13 +1,12 @@
-/* Hallmark · shape: app screen · genre: modern-minimal · theme: Vantage (deal 2/3, seed ship-handling-simulator-mariners-con-582a·56ca4047·2026-11-10·r0) · redesign: full
- * nav: kept, the app's own shell (conning readouts, a chip row of chart and sim buttons, the control tray, the menu sheet) · signature: the conning readouts, a ledger of figures with their units over the chart · states: live, paused, alarm, disabled, offline toast, first-run gate · vantage: steel, no cloud (the chart is the real thing)
- * axes: dark/grotesk-sans/warm · posture: restrained · contrast: pass · v2.0.0
- * swap: the signal is the chart's own-ship orange (IEC 62288), not lime: on a bridge green means starboard · kept: port red, starboard green, the predictor magenta, the day / dusk / night chart palettes after IEC 62288 and IHO S-52 */
-/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, the canvas instruments keep their drawn shapes and take only the new tokens */
-/* Hallmark · answered 67: no label is tracked or transformed; the capitals left are instrument abbreviations and control names in the content (HDG, PRED, LINKED), as engraved on bridge equipment; prose labels, heads and panel titles are sentence case */
-/* Hallmark · answered 26a, 40, 19: the chart buttons carry a dark halo under the ring (the linter does not read box-shadow); muted text measures about 6.5:1 on its real ground (the linter reads the corner-tick gradient as the ground); the dash at index.html:37 is the no-value placeholder of a readout, not prose */
-/* Hallmark · waive 24b · every length is a token or a deliberate half step · a dense instrument layout tuned by the pixel for 390 px phones held either way */
-/* Hallmark · waive 38iii · h2 .sub is a muted note after the head, at a second size · it is a second voice, not an accented word */
-/* Hallmark · waive 39b · the 26 px DP and jet console buttons carry a 34 px hit area on a pseudo-element · the console must fit a phone */
+/* SHIPSHAPE console styles.
+   Layout: a full-bleed chart canvas, the conning readouts on top, a chip row of chart and sim buttons under them,
+   and the control tray along the bottom. The console keeps one dark look in every chart palette; only the chart,
+   its labels and the 3D view change between day, dusk and night.
+   - The signal colour is the chart's own-ship orange (IEC 62288). Port is red, starboard green, the predictor magenta.
+   - Control names stay in capitals, as engraved on bridge equipment (HDG, PRED, LINKED); everything else is sentence case.
+   - Spacing is tuned by the pixel for a 390 px phone held either way, so not every length sits on the 4 px scale.
+   - The 26 px DP and jet console buttons carry a 34 px hit area on a pseudo-element.
+   - Chart buttons put a dark halo under the focus ring so it shows over the pale day chart. */
 @import url("./tokens.css");
 @import url("./base.css");
 

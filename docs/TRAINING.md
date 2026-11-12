@@ -33,7 +33,7 @@ Like the rest of SHIPSHAPE it is **not for navigation**.
 8. **Procedures are run.** Every procedure has a scripted headless run in the tests; if the model
    disagrees with the published outcome the card says so instead of passing quietly.
 9. **Draft until reviewed.** Every card starts as `draft` (a small DRAFT chip in the Explain view). Only
-   the captain promotes cards to `reviewed`, track by track, after reading the claims register.
+   the author promotes cards to `reviewed`, track by track, after reading the claims register.
 
 ## Confidence levels
 
@@ -77,7 +77,7 @@ much of it has been read against the claims that cite it; it is updated as the c
 
 ## Open items: not found, so not shipped
 
-These came up in the research without a usable source. They stay out of the app until the captain
+These came up in the research without a usable source. They stay out of the app until the author
 supplies one or a source is found.
 
 - Response times of Voith Schneider units and waterjets from the manufacturers' manuals.
