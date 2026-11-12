@@ -1504,6 +1504,8 @@ console.log('anchors');
 {
   const bay = (h: number) => ({ ...OPEN, depthAt: () => h });
   const idle = () => ({ pods: [{ alpha: 0, rpm: 0 }, { alpha: 0, rpm: 0 }], bt: 0 });
+  /** How far the anchor lies from where it was let go (the ship starts at the origin heading north). */
+  const moved = (a: { pos: [number, number] | null; hawse: [number, number] }) => Math.hypot(a.pos![0] - a.hawse[0], a.pos![1] - a.hawse[1]);
   const northerly = (kn: number): Env => ({ ...calm, windSpeed: kn * KN, windFrom: 0 });
   /** Let go the port bow anchor head to wind, hold at `scope` × depth of chain, and ride for `min` minutes. */
   const ride = (kn: number, h: number, scope: number, min: number) => {
@@ -1556,11 +1558,12 @@ console.log('anchors');
     assert.ok(Math.hypot(bow[0] - a.pos![0], bow[1] - a.pos![1]) < a.out, 'inside the swinging circle');
     assert.ok(rt.state.n < -30, 'she lies downwind of her anchor');
     assert.ok(a.T > a.w * 15, 'the chain carries its own weight at least');
-    assert.ok(Math.hypot(a.pos![0], a.pos![1]) < 3, 'the anchor has not moved');
+    // she snubs when the chain first comes tight, and the anchor may bite a few metres back; then it stays
+    assert.ok(moved(a) < 20, `the anchor moved ${moved(a).toFixed(0)} m`);
   });
   test('on a short stay in a gale the anchor drags, and says so', () => {
     const rt = ride(45, 15, 1.4, 10), a = rt.anchors[0];
-    assert.ok(Math.hypot(a.pos![0], a.pos![1]) > 20, `dragged ${Math.hypot(a.pos![0], a.pos![1]).toFixed(0)} m`);
+    assert.ok(moved(a) > 60, `dragged ${moved(a).toFixed(0)} m`);
     assert.ok(rt.alerts.some(x => /DRAGGING/.test(x.text)) || rt.state.n < -100, 'announced');
   });
   test('heaving in brings the anchor aweigh and home; water too deep is refused', () => {
