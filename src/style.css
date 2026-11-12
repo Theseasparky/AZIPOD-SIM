@@ -184,6 +184,8 @@ input[type=range] { width: 100%; accent-color: var(--color-accent); touch-action
 .lrow .nm { font-size: 0.8125rem; font-weight: 400; white-space: nowrap; }
 .lrow .t { font-size: var(--text-xs); color: var(--color-muted); text-align: right; white-space: nowrap; }
 .lrow .t.hi { color: var(--color-warn); }
+#anchors .lrow { grid-template-columns: 1fr; }
+#anchors .lrow .t { text-align: left; white-space: normal; }
 .lrow .btns { display: flex; gap: var(--space-2xs); flex-wrap: wrap; grid-column: 1 / -1; justify-content: flex-start; }
 .lrow .btns button, .seg button, .chips button { height: 30px; padding: 0 10px; color: var(--color-ink-2); }
 .lk-row { display: flex; gap: var(--space-xs); align-items: center; flex-wrap: wrap; }

@@ -54,6 +54,7 @@
     <button id="b-follow" class="mb on" aria-pressed="true">FOLLOW</button>
     <button id="b-lines" class="mb" hidden>LINES</button>
     <button id="b-tugs" class="mb" hidden>TUGS</button>
+    <button id="b-anchor" class="mb" aria-label="Anchors and windlass">ANCHOR</button>
     <button id="b-lock" class="mb" hidden aria-label="The lock: call the lock master, levels and signals">LOCK</button>
     <button id="b-ais" class="mb" hidden aria-label="AIS targets">AIS</button>
     <button id="b-dmg" class="mb" hidden aria-label="Damage control">DAMAGE</button>
@@ -99,6 +100,11 @@
     <p class="hint">About 20 s to change power, 60 s to swap between pushing and pulling. Tugs lose their grip above about 6 kn.</p>
   </section>
 
+  <section class="panel" id="p-anchor" hidden aria-label="Anchors">
+    <div class="panel-head"><span class="tag">Anchors and windlass</span><button class="x" data-close="p-anchor" aria-label="Close">×</button></div>
+    <div id="anchors"></div>
+    <p class="hint">Let go with a little sternway and let her fall back on the chain; hold on the brake when enough is out. Four to five times the depth of chain is a usual scope; a short stay holds little. One shackle is 27.5 m.</p>
+  </section>
   <section class="panel" id="p-coach" hidden aria-label="Training guide">
     <div class="panel-head"><span class="tag" id="coach-head">Coach</span><button class="x" data-close="p-coach" aria-label="Close">×</button></div>
     <div id="coach-body" aria-live="polite"></div>

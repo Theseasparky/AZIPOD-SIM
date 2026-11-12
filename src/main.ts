@@ -29,6 +29,7 @@ import { haptic, suspendAudio, uiTick, unlockAudio, updateAudio } from './ui/aud
 import { AngleDetent, LinearDetent, detentSlider, nudgeAngle, nudgeLinear, onFeel } from './ui/controls';
 import { nudgeButton, nudgeSlider } from './ui/nudge';
 import { countUse } from './stats';
+import { ANCHOR, SHACKLE } from './physics/anchor';
 onFeel(uiTick);
 import { S, SPEEDS, ghostInterval } from './ui/state';
 import * as D from './ui/draw';
@@ -727,8 +728,38 @@ function updateTugsPanel() {
     el.textContent = t.repos > 0 ? `REPOS ${t.repos.toFixed(0)} s` : Math.abs(t.F) < 5e3 ? 'idle' : `${t.F * t.side < 0 ? 'PUSH' : 'PULL'} ${(Math.abs(t.F) / 9.81e3).toFixed(0)} t`;
   });
 }
+/** The anchor panel: one row per anchor, with the windlass orders. */
+let anchorSig = '';
+function buildAnchors() {
+  const box = $('anchors'), rt = S.rt;
+  const orders: [string, string][] = [['letgo', 'LET GO'], ['walk', 'WALK OUT'], ['brake', 'HOLD'], ['heave', 'HEAVE']];
+  box.innerHTML = rt.anchors.map((a, i) => `<div class="lrow"><span class="nm">${a.name}</span><span class="t" id="an-${i}"></span>
+    <div class="btns">${orders.map(([m, t]) => `<button data-a="${i}" data-m="${m}" aria-pressed="false">${t}</button>`).join('')}</div></div>`).join('');
+  box.querySelectorAll<HTMLButtonElement>('button').forEach(b => (b.onclick = () => { S.rt.anchor(+b.dataset.a!, b.dataset.m as 'letgo'); uiTick('step'); anchorSig = ''; updateAnchorPanel(); }));
+  anchorSig = '';
+}
+function updateAnchorPanel() {
+  const rt = S.rt, on = rt.anchors.some(a => a.state === 'down');
+  $('b-anchor').classList.toggle('on', on);
+  if ($('p-anchor').hidden) return;
+  if (!document.getElementById('an-0')) buildAnchors();
+  rt.anchors.forEach((a, i) => {
+    const el = document.getElementById('an-' + i); if (!el) return;
+    const sh = (a.out / SHACKLE).toFixed(1), water = Math.max(0, a.depth - ANCHOR.hawseH);
+    el.textContent = a.state === 'lost' ? 'LOST' : a.state === 'stowed' ? 'Home'
+      : !a.pos ? `${a.mode === 'heave' ? 'Heaving in' : 'Running out'}, ${a.out.toFixed(0)} m`
+      : `${sh} shackles (${a.out.toFixed(0)} m) in ${water.toFixed(0)} m, scope ${(a.out / Math.max(1, water)).toFixed(1)}, ${(a.T / 9.81e3).toFixed(0)} t${a.dragV > 0.05 ? `, DRAGGING ${(a.dragV / KN).toFixed(1)} kn` : a.onBottom > 1 ? ', holding' : ', chain off the bottom'}`;
+    el.className = 't' + (a.dragV > 0.05 || a.state === 'lost' || a.T > 0.4 * a.MBL ? ' hi' : '');
+  });
+  const sig = rt.anchors.map(a => a.state + a.mode).join();
+  if (sig !== anchorSig) {
+    anchorSig = sig;
+    $('anchors').querySelectorAll<HTMLButtonElement>('button').forEach(b => { const a = rt.anchors[+b.dataset.a!]; b.setAttribute('aria-pressed', String(a.state === 'down' && a.mode === b.dataset.m)); });
+  }
+}
+$('b-anchor').onclick = () => { const p = $('p-anchor'); p.hidden = !p.hidden; $('p-lines').hidden = $('p-tugs').hidden = $('p-dmg').hidden = $('p-lock').hidden = $('p-coach').hidden = true; buildAnchors(); placePanels(); updateAnchorPanel(); };
 function placePanels() {
-  for (const id of ['p-lines', 'p-tugs', 'p-dmg', 'p-lock', 'p-coach']) {
+  for (const id of ['p-lines', 'p-tugs', 'p-dmg', 'p-lock', 'p-coach', 'p-anchor']) {
     const el = $(id);
     el.style.bottom = `${innerHeight - D.LAY.trayTop + 8}px`;
     // a phone on its side has little room between the readouts and the controls: the guide's panel, which only
@@ -738,8 +769,8 @@ function placePanels() {
   }
 }
 document.querySelectorAll<HTMLButtonElement>('[data-close]').forEach(b => (b.onclick = () => ($(b.dataset.close!).hidden = true)));
-$('b-lines').onclick = () => { const p = $('p-lines'); p.hidden = !p.hidden; $('p-tugs').hidden = $('p-dmg').hidden = $('p-lock').hidden = $('p-coach').hidden = true; buildLines(); placePanels(); };
-$('b-lock').onclick = () => { const p = $('p-lock'); p.hidden = !p.hidden; $('p-lines').hidden = $('p-tugs').hidden = $('p-dmg').hidden = $('p-coach').hidden = true; placePanels(); updateLockPanel(true); };
+$('b-lines').onclick = () => { const p = $('p-lines'); p.hidden = !p.hidden; $('p-tugs').hidden = $('p-dmg').hidden = $('p-lock').hidden = $('p-coach').hidden = $('p-anchor').hidden = true; buildLines(); placePanels(); };
+$('b-lock').onclick = () => { const p = $('p-lock'); p.hidden = !p.hidden; $('p-lines').hidden = $('p-tugs').hidden = $('p-dmg').hidden = $('p-coach').hidden = $('p-anchor').hidden = true; placePanels(); updateLockPanel(true); };
 // ---------------------------------------------------------------- random traffic and the AIS card
 /** (Re)draw the random traffic for this scenario round own ship; scripted scenario traffic stays. */
 function setRandomTraffic(rebuild3d = true) {
@@ -773,7 +804,7 @@ $('b-retraffic').onclick = () => {
 let editMode: EditMode | null = null;
 function setEdit(m: EditMode | null) {
   const was = editMode; editMode = m; D.setEditing(!!m);
-  if (m) $('p-lines').hidden = $('p-tugs').hidden = $('p-dmg').hidden = $('p-lock').hidden = $('p-coach').hidden = true;   // the chart clear to tap on
+  if (m) $('p-lines').hidden = $('p-tugs').hidden = $('p-dmg').hidden = $('p-lock').hidden = $('p-coach').hidden = $('p-anchor').hidden = true;   // the chart clear to tap on
   $('edit-bar').hidden = !m;
   document.querySelectorAll<HTMLButtonElement>('[data-em]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.em === m)));
   if (m) $('edit-hint').textContent = m === 'remove' ? 'Tap a bollard or fender to take it away.' : `Tap near a quay edge to put a ${m} there.`;
@@ -810,7 +841,7 @@ initBerthPicker({
 
 // ---------------------------------------------------------------- damage control
 let lostShown = false;
-$('b-dmg').onclick = () => { const p = $('p-dmg'); p.hidden = !p.hidden; $('p-lines').hidden = $('p-tugs').hidden = $('p-lock').hidden = $('p-coach').hidden = true; placePanels(); updateDamage(); };
+$('b-dmg').onclick = () => { const p = $('p-dmg'); p.hidden = !p.hidden; $('p-lines').hidden = $('p-tugs').hidden = $('p-lock').hidden = $('p-coach').hidden = $('p-anchor').hidden = true; placePanels(); updateDamage(); };
 function updateDamage() {
   const d = S.rt.damage;
   $('b-dmg').hidden = !S.rt.damageOn || !d.any;
@@ -822,7 +853,7 @@ function updateDamage() {
     $('p-dmg').hidden = false; placePanels();
   }
 }
-$('b-tugs').onclick = () => { const p = $('p-tugs'); p.hidden = !p.hidden; $('p-lines').hidden = $('p-dmg').hidden = $('p-lock').hidden = $('p-coach').hidden = true; placePanels(); };
+$('b-tugs').onclick = () => { const p = $('p-tugs'); p.hidden = !p.hidden; $('p-lines').hidden = $('p-dmg').hidden = $('p-lock').hidden = $('p-coach').hidden = $('p-anchor').hidden = true; placePanels(); };
 
 // ---------------------------------------------------------------- map gestures
 const ptrs = new Map<number, { x: number; y: number }>();
@@ -1172,7 +1203,7 @@ function frame(now: number) {
   if (station) station.draw();
   else { for (const d of dials) d.draw(); for (const l of levers) l.draw(); }
   slowT -= dtReal;
-  if (slowT <= 0) { slowT = 0.1; updateHud(); updateLinesPanel(); updateTugsPanel(); updateLockPanel(); updateGuide(); updateDamage(); if (S.rt.traffic.length) computeAis(); }
+  if (slowT <= 0) { slowT = 0.1; updateHud(); updateLinesPanel(); updateTugsPanel(); updateAnchorPanel(); updateLockPanel(); updateGuide(); updateDamage(); if (S.rt.traffic.length) computeAis(); }
   if (S.rt.traffic.length && !$('ais').hidden && $('ais-head').getAttribute('aria-expanded') === 'true') aisMap.draw();
   // adaptive resolution: if frames run long for 2 s, render at a lower pixel density
   frameEma += (performance.now() - t0 - frameEma) * 0.05;
