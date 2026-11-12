@@ -28,6 +28,7 @@ import { loadChart } from './ui/chart';
 import { haptic, suspendAudio, uiTick, unlockAudio, updateAudio } from './ui/audio';
 import { AngleDetent, LinearDetent, detentSlider, nudgeAngle, nudgeLinear, onFeel } from './ui/controls';
 import { nudgeButton, nudgeSlider } from './ui/nudge';
+import { countUse } from './stats';
 onFeel(uiTick);
 import { S, SPEEDS, ghostInterval } from './ui/state';
 import * as D from './ui/draw';
@@ -158,6 +159,7 @@ async function openScenario(sc: Scenario, at?: { n: number; e: number; psi: numb
     if (seq !== openSeq) return;
   }
   loadScenario(sc, at);
+  countUse(SHIP.id, sc.id);
 }
 /** The training guide starts an exercise: her scenario, her ship, her speed and the weather the exercise asks for. */
 async function startExercise(ex: Exercise) {

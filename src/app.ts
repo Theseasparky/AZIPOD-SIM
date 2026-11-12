@@ -3,6 +3,7 @@
 import MODELS from './view3d/models/models.json';
 import { registerSW } from 'virtual:pwa-register';
 import { AREA_FILES } from './scenes/areafetch';
+import { countVisit, setStats, statsOn, statsSite } from './stats';
 
 const $ = (id: string) => document.getElementById(id)!;
 const store = {
@@ -53,6 +54,7 @@ export function initApp(onGateClosed: () => void) {
 }
 
 function afterGate() {
+  countVisit(__APP_VERSION__, standalone);
   // iPhone / iPad have no install prompt: tell people how, once
   if (__PWA__ && isIOS && !standalone && store.get('azb-ios-hint') !== '1') {
     setTimeout(() => toast('Install: tap Share, then “Add to Home Screen”.', { label: 'OK', run: () => store.set('azb-ios-hint', '1') }, 0), 1500);
@@ -68,10 +70,13 @@ function renderAbout() {
     <p><b>Install.</b> ${how} Once installed it opens in its own window and keeps working with no connection.${standalone ? ' <b>This copy is installed.</b>' : ''}</p>
     <p><b>No install at all.</b> <a href="shipshape-offline.html" download>Download the offline copy</a>: one HTML file, about 11 MB, that opens in any browser with no internet, the real-chart areas included. Handy for laptops on board.</p>
     ${__PWA__ ? `<p><b>Offline areas.</b> The real-chart areas (PortMiami, Los Angeles and Long Beach, IJmuiden and the Noordzeekanaal) download the first time you open them and stay for offline use. <button class="cb" id="b-areas">DOWNLOAD ALL AREAS NOW</button> <span id="areas-state"></span></p>` : ''}
+    ${__PWA__ && statsSite() ? `<p><b>Anonymous usage counts.</b> <label class="chk"><input type="checkbox" id="s-stats"${statsOn() ? ' checked' : ''} /> Count this device's visits</label> The author sees totals only: how many visits, which ships and places are opened, and roughly how often people come back. No cookie, no identifier, no position and nothing you type is sent; your browser's Do Not Track setting is respected.</p>` : ''}
     <p><b>Feedback.</b> Report a problem or suggest a scenario on <a href="${repo}/issues" target="_blank" rel="noopener">GitHub</a>.</p>
     <p><b>Data</b> Charts: NOAA ENC, Miami and Los Angeles/Long Beach (public domain); Rijkswaterstaat inland ENC, 1 m bathymetry and PDOK buoys and beacons, IJmuiden and the Noordzeekanaal (CC0); open-sea depths off IJmuiden: <a href="https://emodnet.ec.europa.eu/en/bathymetry" target="_blank" rel="noopener">EMODnet Bathymetry</a> DTM (CC BY 4.0). Simplified and gridded for the simulator, not for navigation. Buildings and roads © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, ODbL. Ship models: 1:300 Carnival Spirit hobby model (3D Warehouse / iconic3dmodels); the other ships from Sketchfab under CC BY 4.0: ${Object.values(MODELS).filter(m => m.credit.license !== 'supplied').map(m => `“<a href="${m.credit.url}" target="_blank" rel="noopener">${m.credit.title}</a>” by ${m.credit.author}`).join(', ')}; ${Object.values(MODELS).filter(m => m.credit.license === 'supplied').map(m => `“${m.credit.title}” supplied by ${m.credit.author}`).join(', ')}.</p>
     <p><b>Version</b> ${__APP_VERSION__} · build ${__BUILD__}${__PWA__ ? '' : ' · offline single-file copy'}.</p>
     <p class="note">Training simulator, not for navigation. Ship data are fictional; the validation hull follows a published model-test programme.</p>`;
+  const st = document.getElementById('s-stats') as HTMLInputElement | null;
+  if (st) st.onchange = () => setStats(st.checked);
   const dl = document.getElementById('b-areas') as HTMLButtonElement | null;
   if (dl) dl.onclick = async () => {
     // fetching them is enough: the service worker keeps area data once it has passed through

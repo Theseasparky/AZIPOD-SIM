@@ -234,6 +234,7 @@ test('Paspaley Pearl tracks straight with her pods centred: < 0.5°/min swing', 
 });
 
 console.log('control feel');
+import { comeBack, countUrl, daysBand, gapBand, mayCount } from '../src/stats';
 import { AngleDetent, LinearDetent, CONTROL, onFeel, nudgeAngle, nudgeLinear, nudgeOrder, type Feel } from '../src/ui/controls';
 {
   const felt: [Feel, boolean][] = [];
@@ -1511,6 +1512,26 @@ test('fine-control buttons: 2 % steps inside the lever travel, 5° steps on dial
   const orders = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4];
   assert.equal(nudgeOrder(orders, 0, 1), 0.2); assert.equal(nudgeOrder(orders, 0, -1), -0.2);
   assert.equal(nudgeOrder(orders, 0.61, 1), 0.8); assert.equal(nudgeOrder(orders, 1, 1), 1); assert.equal(nudgeOrder(orders, -0.4, -1), -0.4);
+});
+
+test('usage counts: nothing is sent without a site code, when switched off, offline, under Do Not Track or in a test browser', () => {
+  const ok = { site: 'shipshape', enabled: true, online: true, doNotTrack: false, automated: false };
+  assert.equal(mayCount(ok), true);
+  for (const off of [{ site: '' }, { enabled: false }, { online: false }, { doNotTrack: true }, { automated: true }]) assert.equal(mayCount({ ...ok, ...off }), false, JSON.stringify(off));
+});
+test('usage counts: coming back is counted in coarse bands, and a count carries no identifier', () => {
+  let r = comeBack({ days: 0, last: null }, '2026-11-12');
+  assert.deepEqual([r.days, r.gap, r.next], ['first-day', 'new', { days: 1, last: '2026-11-12' }]);
+  r = comeBack(r.next, '2026-11-12'); assert.deepEqual([r.days, r.gap, r.next.days], ['first-day', 'same-day', 1]);   // the same day again adds no day
+  r = comeBack(r.next, '2026-11-13'); assert.deepEqual([r.days, r.gap, r.next.days], ['2-5-days', 'next-day', 2]);
+  r = comeBack(r.next, '2026-11-19'); assert.deepEqual([r.days, r.gap], ['2-5-days', 'within-a-week']);
+  r = comeBack({ days: 5, last: '2026-10-01' }, '2026-10-30'); assert.deepEqual([r.days, r.gap], ['6-20-days', 'within-a-month']);
+  r = comeBack({ days: 20, last: '2026-01-01' }, '2026-11-12'); assert.deepEqual([r.days, r.gap], ['over-20-days', 'longer']);
+  assert.equal(daysBand(400), 'over-20-days'); assert.equal(gapBand('2026-11-12', '2026-11-12'), 'same-day');
+  const u = new URL(countUrl('shipshape', 'ship/spirit', 'Ship: spirit', true, 'abcde'));
+  assert.equal(u.host, 'shipshape.goatcounter.com');
+  assert.deepEqual([...u.searchParams.keys()].sort(), ['e', 'p', 'rnd', 't']);                 // a path, a title, the event flag and a cache-buster: nothing else
+  assert.deepEqual([...new URL(countUrl('shipshape', '/app', 'SHIPSHAPE 5.3.0', false, 'abcde')).searchParams.keys()].sort(), ['p', 'rnd', 't']);
 });
 
 console.log(`\n${pass} passed${process.exitCode ? ', some failed' : ''}`);

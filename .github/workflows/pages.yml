@@ -33,6 +33,8 @@ jobs:
         env:
           BASE: /${{ github.event.repository.name }}/
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+          # anonymous usage counts: the GoatCounter site code, set as the repository variable STATS_SITE (empty = none sent)
+          STATS_SITE: ${{ vars.STATS_SITE }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
