@@ -27,10 +27,11 @@ export const LINE = {
   reach: 60,         // max fairlead–bollard distance to get a line ashore [m]
 };
 
-export function makeLines(L: number, B: number, xg: number, side: -1 | 1): MooringLine[] {
-  const y = side * (B / 2 - 0.5);
+/** The six lines on one side. With `named`, each name carries its side (both sides rigged at once). */
+export function makeLines(L: number, B: number, xg: number, side: -1 | 1, named = false): MooringLine[] {
+  const y = side * (B / 2 - 0.5), pre = named ? (side < 0 ? 'PORT ' : 'STBD ') : '';
   const mk = (kind: LineKind, name: string, x: number, lead: number): MooringLine =>
-    ({ kind, name, fair: [x - xg, y], lead, state: 'stowed', bollard: -1, L0: 0, mode: 'brake', T: 0, peakT: 0 });
+    ({ kind, name: pre + name, fair: [x - xg, y], lead, state: 'stowed', bollard: -1, L0: 0, mode: 'brake', T: 0, peakT: 0 });
   return [
     mk('head', 'HEAD', L / 2 - 4, 35), mk('fwdBreast', 'FWD BREAST', L * 0.4, 0), mk('fwdSpring', 'FWD SPRING', L * 0.33, -40),
     mk('aftSpring', 'AFT SPRING', -L * 0.33, 40), mk('aftBreast', 'AFT BREAST', -L * 0.4, 0), mk('stern', 'STERN', -L / 2 + 2, -35),
@@ -43,6 +44,9 @@ const fairWorld = (st: ShipState, f: [number, number]): Pt => {
 };
 
 /** Choose the bollard giving the line its proper lead, within reach. */
+/** Which side of the ship a line leads from: −1 port, +1 starboard. */
+export const lineSide = (l: MooringLine): -1 | 1 => (l.fair[1] < 0 ? -1 : 1);
+
 export function pickBollard(st: ShipState, line: MooringLine, bollards: Pt[], idx?: HarbourIndex): number {
   const c = Math.cos(st.psi), s = Math.sin(st.psi);
   const [fn, fe] = fairWorld(st, line.fair);

@@ -19,7 +19,7 @@ import { buildDpStation, buildJetStation, buildStation, buildTugStation, initial
 import { buildHull, setHull } from './physics/contact';
 import { makeState, wrap } from './physics/sim';
 import { DT, LeverMode, Runtime } from './physics/runtime';
-import { LINE, WinchMode } from './physics/mooring';
+import { LINE, WinchMode, lineSide } from './physics/mooring';
 import type { Alt, PredictJob, Track } from './physics/predict';
 import { SCENARIOS, safeStart, Scenario, berthFor, currentField, depthAt, fits, navDepthAt, waterOf, type Water } from './scenarios';
 import { ensureScenario } from './scenes/loaders';
@@ -685,15 +685,30 @@ const MODES: [WinchMode, string][] = [['heave', 'HEAVE'], ['brake', 'BRAKE'], ['
 let linesSig = '';
 function buildLines() {
   const box = $('lines'), rt = S.rt;
-  linesSig = rt.lines.map(l => l.state + l.mode).join();
-  const side = rt.lines[0]?.fair[1] < 0 ? -1 : 1, anyFast = rt.lines.some(l => l.state === 'fast');
-  box.innerHTML = (rt.lines.length ? `<div class="lrow"><span class="nm">SIDE</span><span class="t">${anyFast ? 'lines fast' : 'rig the lines on'}</span>
-      <div class="btns">${([[-1, 'PORT'], [1, 'STBD']] as const).map(([v, lab]) => `<button data-side="${v}" aria-pressed="${side === v}"${anyFast && side !== v ? ' disabled' : ''}>${lab}</button>`).join('')}</div></div>` : '') + rt.lines.map((l, i) => `
+  linesSig = rt.lines.map(l => l.state + l.mode + l.name).join();
+  const rig = rt.linesRigged, fastOn = (sd: -1 | 1) => rt.lines.some(l => l.state === 'fast' && lineSide(l) === sd);
+  // side: one side or both; a side with lines fast cannot be given up
+  const sideRow = rt.lines.length ? `<div class="lrow"><span class="nm">SIDE</span><span class="t">${rig === 0 ? 'both sides rigged' : 'rig the lines on'}</span>
+      <div class="btns">${([[-1, 'PORT'], [1, 'STBD'], [0, 'BOTH']] as const).map(([v, lab]) => {
+        const blocked = v !== 0 && fastOn(-v as -1 | 1);
+        return `<button data-side="${v}" aria-pressed="${rig === v}"${blocked && rig !== v ? ' disabled' : ''}>${lab}</button>`;
+      }).join('')}</div></div>` : '';
+  // the whole side at once (or both sides): all ashore, every winch the same way, all let go
+  const groups = (rig === 0 ? [[-1, 'All port lines'], [1, 'All starboard lines'], [0, 'All lines, both sides']] : [[rig, 'All lines']]) as [-1 | 0 | 1, string][];
+  const allRows = rt.lines.length ? groups.map(([sd, lab]) => `<div class="lrow all"><span class="nm">${lab}</span><span class="t"></span>
+      <div class="btns"><button data-all="${sd}" data-m="pass">ALL ASHORE</button>${rig !== 0 || sd === 0 ? MODES.map(([m, t]) => `<button data-all="${sd}" data-m="${m}">${t}</button>`).join('') : ''}<button data-all="${sd}" data-m="go">LET GO ALL</button></div></div>`).join('') : '';
+  box.innerHTML = sideRow + allRows + rt.lines.map((l, i) => `
     <div class="lrow"><span class="nm">${l.name}</span><span class="t" id="lt-${i}">${l.state.toUpperCase()}</span>
       <div class="btns">${l.state === 'fast'
         ? MODES.map(([m, lab]) => `<button data-l="${i}" data-m="${m}" aria-pressed="${l.mode === m}">${lab}</button>`).join('') + `<button data-l="${i}" data-m="go">LET GO</button>`
         : `<button data-l="${i}" data-m="pass">${l.state === 'parted' ? 'SEND NEW LINE' : 'SEND ASHORE'}</button>`}</div></div>`).join('');
-  box.querySelectorAll<HTMLButtonElement>('button[data-side]').forEach(b => b.onclick = () => { S.rt.setMooringSide(+b.dataset.side! as -1 | 1); buildLines(); });
+  box.querySelectorAll<HTMLButtonElement>('button[data-side]').forEach(b => b.onclick = () => {
+    if (!S.rt.setMooringSide(+b.dataset.side! as -1 | 0 | 1)) toast('Lines are fast on the other side: let them go first.');
+    v3?.build(); buildLines();
+  });
+  box.querySelectorAll<HTMLButtonElement>('button[data-all]').forEach(b => b.onclick = () => {
+    S.rt.allLines(+b.dataset.all! as -1 | 0 | 1, b.dataset.m as 'pass'); uiTick('step'); buildLines();
+  });
   box.querySelectorAll<HTMLButtonElement>('button[data-l]').forEach(b => b.onclick = () => {
     const i = +b.dataset.l!, m = b.dataset.m!;
     if (m === 'pass') S.rt.passLine(i); else if (m === 'go') S.rt.letGo(i); else S.rt.lines[i].mode = m as WinchMode;
@@ -702,7 +717,7 @@ function buildLines() {
 }
 function updateLinesPanel() {
   if ($('p-lines').hidden) return;
-  const sig = S.rt.lines.map(l => l.state + l.mode).join();
+  const sig = S.rt.lines.map(l => l.state + l.mode + l.name).join();
   if (sig !== linesSig) buildLines();
   S.rt.lines.forEach((l, i) => {
     const el = document.getElementById('lt-' + i); if (!el) return;
@@ -821,7 +836,7 @@ function pickBerth(id: string | null, side: -1 | 1) {
   S.berth.pick = id ? { sc: S.sc.id, id, side } : null;
   S.berth.target = targetFor(S.sc);
   const ms = (S.berth.target?.side ?? side) as -1 | 1;
-  if (S.rt.lines.length && S.rt.lines[0].fair[1] * ms < 0 && !S.rt.setMooringSide(ms)) toast('Lines are fast on the other side: let them go to rig them on this side.');
+  if (S.rt.lines.length && S.rt.linesRigged !== 0 && S.rt.lines[0].fair[1] * ms < 0 && !S.rt.setMooringSide(ms)) toast('Lines are fast on the other side: let them go to rig them on this side.');
   if (!S.rt.lines.length && S.sc.bollards.length) S.rt.setMooringSide(ms);
   if (S.rt.tugs.length && S.rt.tugs[0].side !== -ms && !S.rt.setTugSide(-ms as -1 | 1)) toast('The tugs are working: stop them to send them round to the other side.');
   $('b-lines').hidden = !S.rt.lines.length;

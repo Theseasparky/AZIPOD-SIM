@@ -5,7 +5,8 @@ import {
 import { ContactInfo, Fender, Obstacle, Pt } from './contact';
 import { DepthField, bankEffect, groundingForces, squat, washReflection } from './harbour';
 import { Damage, Hit } from './damage';
-import { MooringLine, Tug, LINE, makeLines, makeTugs, passLine, tugEngaged, tugForces, updateTugs, updateWinches } from './mooring';
+import type { WinchMode } from './mooring';
+import { MooringLine, Tug, LINE, lineSide, makeLines, makeTugs, passLine, tugEngaged, tugForces, updateTugs, updateWinches } from './mooring';
 import { type Anchor, type Seabed, type WindlassMode, anchorGear, orderAnchor, stepAnchor } from './anchor';
 import { DPState, JoyInput, allocate, dpForces, joyLimits } from './allocation';
 import { Sensors } from './sensors';
@@ -157,13 +158,45 @@ export class Runtime {
     if (no) this.alert(no, '');
     else if (mode === 'letgo' && !a.pos) this.alert(`${a.name} anchor let go`, '');
   }
-  /** Rig the mooring lines on the other side (none may be fast). Returns whether it was done. */
-  setMooringSide(side: -1 | 1) {
-    if (this.lines.some(l => l.state === 'fast')) return false;
-    this.harbour.mooringSide = side;
-    this.lines.splice(0, this.lines.length, ...makeLines(this.spec.L, this.spec.B, this.spec.xg, side));
-    this.world.lineT = this.lines.map(() => 0);
+  /** Rig the mooring lines on one side, or on both at once (0): for a Mediterranean moor with lines from both
+   *  quarters, or a ship centred in a slip. A side whose lines are fast keeps them; lines that are fast on a side
+   *  being given up stop it. Returns whether it was done. */
+  setMooringSide(side: -1 | 0 | 1) {
+    const want = side === 0 ? [-1, 1] : [side];
+    if (this.lines.some(l => l.state === 'fast' && !want.includes(lineSide(l)))) return false;
+    const keep = this.lines.filter(l => want.includes(lineSide(l)));
+    const has = new Set(keep.map(lineSide));
+    const both = want.length === 2;
+    const next: MooringLine[] = [];
+    for (const sd of want as (-1 | 1)[]) {
+      const fresh = makeLines(this.spec.L, this.spec.B, this.spec.xg, sd, both);
+      const old = keep.filter(l => lineSide(l) === sd);
+      // a side already rigged keeps its lines as they stand (fast ones stay fast); its names follow the rig
+      next.push(...(has.has(sd) ? old.map((l, k) => ({ ...l, name: fresh[k]?.name ?? l.name })) : fresh));
+    }
+    if (side !== 0) this.harbour.mooringSide = side;
+    this.lines.splice(0, this.lines.length, ...next);
+    this.world.lineT = this.lines.map(l => l.T);
     return true;
+  }
+  /** Which sides are rigged: −1, +1, or 0 for both. */
+  get linesRigged(): -1 | 0 | 1 { const s = new Set(this.lines.map(lineSide)); return s.size === 2 ? 0 : (s.has(-1) ? -1 : 1); }
+  /** One order to every line on a side (or on both, side 0): send them all ashore, set every winch, or let them all go.
+   *  Returns how many lines it was carried out for. */
+  allLines(side: -1 | 0 | 1, order: 'pass' | 'go' | WinchMode) {
+    let n = 0, missed = 0;
+    this.lines.forEach((l, i) => {
+      if (side !== 0 && lineSide(l) !== side) return;
+      if (order === 'pass') {
+        if (l.state === 'fast') return;
+        if (passLine(this.state, l, this.harbour.bollards, this.index, this.harbour.lineZ?.(this.state))) n++; else missed++;
+      } else if (order === 'go') { if (l.state === 'fast') { this.letGo(i); n++; } }
+      else if (l.state === 'fast') { l.mode = order; n++; }
+    });
+    const where = side === 0 ? 'both sides' : side < 0 ? 'port side' : 'starboard side';
+    if (order === 'pass') this.alert(n ? `${n} line${n > 1 ? 's' : ''} ashore, ${where}${missed ? `; ${missed} with no bollard within ${LINE.reach} m` : ''}` : `No bollard within ${LINE.reach} m, ${where}`, n ? 'good' : '');
+    else if (order === 'go' && n) this.alert(`All lines let go, ${where}`, '');
+    return n;
   }
   /** Send the tugs round to the other side (only while none is working). */
   setTugSide(side: -1 | 1) {

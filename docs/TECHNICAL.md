@@ -208,6 +208,10 @@ Every lever, slider and dial runs its raw drag position through `src/ui/controls
 - **Interface:** the ANCHOR panel (chain out in shackles and metres, depth, scope, tension, holding or dragging), the anchor and its chain on the chart (dashed where it lies on the bottom) and in 3D, and the chain's rattle.
 - **Tests:** gear for every ship; the catenary against its closed form; riding to five times the depth in 20 kn; dragging on a short stay in a gale; heaving home; a Mediterranean moor at Split holding in a 20 kn crosswind. Stowed anchors change nothing (golden records identical).
 
+## Lines on both sides
+
+Six lines a side (head, forward breast, forward spring, aft spring, aft breast, stern). The berth's side is rigged by default; `Runtime.setMooringSide(-1 | 0 | 1)` rigs one side or both (0), keeping the lines of a side that stays rigged as they stand and refusing to give up a side whose lines are fast. `Runtime.allLines(side, order)` sends every line of a side (or of both) ashore, sets all their winches, or lets them all go. The default rig is unchanged, so the golden records are identical. Tests: rigging and giving up sides, the whole-side orders, and a ship held in the middle of a slip by lines from both sides in a 25 kn beam wind.
+
 ## Fine-control buttons
 
 Beside every power lever and thruster, + and − buttons step the order by 2 % (one order on a telegraph or a bridge programme); beside every wheel, nozzle helm, pod dial and tug drive, 5° buttons. A tap is one step and holding repeats. They write through the same setters as a drag, so linked units move together and the limits hold (`src/ui/nudge.ts`, `nudgeLinear`, `nudgeAngle` and `nudgeOrder` in `src/ui/controls.ts`).

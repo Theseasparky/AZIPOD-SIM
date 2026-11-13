@@ -1660,4 +1660,47 @@ console.log('Port of Split (open data)');
   });
 }
 
+console.log('lines on both sides');
+{
+  const idle = (n: number) => ({ pods: Array.from({ length: n }, () => ({ alpha: 0, rpm: 0 })), bt: 0 });
+  /** A 40 m wide slip with bollards along both walls, the ship in the middle of it. */
+  const slip = (sp: typeof ACTIVE) => {
+    const half = sp.B / 2 + 8, bollards: [number, number][] = [];
+    for (let n = -sp.LOA; n <= sp.LOA; n += 15) bollards.push([n, -half - 1.5], [n, half + 1.5]);
+    return { obstacles: [], fenders: [], bollards, depthAt: () => 12, mooringSide: 1 as const };
+  };
+  test('lines can be rigged on port, starboard or both; a side with lines fast cannot be given up', () => {
+    setShip('superyacht'); setHull(buildHull(ACTIVE.L, ACTIVE.B, ACTIVE.xg, ACTIVE.LOA));
+    const rt = new Runtime(ACTIVE, makeState(ACTIVE, 0, 0, 0, 0), idle(ACTIVE.pods.length), calm, slip(ACTIVE));
+    assert.equal(rt.lines.length, 6); assert.equal(rt.linesRigged, 1);
+    assert.ok(rt.passLine(0), 'starboard head line ashore');
+    assert.equal(rt.setMooringSide(-1), false, 'starboard lines are fast');
+    assert.ok(rt.setMooringSide(0)); assert.equal(rt.lines.length, 12); assert.equal(rt.linesRigged, 0);
+    assert.equal(rt.lines.filter(l => l.state === 'fast').length, 1, 'the fast line stayed fast');
+    assert.ok(rt.lines.some(l => l.name === 'PORT HEAD') && rt.lines.some(l => l.name === 'STBD HEAD'));
+    assert.equal(rt.world.lineT!.length, 12);
+    rt.allLines(0, 'go'); assert.ok(rt.setMooringSide(-1)); assert.equal(rt.lines.length, 6); assert.equal(rt.linesRigged, -1);
+  });
+  test('one order to a whole side: all ashore, every winch, all let go', () => {
+    const rt = new Runtime(ACTIVE, makeState(ACTIVE, 0, 0, 0, 0), idle(ACTIVE.pods.length), calm, slip(ACTIVE));
+    rt.setMooringSide(0);
+    assert.equal(rt.allLines(-1, 'pass'), 6, 'six port lines ashore');
+    assert.ok(rt.lines.filter(l => l.fair[1] > 0).every(l => l.state === 'stowed'), 'starboard untouched');
+    assert.equal(rt.allLines(0, 'pass'), 6, 'then the six starboard ones');
+    assert.equal(rt.allLines(1, 'heave'), 6);
+    assert.ok(rt.lines.filter(l => l.fair[1] > 0).every(l => l.mode === 'heave') && rt.lines.filter(l => l.fair[1] < 0).every(l => l.mode === 'slack'));
+    assert.equal(rt.allLines(0, 'go'), 12); assert.ok(rt.lines.every(l => l.state === 'stowed'));
+  });
+  test('centred in a slip: lines from both sides hold her off both walls in a 25 kn beam wind', () => {
+    const rt = new Runtime(ACTIVE, makeState(ACTIVE, 0, 0, 0, 0), idle(ACTIVE.pods.length), { ...calm, windSpeed: 25 * KN, windFrom: 90 * DEG }, slip(ACTIVE));
+    rt.setMooringSide(0); rt.allLines(0, 'pass'); rt.allLines(0, 'auto');
+    for (let i = 0; i < 2 * 1200; i++) rt.step();
+    const e2 = rt.state.e;
+    for (let i = 0; i < 6 * 1200; i++) rt.step();
+    assert.ok(Math.abs(rt.state.e) < 4, `off centre ${rt.state.e.toFixed(1)} m (the walls are 8 m off)`);
+    assert.ok(Math.abs(rt.state.e - e2) < 0.5, `still moving: ${(rt.state.e - e2).toFixed(2)} m`);
+    assert.ok(rt.lines.every(l => l.state === 'fast'));
+  });
+}
+
 console.log(`\n${pass} passed${process.exitCode ? ', some failed' : ''}`);

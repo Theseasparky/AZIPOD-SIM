@@ -328,6 +328,17 @@ export class View3D {
   /** The harbour changed (fenders and bollards edited): rebuild it on the next build. */
   harbourChanged() { this.harbourFor = ''; this.builtFor = ''; this.build(); }
   /** Rebuild for the current scenario and ship (cheap; called on scenario load). */
+  /** One three.js line per mooring line (rebuilt when lines are rigged on another side, or on both). */
+  private buildLines() {
+    for (const l of this.lines) { this.scene.remove(l); l.geometry.dispose(); }
+    this.lines = S.rt.lines.map(() => {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(17 * 3), 3));
+      const l = new THREE.Line(g, new THREE.LineBasicNodeMaterial({ color: 0xe8d9a0 }));
+      l.frustumCulled = false; l.visible = false; this.scene.add(l);
+      return l;
+    });
+  }
   build() {
     const key = S.sc.id + '|' + SHIP.id + '|' + (S.rt.escort?.spec.id ?? '') + '|' + S.rt.traffic.map(t => t.spec.id).join(',');
     if (key === this.builtFor) return;
@@ -344,14 +355,7 @@ export class View3D {
     this.buildOther();
     this.buildTraffic();
     this.buildTugs();
-    for (const l of this.lines) this.scene.remove(l);
-    this.lines = S.rt.lines.map(() => {
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(17 * 3), 3));
-      const l = new THREE.Line(g, new THREE.LineBasicNodeMaterial({ color: 0xe8d9a0 }));
-      l.frustumCulled = false; l.visible = false; this.scene.add(l);
-      return l;
-    });
+    this.buildLines();
     // anchor chains: from the hawse pipe down into the water, along the line to the anchor
     for (const c of this.chains) this.scene.remove(c);
     this.chains = S.rt.anchors.map(() => {
@@ -1091,6 +1095,7 @@ export class View3D {
 
     // mooring lines: catenary-ish sag from tension
     const fb = SHIP.look.freeboard;
+    if (this.lines.length !== rt.lines.length) this.buildLines();
     rt.lines.forEach((l, i) => {
       const obj = this.lines[i]; if (!obj) return;
       obj.visible = l.state === 'fast';
