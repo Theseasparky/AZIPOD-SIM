@@ -1046,7 +1046,7 @@ function renderShipList() {
   filterMenu();
 }
 /** Which group a scenario is listed under: its real-chart area, else schematic harbours or open water. */
-const OPEN_WATER = new Set(['escort', 'ice', 'rotor', 'dp', 'trials']);
+const OPEN_WATER = new Set(['escort', 'ice', 'rotor', 'dp', 'anchorage', 'trials']);
 const groupOf = (s: Scenario) => s.area ? AREAS[s.area].meta.name : OPEN_WATER.has(s.id) ? 'Open water and special operations' : 'Practice harbours and channels';
 function renderScenarioList() {
   const box = $('scenarios'); box.innerHTML = '';

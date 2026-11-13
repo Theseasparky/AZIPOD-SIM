@@ -364,6 +364,14 @@ export const SCENARIOS: Scenario[] = [
     dpScript: [{ t: 120, kind: 'unit', unit: 0 }, { t: 300, kind: 'common', dir: 90 }],
   },
   {
+    id: 'anchorage', name: 'Anchorage · anchor off',
+    brief: 'An open roadstead, 18 m of water over a good holding bottom, 15 kn of wind from the north. Stem the wind, take the way off, let go with a little sternway and pay out four to five times the depth, then see that she holds.',
+    ship: 'spirit',
+    start: { n: -900, e: 0, psi: 0, kn: 4 },
+    windKn: 15, windFrom: 0, gusts: true, currentKn: 0.3, currentSet: 200, depth: 18,
+    shoals: [], obstacles: [], fenders: [], bollards: [], zoom: 0.6,
+  },
+  {
     id: 'trials', name: 'Open water · trials',
     brief: 'Deep, calm, no obstructions. Try a crash stop, a pod-only turn, the joystick, or walking the ship sideways.',
     ship: 'spirit',
