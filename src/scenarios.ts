@@ -20,6 +20,7 @@ import { cardinal, lateral, pierLight, platformLight, safeWater } from './ui/cha
 import { AMSTERDAM, Building } from './scenes/amsterdam';
 import { MIAMI, MIAMI_APPROACH, MIAMI_CARGO } from './scenes/miami';
 import { LALB_SCENARIOS } from './scenes/lalb';
+import { SPLIT_SCENARIOS } from './scenes/split';
 import { IJM_SCENARIOS } from './scenes/ijmuiden';
 export type { Building };
 
@@ -116,6 +117,7 @@ export function currentField(sc: Scenario, kn: number, setDeg: number): CurrentF
 
 export const SCENARIOS: Scenario[] = [
   MIAMI, MIAMI_APPROACH, MIAMI_CARGO,
+  ...SPLIT_SCENARIOS,
   ...LALB_SCENARIOS,
   ...IJM_SCENARIOS,
   AMSTERDAM,
@@ -362,6 +364,14 @@ export const SCENARIOS: Scenario[] = [
     marks: [platformLight([28, 28], { name: 'Platform' }), platformLight([-28, -28])],
     ship: 'psv', dpOnly: true,
     dpScript: [{ t: 120, kind: 'unit', unit: 0 }, { t: 300, kind: 'common', dir: 90 }],
+  },
+  {
+    id: 'anchorage', name: 'Anchorage · anchor off',
+    brief: 'An open roadstead, 18 m of water over a good holding bottom, 15 kn of wind from the north. Stem the wind, take the way off, let go with a little sternway and pay out four to five times the depth, then see that she holds.',
+    ship: 'spirit',
+    start: { n: -900, e: 0, psi: 0, kn: 4 },
+    windKn: 15, windFrom: 0, gusts: true, currentKn: 0.3, currentSet: 200, depth: 18,
+    shoals: [], obstacles: [], fenders: [], bollards: [], zoom: 0.6,
   },
   {
     id: 'trials', name: 'Open water · trials',

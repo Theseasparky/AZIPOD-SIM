@@ -136,7 +136,7 @@ export function uiTick(kind: 'step' | 'detent' | 'zero' | 'cardinal', vibrate = 
 }
 
 // ---------------------------------------------------------------- per frame
-let lastContact = -1, lastAlert: unknown = null, lastAlpha: number[] = [], lastMode: string[] = [], wasAground = false, creakT = 0, chimeT = -99;
+let lastContact = -1, lastAlert: unknown = null, lastAlpha: number[] = [], lastMode: string[] = [], wasAground = false, creakT = 0, chainT = 0, chimeT = -99;
 export function updateAudio(dtReal: number) {
   const rt = S.rt; if (!rt) return;
   const sheetOpen = !document.getElementById('sheet')!.hidden;
@@ -196,6 +196,17 @@ export function updateAudio(dtReal: number) {
   const ci = rt.ci, hard = ci.active && ci.points.length > ci.fenders.length;
   set(scrape.g.gain, hard ? Math.min(0.5, 0.1 + 0.6 * spd) : 0, 0.05); set(scrape.f.frequency, 900 + 900 * Math.min(1, spd));
   set(rumble.g.gain, ag ? Math.min(1, 0.3 + (rt.world.aground ?? 0) + spd * 0.4) : 0, 0.1);
+  // anchor chain: links clattering out through the hawse pipe while it runs, a slower clank when heaving in
+  chainT -= dtReal;
+  for (const a of rt.anchors) {
+    if (a.state !== 'down' || chainT > 0) continue;
+    const running = a.mode === 'letgo' && a.out < a.chain;
+    if (!running && a.mode !== 'walk' && a.mode !== 'heave') continue;
+    const pan = a.hawse[1] < 0 ? -0.5 : a.hawse[1] > 0 ? 0.5 : 0;
+    chainT = running ? 0.045 + Math.random() * 0.03 : 0.32;
+    burst(running ? 0.05 : 0.08, running ? 2400 + Math.random() * 1200 : 1500, 'bandpass', running ? 0.35 : 0.25, pan, false, 3);
+    break;
+  }
   // mooring lines creak under load
   creakT -= dtReal;
   const maxT = Math.max(0, ...rt.lines.filter(l => l.state === 'fast').map(l => l.T));

@@ -319,6 +319,13 @@ def merged(cs):
             j += 1
         out.append((cs[i], cs[j])); i = j
     return out
+# every quay edge long enough to be a berth, to give each berth point to the nearest of them
+_long = [LineString([a, b]) for poly in polys(land) for ring in [poly.exterior] + list(poly.interiors)
+         for a, b in merged(list(LineString(ring.coords).simplify(1.0).coords)) if LineString([a, b]).length >= 30]
+_long_tree = STRtree(_long) if _long else None
+def _nearest_face(q):
+    if _long_tree is None: return 0.0
+    return min(_long[i].distance(q) for i in _long_tree.query(q.buffer(60))) if len(_long_tree.query(q.buffer(60))) else 0.0
 for poly in polys(land):
     for ring in [poly.exterior] + list(poly.interiors):
         r = LineString(ring.coords).simplify(1.0)          # within 1 m of the real edge: less than any fender stands off
@@ -351,7 +358,9 @@ for poly in polys(land):
             pier = min(piers, key=lambda q: q[0].distance(seg), default=(None, None))
             place = pier[1] if pier[0] is not None and pier[0].distance(seg) < 60 else None
             # the charted berths along it: one berth each, from halfway to the one before to halfway to the next
-            on_face = sorted([(seg.project(q.centroid), nm_) for q, nm_ in named if q.distance(seg) < (40 if q.geom_type == 'Point' else 12) and 0 <= seg.project(q.centroid) <= L], key=lambda x: x[0])
+            # a berth's point goes to the quay edge nearest it, not to the far side of a narrow pier as well
+            on_face = sorted([(seg.project(q.centroid), nm_) for q, nm_ in named if q.distance(seg) < (40 if q.geom_type == 'Point' else 12) and 0 <= seg.project(q.centroid) <= L
+                              and (q.geom_type != 'Point' or q.distance(seg) <= _nearest_face(q) + 8)], key=lambda x: x[0])
             cuts = [0.0] + [(on_face[k][0] + on_face[k + 1][0]) / 2 for k in range(len(on_face) - 1)] + [L]
             parts = [(cuts[k], cuts[k + 1], on_face[k][1] if on_face else None) for k in range(max(1, len(on_face)))]
             # pieces too short to be a berth go to their neighbour
@@ -380,7 +389,7 @@ print('berth faces', len(faces), 'total m', round(sum(f['len'] for f in faces)),
 # ---------------------------------------------------------------- the chart
 COL = {1: 'white', 2: 'black', 3: 'red', 4: 'green', 5: 'blue', 6: 'yellow', 7: 'grey', 8: 'brown', 9: 'amber', 10: 'violet', 11: 'orange', 12: 'magenta', 13: 'pink'}
 def ring(r, tol=0.8): return coords(LineString(r.coords).simplify(tol))
-chart = {'meta': {'datum': REG['datum'], 'iala': REG['iala'], 'source': ' + '.join(sorted({'NOAA ENC' if c['source'] == 'noaa' else 'Rijkswaterstaat IENC' for c in man['cells']})) + (' + RWS bathymetry' if rasters else '') + (' + EMODnet' if emod is not None else '')},
+chart = {'meta': {'datum': REG['datum'], 'iala': REG['iala'], 'source': ' + '.join(sorted({{'noaa': 'NOAA ENC', 'osm': 'OpenStreetMap / OpenSeaMap'}.get(c['source'], 'Rijkswaterstaat IENC') for c in man['cells']})) + (' + RWS bathymetry' if rasters else '') + (' + EMODnet' if emod is not None else '')},
          'fill': 'nonzero', 'depare': [], 'drgare': [], 'land': [], 'contours': [], 'soundings': [], 'slcons': [], 'aids': [], 'labels': [], 'bridges': []}
 for g, p in depare:
     for q in polys(orient(g.buffer(0), 1.0) if isinstance(g, Polygon) else g):

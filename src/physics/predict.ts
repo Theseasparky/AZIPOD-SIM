@@ -1,6 +1,7 @@
 // Fast-time dynamic prediction (runs in a worker). Same model family as the ship,
 // driven by the actual lever settings; optionally with an onboard-style mismatched model
 // fed from sensor estimates. Produces the "current" track plus what-if alternatives.
+import type { Anchor } from './anchor';
 import { DEG, ShipSpec } from './ship';
 import { Command, Env, Model, ShipState, World, cloneState, mismatched, rk4, updateActuators, Wrench } from './sim';
 import { ContactInfo, contactForces, Fender, Obstacle, Pt } from './contact';
@@ -26,6 +27,8 @@ export interface PredictJob {
    *  own (possibly out of date) copy of the berth's bollards. */
   lines: (Pick<MooringLine, 'fair' | 'bollard' | 'L0' | 'state'> & { bp?: Pt })[];
   ext: Wrench;
+  /** Anchors on the bottom as they stand (held on the brake for the length of the prediction). */
+  anchors?: Anchor[];
   horizon: number; alts: Alt[];
   /** Where water levels change: the levels now and a lock's gates as they stand. */
   water?: { outer: number; inner: number; chamber: number; gates: Obstacle[] };
@@ -47,7 +50,7 @@ export function runPrediction(spec: ShipSpec, job: PredictJob, sw: ScenarioWorld
   const bollards: Pt[] = ownPts ? job.lines.map(l => l.bp ?? [0, 0]) : sw.bollards;
   const lines = job.lines.map((l, i) => ({ fair: l.fair, bollard: ownPts ? (l.bp ? i : -1) : l.bollard, L0: l.L0, state: ownPts && !l.bp && l.state === 'fast' ? 'stowed' : l.state,
     kind: 'head', name: '', lead: 0, mode: 'brake', T: 0, peakT: 0 })) as MooringLine[];
-  const world: World = { obstacles: [], fenders: [], contact: false, lines, bollards, ext: job.ext, depthAt: sw.depthAt, squat: 0 ,
+  const world: World = { obstacles: [], fenders: [], contact: false, lines, bollards, ext: job.ext, depthAt: sw.depthAt, squat: 0, anchors: job.anchors,
     ...(job.lineZ && ownPts ? { lineZ: { fair: job.lineZ.fair, bol: (i: number) => job.lineZ!.bol[i] ?? job.lineZ!.fair } } : {}) };
   const probe: ContactInfo = { active: false, points: [], fenders: [] };
   const startsInContact = (() => { contactForces(job.state, sw.obstacles, sw.fenders, probe, sw.index); return probe.active; })();

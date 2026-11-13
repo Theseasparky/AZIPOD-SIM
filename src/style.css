@@ -184,6 +184,8 @@ input[type=range] { width: 100%; accent-color: var(--color-accent); touch-action
 .lrow .nm { font-size: 0.8125rem; font-weight: 400; white-space: nowrap; }
 .lrow .t { font-size: var(--text-xs); color: var(--color-muted); text-align: right; white-space: nowrap; }
 .lrow .t.hi { color: var(--color-warn); }
+#anchors .lrow { grid-template-columns: 1fr; }
+#anchors .lrow .t { text-align: left; white-space: normal; }
 .lrow .btns { display: flex; gap: var(--space-2xs); flex-wrap: wrap; grid-column: 1 / -1; justify-content: flex-start; }
 .lrow .btns button, .seg button, .chips button { height: 30px; padding: 0 10px; color: var(--color-ink-2); }
 .lk-row { display: flex; gap: var(--space-xs); align-items: center; flex-wrap: wrap; }
@@ -245,7 +247,41 @@ h2 .sub { font-weight: 300; font-size: var(--text-sm); letter-spacing: 0; color:
 .scen b { font-size: var(--text-md); font-weight: 400; }
 .scen span { font-size: var(--text-sm); color: var(--color-ink-2); line-height: 1.45; }
 .scen span.who { font-size: var(--text-xs); color: var(--color-muted); }
-.scen.ships { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.ships .grp-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.grp-body { display: flex; flex-direction: column; }
+/* fine-control buttons beside levers, helms, dials and sliders */
+.nudge { display: flex; align-items: center; gap: var(--space-2xs); min-width: 0; }
+.nudge.ends > input { flex: 1 1 auto; min-width: 0; }
+.nudge > canvas { flex: none; }
+.st-gen .cell.helm { width: auto; height: auto; }
+.nudge-col { display: flex; flex-direction: column; gap: var(--space-xs); }
+.nb { flex: none; width: 30px; height: 30px; padding: 0; position: relative; background: var(--color-paper-3); border: 0; box-shadow: inset 0 0 0 var(--rule-hair) var(--color-rule-2);
+  border-radius: var(--radius-ctl); color: var(--color-ink); font-size: var(--text-md); font-weight: 400; line-height: 1; touch-action: manipulation; }
+.nb::after { content: ""; position: absolute; inset: -5px -2px; }
+.nb:active { transform: translateY(1px); background: var(--color-paper-4); }
+@media (hover: hover) { .nb:hover { background: var(--color-paper-4); } }
+.podnudge { justify-content: center; gap: 3px; }
+.nudge.turn { justify-content: center; }
+.nudge.ends > .btslide { flex: 1 1 auto; min-width: 0; }
+/* the menu's tabs, search box and collapsible groups */
+.tabs { display: flex; border-bottom: var(--rule-hair) solid var(--color-rule); }
+.tabs button { flex: 1; height: 44px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--color-muted); font-size: var(--text-md); }
+.tabs button[aria-selected="true"] { color: var(--color-ink); border-bottom-color: var(--color-accent); }
+.tabs button:focus-visible { outline-offset: -2px; }
+#menu-q { height: 40px; padding: 0 var(--space-sm); margin: var(--space-xs) 0 var(--space-2xs); font-size: var(--text-md); -webkit-user-select: text; user-select: text; }
+#menu-q::placeholder { color: var(--color-muted); }
+.sheet[data-tab="settings"] #menu-q { display: none; }
+.sheet[data-tab="ships"] details.sec:not([data-tab="ships"]), .sheet[data-tab="places"] details.sec:not([data-tab="places"]),
+.sheet[data-tab="settings"] details.sec:not([data-tab="settings"]) { display: none; }
+details.sec[data-tab="ships"], details.sec[data-tab="places"] { border-top: 0; padding: 0; }
+details.sec[data-tab="ships"] > summary, details.sec[data-tab="places"] > summary { display: none; }
+details.grp { border-bottom: var(--rule-hair) solid var(--color-rule); }
+details.grp > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 48px; font-size: var(--text-md); font-weight: 400; }
+details.grp > summary::-webkit-details-marker { display: none; }
+details.grp > summary .n { color: var(--color-muted); font-size: var(--text-sm); margin-right: auto; }
+details.grp > summary::after { content: "+"; color: var(--color-muted); font-size: var(--text-xl); font-weight: 300; line-height: 1; }
+details.grp[open] > summary::after { content: "−"; }
+details.grp[open] { padding-bottom: var(--space-xs); }
 .env-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-sm) 14px; align-items: center; font-size: var(--text-sm); }
 .env-grid output { font-size: var(--text-sm); font-weight: 400; color: var(--color-ink-2); margin-left: 6px; }
 .env-grid .chk { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; min-height: 28px; }
@@ -449,6 +485,12 @@ kbd { font-size: var(--text-xs); font-weight: 400; box-shadow: inset 0 0 0 var(-
   .primary .val { font-size: 1.625rem; }
   .hud-row.secondary { justify-content: space-between; gap: var(--space-3xs) 10px; }
   .podread .tag { display: none; }
+  /* a narrow tray: the thruster's buttons go under its slider, and the two mode buttons stack */
+  .center .nudge.ends { flex-wrap: wrap; justify-content: space-between; row-gap: 0; }
+  .center .nudge.ends > .btslide { flex-basis: 100%; order: -1; }
+  .center .btscale { display: none; }
+  .st-az .ctl { grid-template-columns: 1fr; }
+  .st-az .ctl .cb { height: 34px; }
   .panel { left: var(--gutL); right: var(--gutR); max-width: none; }
   .ais { width: clamp(150px, 42vw, 190px); }
   .ais-info { font-size: 0.625rem; }

@@ -430,6 +430,23 @@ export function drawLines() {
     ctx.setLineDash(k > 0.005 ? [] : [px(3), px(3)]);
     ctx.beginPath(); ctx.moveTo(fe, fn); ctx.lineTo(be, bn); ctx.stroke(); ctx.setLineDash([]);
   }
+  // anchors on the bottom: the anchor, and its chain from the hawse (dashed where it lies on the bottom)
+  for (const a of rt.anchors) {
+    if (a.state !== 'down' || !a.pos) continue;
+    const [hn, he] = bodyToWorld(est, a.hawse[0], a.hawse[1]), [an, ae] = a.pos;
+    const d = Math.hypot(an - hn, ae - he) || 1, lie = Math.min(d, a.onBottom) / d;
+    const mn = an + (hn - an) * lie, me = ae + (he - ae) * lie;            // where the chain leaves the bottom
+    const col = a.dragV > 0.05 ? C.warn : a.T > 0.3 * a.MBL ? C.own : C.ink;
+    ctx.strokeStyle = col; ctx.lineWidth = px(1.6);
+    ctx.beginPath(); ctx.moveTo(he, hn); ctx.lineTo(me, mn); ctx.stroke();
+    ctx.setLineDash([px(4), px(3)]); ctx.beginPath(); ctx.moveTo(me, mn); ctx.lineTo(ae, an); ctx.stroke(); ctx.setLineDash([]);
+    // the anchor: ring, shank and arms, drawn to a fixed size on screen
+    const r = px(7), ux = (ae - he) / d, uy = (an - hn) / d;                // along the chain, away from the ship
+    ctx.lineWidth = px(1.8);
+    ctx.beginPath(); ctx.arc(ae - ux * r, an - uy * r, px(2), 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ae - ux * r * 0.7, an - uy * r * 0.7); ctx.lineTo(ae + ux * r, an + uy * r);
+    ctx.moveTo(ae + ux * r * 0.3 - uy * r, an + uy * r * 0.3 + ux * r); ctx.quadraticCurveTo(ae + ux * r * 1.2, an + uy * r * 1.2, ae + ux * r * 0.3 + uy * r, an + uy * r * 0.3 - ux * r); ctx.stroke();
+  }
 }
 
 /** The ship a tug is working, and the towline (ink when slack, own colour loaded, warn near the brake). */

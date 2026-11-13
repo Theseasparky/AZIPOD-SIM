@@ -54,6 +54,7 @@
     <button id="b-follow" class="mb on" aria-pressed="true">FOLLOW</button>
     <button id="b-lines" class="mb" hidden>LINES</button>
     <button id="b-tugs" class="mb" hidden>TUGS</button>
+    <button id="b-anchor" class="mb" aria-label="Anchors and windlass">ANCHOR</button>
     <button id="b-lock" class="mb" hidden aria-label="The lock: call the lock master, levels and signals">LOCK</button>
     <button id="b-ais" class="mb" hidden aria-label="AIS targets">AIS</button>
     <button id="b-dmg" class="mb" hidden aria-label="Damage control">DAMAGE</button>
@@ -99,6 +100,11 @@
     <p class="hint">About 20 s to change power, 60 s to swap between pushing and pulling. Tugs lose their grip above about 6 kn.</p>
   </section>
 
+  <section class="panel" id="p-anchor" hidden aria-label="Anchors">
+    <div class="panel-head"><span class="tag">Anchors and windlass</span><button class="x" data-close="p-anchor" aria-label="Close">×</button></div>
+    <div id="anchors"></div>
+    <p class="hint">Let go with a little sternway and let her fall back on the chain; hold on the brake when enough is out. Four to five times the depth of chain is a usual scope; a short stay holds little. One shackle is 27.5 m.</p>
+  </section>
   <section class="panel" id="p-coach" hidden aria-label="Training guide">
     <div class="panel-head"><span class="tag" id="coach-head">Coach</span><button class="x" data-close="p-coach" aria-label="Close">×</button></div>
     <div id="coach-body" aria-live="polite"></div>
@@ -144,7 +150,7 @@
     <div class="gate-card">
       <h1 id="gate-h">SHIPSHAPE</h1>
       <p>Take the controls of a real-size ship and bring her safely into port. Choose from 25 ships, from harbour tugs and ferries to cruise ships, tankers, an icebreaker and a 24,000-container giant, each with the controls her crew would use.</p>
-      <p>Sail into PortMiami and Los Angeles–Long Beach on their real charts, take a ship through the IJmuiden sea lock to Amsterdam, or go along a river, through ice or out at sea. Wind, current and shallow water push you around just as they do in real life, and a forecast line shows where you’re heading.</p>
+      <p>Sail into PortMiami, Los Angeles–Long Beach and Split on their real charts, take a ship through the IJmuiden sea lock to Amsterdam, or go along a river, through ice or out at sea. Wind, current and shallow water push you around just as they do in real life, and a forecast line shows where you’re heading.</p>
       <p><b>For training and fun only, not for navigation.</b> The ships behave like real ones, but never exactly the same. Don’t use it to plan a real manoeuvre.</p>
       <p class="credit">Developed by <b>Khalil Mahboub</b>, Captain &amp; Maritime Systems Enthusiast.<br />Questions, feedback, or collaborations:<br />Instagram: <a href="https://www.instagram.com/snowskyz/" target="_blank" rel="noopener">@snowskyz</a>, WhatsApp: <a href="https://wa.me/15145741719" target="_blank" rel="noopener">+1 (514) 574-1719</a></p>
       <button id="gate-ok" class="cb">I understand</button>
@@ -158,11 +164,17 @@
         <button id="b-close" class="cb">Close</button>
       </div>
       <p class="ship" id="shipline"></p>
+      <div class="tabs" role="tablist" aria-label="Menu sections">
+        <button role="tab" data-tab="ships" aria-selected="true">Ships</button>
+        <button role="tab" data-tab="places" aria-selected="false">Places</button>
+        <button role="tab" data-tab="settings" aria-selected="false">Settings</button>
+      </div>
+      <input type="search" id="menu-q" class="pick" placeholder="Search ships" aria-label="Search ships and places" autocomplete="off" />
 
-      <details class="sec" open><summary><h2>Ship</h2></summary>
+      <details class="sec" data-tab="ships" open><summary><h2>Ship</h2></summary>
       <div id="ships" class="scen ships"></div>
       </details>
-      <details class="sec" open><summary><h2>Scenario</h2></summary>
+      <details class="sec" data-tab="places" open><summary><h2>Scenario</h2></summary>
       <div id="scenarios" class="scen"></div>
       </details>
       <details class="sec"><summary><h2>Environment</h2></summary>

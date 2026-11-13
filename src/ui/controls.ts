@@ -65,6 +65,21 @@ export class LinearDetent {
   }
 }
 
+/** One press of a fine-control button on a lever: a fixed step, held inside the lever's travel. */
+export const nudgeLinear = (cur: number, dir: number, lo = -1, hi = 1, step = 0.02) => Math.max(lo, Math.min(hi, round2(cur + dir * step)));
+/** One press on a rotary control: to the next multiple of the step (5°), wrapped, or held between limits where it has them. */
+export function nudgeAngle(cur: number, dir: number, stepDeg = 5, min?: number, max?: number) {
+  const st = stepDeg * DEG, k = cur / st, n = dir > 0 ? Math.floor(k + 1e-6) + 1 : Math.ceil(k - 1e-6) - 1;
+  const a = n * st;
+  return min !== undefined && max !== undefined ? Math.max(min, Math.min(max, a)) : wrap(a);
+}
+/** One press on a lever that only takes fixed orders (a telegraph, a bridge programme): the next order up or down. */
+export function nudgeOrder(orders: number[], cur: number, dir: number) {
+  let k = 0; orders.forEach((o, j) => { if (Math.abs(o - cur) < Math.abs(orders[k] - cur)) k = j; });
+  const asc = orders[orders.length - 1] > orders[0];
+  return orders[Math.max(0, Math.min(orders.length - 1, k + (asc ? dir : -dir)))];
+}
+
 export interface AngleOpts { cardinals?: number[]; step?: number; snap?: number; min?: number; max?: number }
 
 /**

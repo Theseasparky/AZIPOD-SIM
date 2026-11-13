@@ -20,6 +20,7 @@ It started as a trainer for cruise ships with *Azipods* (propellers in pods unde
 
 - **Steer 25 different ships**: cruise ships, an expedition yacht, ferries, tankers, container ships, tugs, an icebreaker and more (see the list below).
 - **Sail in real places, on their real charts.** PortMiami from the sea buoy in, with around 13,000 real buildings, the causeway bridges and the container cranes; the Ports of Los Angeles and Long Beach, through Angels Gate to Pier 400 and the crude jetty; IJmuiden, from the North Sea through the world's largest sea lock and up the Noordzeekanaal to Amsterdam. Every chart has its depth contours, soundings, buoys, beacons and lights (flashing in their real rhythm at night), and every berth has its fenders and bollards. Practice harbours, a river, an oil terminal, an ice field and the open sea too.
+- **Anchor.** Every ship carries two bow anchors (and a stern anchor on the ferries, yachts and the river convoy), on chain worked by a windlass: let go, walk out, hold on the brake, heave in. The chain lies on the bottom and lifts as she falls back; too short a scope and the anchor drags. Use them to anchor off, or for a Mediterranean moor, stern-to the quay with both anchors down ahead.
 - **Work a real lock.** Call the IJmuiden Zeesluis on VHF, wait for the green light, go in, make fast, and feel the lines pull as the lock master levels you down to the canal or up to the sea. The gates roll shut behind you; the tide outside rises and falls.
 - **Look out of the window in 3D.** See the view from the wheelhouse or either bridge wing, follow the ship from behind, or go underwater and watch the propellers turn. Day, dusk and night, with ship lights and lit-up windows after dark.
 - **See where you're heading.** A forecast line on the water shows where your ship will be in the next few minutes, so you can correct early.
@@ -43,8 +44,9 @@ Every ship (except the barge convoy) is shown with a detailed 3D model, so it lo
 
 ## Where you can sail
 
-Twenty-five scenarios, from easy to tricky:
+Thirty scenarios, from easy to tricky. In the menu they are grouped by place, and the ships by kind, with a search box over both.
 
+- **Split** (built from open data): a Ro-Pax ferry to Gat sv. Duje among the island ferries; a cruise ship to the breakwater; a fast catamaran into the city port; a superyacht stern-to on the north quay, Mediterranean style.
 - **PortMiami** (real chart): Terminal V; in from the sea buoy to Berth 4; a container ship to Fisherman's Channel.
 - **Los Angeles and Long Beach** (real chart): a 400 m container ship to Pier 400; a laden supertanker up the 23 m channel to the crude jetty; a cruise ship to the World Cruise Center; Angels Gate with other ships coming out.
 - **IJmuiden, the Noordzeekanaal and Amsterdam** (real chart): in from the sea across the tidal stream at the pier heads; through the Zeesluis inbound and outbound; a supertanker in ballast with 6 m either side in the lock; up the canal to the Amerikahaven.
@@ -55,7 +57,7 @@ Twenty-five scenarios, from easy to tricky:
 - **Fast ferry**: entering a harbour at speed.
 - **Offshore**: a supply run to an oil platform, holding position.
 - **Ice**: breaking a channel with the icebreaker.
-- **Ocean**: a passage under rotor sails, and open water for sea trials.
+- **Ocean**: a passage under rotor sails, an anchorage to practise anchoring, and open water for sea trials.
 
 If a ship is too big or too deep for a harbour or a lock, the simulator tells you (in the lock's case, the lock master does) and picks one that fits. Any berth of any scenario can be picked from the menu (Berth), either side to.
 
@@ -79,6 +81,11 @@ On a phone or tablet, just use the levers and wheels on screen. On a computer yo
 
 ## What's new
 
+- **Version 5.3: anchors, the Port of Split, and finer control.**
+  - Two bow anchors on every ship, a stern anchor on the ferries and yachts, and an ANCHOR panel to work them.
+  - The Port of Split, with its numbered ferry berths, the cruise berths along the breakwater, and a Mediterranean-moor scenario.
+  - Small + and − buttons beside every power lever and thruster, and 5° buttons beside every wheel, nozzle and pod dial: tap for one step, hold to keep going.
+  - A tidier menu: Ships, Places and Settings tabs, ships grouped by kind and places by area, with search.
 - **Version 5.2: a cleaner console.** The readouts, buttons and panels are redrawn as a flat, dark instrument console with one typeface and larger figures: each reading sits under its label with its unit, panels are marked at their corners, and the menu is a plain ruled list. The chart, the colours for port, starboard and the predictor, and every control work as before.
 - **Version 5.1: an optional training guide.** Drills for a crash stop with Azipods, a crash astern on a direct-reversing engine, stopping a waterjet ship, working two assist tugs and releasing a tug's line before it girts; practice exercises (a VLCC crash stop, a fast ferry alongside, holding position on DP through a fault, escorting a tanker, alongside with tugs) that end in a debrief, not a score; and dashed suggestions: a closing-speed guideline on the quay lines, the pivot point, the pod settings that would close a gap, and the tug orders that would do it. Every statement is tagged measured, published or rule, with its source. The sources, what was actually read, and what is still unverified are in [docs/TRAINING.md](docs/TRAINING.md).
 - **Version 5: real charts and harbours, and a lock.** Two new real-chart areas (Los Angeles–Long Beach and IJmuiden–Amsterdam) and PortMiami out to its sea buoy; depth contours, soundings and every buoy, beacon and light on every chart, the schematic harbours included; fenders and bollards at every berth, sized for the biggest ship that fits it; the IJmuiden Zeesluis worked by its lock master, with the tide outside and the canal level inside; the areas download for offline use from the Install & offline section; links straight to a scenario (for example `?scenario=ijm-lock-in&view=3d`).
@@ -108,6 +115,7 @@ On a phone or tablet, just use the levers and wheels on screen. On a computer yo
 - **Buildings and roads:** © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the Open Database License.
 - **Spirit-class cruise ship:** 1:300 Carnival Spirit hobby model (3D Warehouse, converted by iconic3dmodels).
 - **Paspaley Pearl:** 3D model supplied by VOLARtech.
+- **Port of Split:** coastline, piers, berths, bollards, lights and marks © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) and [OpenSeaMap](https://openseamap.org) (ODbL); depths from EMODnet (CC BY 4.0) and the port's published berth depths. Croatia has no free official electronic chart, so depths there are approximate: not for navigation.
 - **Typeface:** [Geologica](https://github.com/googlefonts/geologica) by the Geologica Project Authors, under the SIL Open Font License 1.1.
 - **Other 3D ship models:** from [Sketchfab](https://sketchfab.com), used under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each model shows the type of ship, not that exact vessel.
   - Large Azipod cruise ship (Lady class): “[Viking Cruise Ship](https://sketchfab.com/3d-models/none-c82a7e2bbf4c44e3ac1d1e7bac42e2b7)” by jfactory
@@ -139,6 +147,10 @@ npm run build:all  # build the app and the offline copy
 ```
 
 Every change to `main` is tested and published automatically. The physics, data sources, ship-model tools and every command are described in [docs/TECHNICAL.md](docs/TECHNICAL.md), and how it all compares with real ships in [docs/PHYSICS_AUDIT.md](docs/PHYSICS_AUDIT.md); the original plan for the fleet expansion is kept in [docs/expansion/PLAN.md](docs/expansion/PLAN.md).
+
+## Privacy
+
+If the site owner has switched them on, the app counts visits anonymously with [GoatCounter](https://www.goatcounter.com): how many visits, which ships and places are opened, and roughly how often people come back. No cookie, no identifier, no position and nothing you type is sent; Do Not Track is respected, and the counts can be switched off in Menu → Settings → Install & offline. The offline copy never sends anything.
 
 ## Licence
 

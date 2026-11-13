@@ -4,6 +4,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+// Anonymous usage counts (src/stats.ts): the GoatCounter site code, e.g. 'shipshape' for shipshape.goatcounter.com.
+// Empty means no statistics are sent at all.
+const STATS_SITE = process.env.STATS_SITE ?? '';
+
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 // Two outputs from one codebase:
@@ -17,6 +21,7 @@ export default defineConfig(({ mode }) => {
       __APP_VERSION__: JSON.stringify(pkg.version),
       __BUILD__: JSON.stringify((process.env.GITHUB_SHA ?? 'local').slice(0, 7)),
       __PWA__: JSON.stringify(!single),
+      __STATS_SITE__: JSON.stringify(STATS_SITE),
       __REPO_URL__: JSON.stringify(process.env.REPO_URL ?? 'https://github.com/Theseasparky/AZIPOD-SIM'),
     },
     resolve: {

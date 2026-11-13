@@ -6,6 +6,7 @@ import { DEG, Hydro, RHO, RHO_AIR, ShipSpec, deriveHydro, resistanceCt } from '.
 import { Obstacle, Fender, contactForces, ContactInfo, Pt } from './contact';
 import type { HarbourIndex } from './spatial';
 import { MooringLine, lineForces } from './mooring';
+import { type Anchor, anchorsForce } from './anchor';
 import { DepthField, groundingForces } from './harbour';
 import { ShaftForce, EngineState, cppProgram, initEngine, propTorque, shaftForces, stepEngine } from './units/shaft';
 import { mmgHull } from './hull/mmg';
@@ -49,6 +50,7 @@ export interface World {
    *  the lines are then measured in three dimensions. */
   lineZ?: { fair: number; bol: (i: number) => number };
   lineT?: number[];                           // out: tensions at last evaluation
+  anchors?: Anchor[];                         // anchors on the bottom: chain force evaluated inside RK4
   ext?: Wrench;                               // body wrench held over the step (tugs, bank, wash)
   tow?: { line: Towline; anchor: [number, number, number, number] };   // towline to a moving fairlead
   depthAt?: DepthField; squat?: number;       // grounding
@@ -298,6 +300,7 @@ export class Model {
         const l = w.lineZ ? lineForces(st, w.lines, w.bollards, w.lineT, w.lineZ) : lineForces(st, w.lines, w.bollards, w.lineT);
         X += l.X; Y += l.Y; N += l.N;
       }
+      if (w.anchors) { const a = anchorsForce(st, w.anchors); X += a.X; Y += a.Y; N += a.N; }
       if (w.ext) { X += w.ext.X; Y += w.ext.Y; N += w.ext.N; }
       if (w.tow) { const t = towForce(st, w.tow.line, w.tow.anchor); X += t.X; Y += t.Y; N += t.N; w.tow.line.T = t.T; }
       if (w.depthAt) {

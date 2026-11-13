@@ -2,6 +2,7 @@
 // three.js WebGPURenderer: WebGPU where the browser has it, WebGL2 otherwise (same code path).
 // Frames: NED (n, e, down) → three (x = e, y = up, z = −n); body (x fwd, y stbd, z up) → ship group
 // local (x = y_b, y = z, z = −x_b), group rotation.y = −psi.
+import { ANCHOR } from '../physics/anchor';
 import * as THREE from 'three/webgpu';
 import { abs, builtinAOContext, clamp, color, float, fract, mix, mrt, normalLocal, normalView, pass, positionLocal, screenUV, step, uniform } from 'three/tsl';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
@@ -165,6 +166,7 @@ export class View3D {
   private tugs: THREE.Group[] = [];
   private tugLines: THREE.Line[] = [];
   private lines: THREE.Line[] = [];
+  private chains: THREE.Line[] = [];
   private track: THREE.Line;
   private trackEnd: THREE.Line;
   private sky = new SkyMesh();
@@ -347,6 +349,15 @@ export class View3D {
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(17 * 3), 3));
       const l = new THREE.Line(g, new THREE.LineBasicNodeMaterial({ color: 0xe8d9a0 }));
+      l.frustumCulled = false; l.visible = false; this.scene.add(l);
+      return l;
+    });
+    // anchor chains: from the hawse pipe down into the water, along the line to the anchor
+    for (const c of this.chains) this.scene.remove(c);
+    this.chains = S.rt.anchors.map(() => {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(17 * 3), 3));
+      const l = new THREE.Line(g, new THREE.LineBasicNodeMaterial({ color: 0x3a3f44 }));
       l.frustumCulled = false; l.visible = false; this.scene.add(l);
       return l;
     });
@@ -1094,6 +1105,29 @@ export class View3D {
       pos.needsUpdate = true;
       const r = Math.min(1, l.T / LINE.MBL);
       (obj.material as THREE.LineBasicNodeMaterial).color.setRGB(0.91, 0.85 - r * 0.6, 0.63 - r * 0.55);
+    });
+
+    // anchor chains: a catenary from the hawse to where it reaches the bottom, then along it to the anchor
+    rt.anchors.forEach((a, i) => {
+      const obj = this.chains[i]; if (!obj) return;
+      obj.visible = a.state === 'down' && a.out > 0.5;
+      if (!obj.visible) return;
+      const top = w2(a.hawse[0], a.hawse[1], fb - 1.5);
+      const floor = y0 - Math.max(1, a.depth - ANCHOR.hawseH);
+      const pos = obj.geometry.getAttribute('position') as THREE.BufferAttribute;
+      if (!a.pos) {                                         // running out: straight down under the hawse
+        for (let k = 0; k <= 16; k++) pos.setXYZ(k, top.x, top.y - (top.y - Math.max(floor, top.y - a.out)) * k / 16, top.z);
+      } else {
+        const end = tp(a.pos[0], a.pos[1], floor);
+        const d = Math.hypot(end.x - top.x, end.z - top.z) || 1, th = 1 - Math.min(d, a.onBottom) / d;
+        for (let k = 0; k <= 16; k++) {
+          const t = k / 16;
+          // hanging part: a parabola from the hawse that meets the bottom tangent where it touches down
+          const y = t >= th ? floor : floor + (top.y - floor) * Math.pow(1 - t / Math.max(1e-3, th), 2);
+          pos.setXYZ(k, top.x + (end.x - top.x) * t, y, top.z + (end.z - top.z) * t);
+        }
+      }
+      pos.needsUpdate = true;
     });
 
     // tugs: alongside when pushing, out on a line when pulling, hidden when not engaged
