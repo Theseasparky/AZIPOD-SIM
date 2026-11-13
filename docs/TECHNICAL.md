@@ -74,18 +74,23 @@ Azipod ships: port pod `A` `D` azimuth, `W` `S` rpm · stbd pod `J` `L`, `I` `K`
 
 ## Areas and data
 
-Three real-chart areas, each one *area pack* (depths and land for the physics) and one chart, built by `tools/chart/build_region.py` from the raw extract that `tools/chart/fetch_region.py` (or the `chart data` workflow) downloads:
+Four real-chart areas, each one *area pack* (depths and land for the physics) and one chart, built by `tools/chart/build_region.py` from the raw extract that `tools/chart/fetch_region.py` (or the `chart data` workflow) downloads:
 
 | Area | Sources | Depth grids | Datum | IALA | Scenarios |
 | --- | --- | --- | --- | --- | --- |
 | PortMiami and Biscayne Bay approaches | NOAA ENC (public domain) | 10 m harbour, 40 m approaches | MLLW, tide +0.3 m | B | Terminal V; from the sea buoy to Berth 4; container ship to Fisherman's Channel |
 | Ports of Los Angeles and Long Beach | 16 NOAA ENC cells, band 4–5 (public domain) | 10 m inside the breakwaters, 40 m outside | MLLW, mid tide +1.0 m | B | 400 m ULCV to Pier 400; laden VLCC to the T121 crude jetty; World Cruise Center; Angels Gate with traffic |
 | IJmuiden, the Noordzeekanaal and Amsterdam | Rijkswaterstaat inland ENC 1R7NK000, 1R7NK008, 1R7IJ020; Rijkswaterstaat 1 m bathymetry (WCS); PDOK buoys and beacons (all CC0); EMODnet Bathymetry DTM (CC BY 4.0) | 4 m at the locks, 10 m harbour and canal, 50 m sea | NAP: the tide outside, NAP −0.40 m in the canal | A | In from the sea; Zeesluis inbound, outbound and with a ballast VLCC; the canal to the Amerikahaven |
+| Port of Split | OpenStreetMap / OpenSeaMap (ODbL); EMODnet Bathymetry DTM (CC BY 4.0); the port's published berth depths | 8 m city port, 40 m bay | approximate | A | Ro-Pax ferry to Gat sv. Duje; cruise ship to the breakwater; catamaran into the city port; Mediterranean moor |
 
 - **Packs** (`src/scenes/pack.ts`): gzip of a binary file: a JSON header, Int16 depth grids in centimetres (finest first wins), Int32 decimetre land tiles (150 m squares, near the water only) and the charted bollards. The chart is gzip JSON (depth areas, contours, soundings, land, aids, labels). Both are fetched when an area is first opened and kept by the service worker (`area-data` cache); *Install & offline → Download all areas now* fetches them all. The single-file copy carries them inside (≈ 11 MB in all). The predictor worker gets the same pack posted from the main thread.
 - **Depths**: the chart's soundings and contours interpolated, held to each depth area's range; the dredged areas at least their dredged depth; surveys where there are some (Rijkswaterstaat 1 m mosaics, LAT converted to NAP with the offset measured between the two North Sea mosaics, +1.045 m), but never shallower than the chart's depth area by more than 0.3 m or deeper by more than 1 m: an old survey must not show less water than the current chart guarantees (it did in the Zeesluis approach, dredged since). The open sea off IJmuiden, which no survey covers outside the IJgeul, takes EMODnet's 1/16′ grid (below LAT, to NAP). A quay wall keeps the water's depth right up to it; under the land the nearest water depth is carried in (the wall is the contact model's).
 - **IENC depths** are below the local mean water level; they are taken as below NAP, which is up to 0.4 m on the safe side in the canal.
 - **Coordinates**: metres north and east of each area's origin on a transverse Mercator plane (WGS84 for NOAA, RD New → WGS84 for Rijkswaterstaat).
+
+### Split: an area from open data
+
+Croatia publishes no free official electronic chart, so Split is built from open data by the same builder. `fetch_region.py` has an `osm` source (`tools/chart/osm_layers.py`): Overpass (with a mirror when the main server is unreachable) gives the coastline, piers, breakwaters, the port's numbered berths, quay bollards, lights, buoys, beacons, rocks and wrecks; they are written as the S-57 layers the builder reads, as one pseudo cell `OSM`. The coastline (land on its left, as OpenStreetMap draws it) is closed against the region box into land. Depths offshore come from EMODnet. In the harbour the region file gives depth areas with the port's published figures and their sources (10.5 m at the cruise berths outside the breakwater, 7 to 10.5 m in the ferry basin); no soundings are invented, so the chart shows those ranges and the depth grid holds the water within them. Each berth number is given to the long quay face nearest it. The chart is marked "depths approximate".
 
 ## Berths and equipment
 
@@ -192,6 +197,24 @@ Every lever, slider and dial runs its raw drag position through `src/ui/controls
 - **Tuning** is in `CONTROL` (`deadzoneThreshold`, `angleStepDegrees`, `cardinalSnapDegrees`, the hysteresis values, `enableHaptics`). A control can pass its own values; the combi-lever, for example, has a 12 % hub. `enableHaptics` turns off the vibration and leaves the click sound. The user's haptics setting must also be on.
 - **Feedback** goes through `onFeel`, so the module has no DOM dependency and is unit tested in `npm test`.
 - **Not covered:** the telegraph has fixed steps. The 2-D joysticks keep their per-axis deadband and their centre click.
+
+## Anchors
+
+`src/physics/anchor.ts`. Every ship has two bow anchors at the hawse pipes, and the ferries, yachts and the river convoy a stern anchor of half the weight. The gear is sized by the class societies' equipment-number rule (EN = Δ^⅔ + 2 A_front + A_side / 10): a stockless anchor of about 3 kg per unit of EN, stud-link chain of about 1.75 √EN mm, 6 to 14 shackles of 27.5 m.
+
+- **Chain:** a quasi-static catenary on a level bottom. With slack the pull is nil; as the ship falls back the chain lifts off the bottom (horizontal pull from the closed-form catenary, solved by bisection), and once it is all off the bottom it comes taut on its axial stiffness. The force acts at the hawse, inside the integration step like the mooring lines (`World.anchors`); the predictor gets the anchors too.
+- **Holding:** 4.5 × the anchor's weight in water on good ground (less on soft ground or rock), much less once the chain lifts the shank, plus the friction of the chain lying on the bottom. Past that the anchor drags along the pull and an alarm says so.
+- **Windlass:** let go (the chain runs out as she falls back, at up to 2.5 m/s), walk out and heave in at about 10 m/min, the brake renders above 45 % of the chain's breaking load, heaving stalls above the windlass pull, the chain parts above its breaking load. Anchoring deeper than an anchor and three shackles is refused.
+- **Interface:** the ANCHOR panel (chain out in shackles and metres, depth, scope, tension, holding or dragging), the anchor and its chain on the chart (dashed where it lies on the bottom) and in 3D, and the chain's rattle.
+- **Tests:** gear for every ship; the catenary against its closed form; riding to five times the depth in 20 kn; dragging on a short stay in a gale; heaving home; a Mediterranean moor at Split holding in a 20 kn crosswind. Stowed anchors change nothing (golden records identical).
+
+## Fine-control buttons
+
+Beside every power lever and thruster, + and − buttons step the order by 2 % (one order on a telegraph or a bridge programme); beside every wheel, nozzle helm, pod dial and tug drive, 5° buttons. A tap is one step and holding repeats. They write through the same setters as a drag, so linked units move together and the limits hold (`src/ui/nudge.ts`, `nudgeLinear`, `nudgeAngle` and `nudgeOrder` in `src/ui/controls.ts`).
+
+## Usage counts
+
+`src/stats.ts`. Off unless the build is given a GoatCounter site code (`STATS_SITE`, set as a repository variable for the Pages build). It counts one visit per app start, which ship and place are opened, and two coarse bands kept on the device (how many days it has been used, how long since the last), with no cookie and no identifier. Nothing is sent offline, in the single-file copy, under test or capture, under Do Not Track or Global Privacy Control, or when switched off in the menu.
 
 ## Training guide
 
