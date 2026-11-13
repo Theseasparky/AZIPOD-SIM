@@ -81,6 +81,7 @@ On a phone or tablet, just use the levers and wheels on screen. On a computer yo
 
 ## What's new
 
+- **Version 5.3.1: lines on both sides.** Rig the mooring lines on port, starboard or both at once (Lines → Side → Both), and send a whole side ashore, set all its winches, or let it all go with one tap. For a Mediterranean moor with lines from both quarters, or a ship held in the middle of a slip.
 - **Version 5.3: anchors, the Port of Split, and finer control.**
   - Two bow anchors on every ship, a stern anchor on the ferries and yachts, and an ANCHOR panel to work them.
   - The Port of Split, with its numbered ferry berths, the cruise berths along the breakwater, and a Mediterranean-moor scenario.
