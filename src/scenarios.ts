@@ -20,6 +20,7 @@ import { cardinal, lateral, pierLight, platformLight, safeWater } from './ui/cha
 import { AMSTERDAM, Building } from './scenes/amsterdam';
 import { MIAMI, MIAMI_APPROACH, MIAMI_CARGO } from './scenes/miami';
 import { LALB_SCENARIOS } from './scenes/lalb';
+import { SPLIT_SCENARIOS } from './scenes/split';
 import { IJM_SCENARIOS } from './scenes/ijmuiden';
 export type { Building };
 
@@ -116,6 +117,7 @@ export function currentField(sc: Scenario, kn: number, setDeg: number): CurrentF
 
 export const SCENARIOS: Scenario[] = [
   MIAMI, MIAMI_APPROACH, MIAMI_CARGO,
+  ...SPLIT_SCENARIOS,
   ...LALB_SCENARIOS,
   ...IJM_SCENARIOS,
   AMSTERDAM,

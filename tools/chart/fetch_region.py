@@ -8,6 +8,10 @@ Sources (by the region's "sources"):
   rws   Rijkswaterstaat (CC0): inland ENC cells by name from the Vaarweginformatie downloads (picked by file
         name, as file ids change weekly); 1 m bathymetry mosaics through WCS, resampled to the region's
         resolution; buoys and beacons from the PDOK OGC API (already S-57 coded).
+  osm   OpenStreetMap and OpenSeaMap (ODbL), for a port with no free official chart: the coastline closed into
+        land, piers and breakwaters, quay bollards, lights, buoys, beacons, rocks and the port's own berth
+        numbers, written as the same S-57 layers (one pseudo cell 'OSM'). Depths come from EMODnet, plus the
+        region's own depth areas: published figures for the harbour, each with its source.
 
 Writes one GeoJSON per cell and layer (lon/lat), bathymetry as .npz grids (EPSG:28992), and manifest.json with
 cell editions. Needs pyogrio (its wheels carry GDAL with the S-57 driver), numpy; tifffile and pyproj for rws.
@@ -190,5 +194,13 @@ if REG.get('emodnet') and want('emodnet'):
         manifest['emodnet'] = {'shape': list(a.shape), 'lon0': tf[3], 'lat1': tf[7], 'cell': tf[0], 'datum': 'LAT', 'licence': 'CC BY 4.0'}
         print('EMODnet', a.shape, float(np.nanmin(a)), float(np.nanmax(a)))
     else: print('EMODnet: not a tiff', b[:200])
+# ---------------------------------------------------------------- OpenStreetMap / OpenSeaMap
+if 'osm' in REG['sources'] and want('osm'):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))         # our own module, beside this one (python -I drops it)
+    from osm_layers import osm_cell
+    info = osm_cell(REG, OUT, get)
+    manifest['cells'] = [c for c in manifest['cells'] if c['cell'] != 'OSM'] + [info]
+    print('OSM', info['layers'])
+
 json.dump(manifest, open(os.path.join(OUT, 'manifest.json'), 'w'), indent=1)
 print('done:', OUT)

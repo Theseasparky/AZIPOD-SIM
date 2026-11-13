@@ -1,0 +1,30 @@
+{
+  "id": "split", "name": "Port of Split",
+  "bbox": [43.470, 16.395, 43.525, 16.480],
+  "origin": [43.503, 16.440],
+  "datum": "approximate", "iala": "A", "landHeight": 2.5,
+  "sources": {
+    "osm": {
+      "note": "No free official chart exists for Croatia. Land, piers, berths and marks: OpenStreetMap / OpenSeaMap (ODbL). Depths in the harbour: the published figures below; elsewhere EMODnet.",
+      "depths": [
+        { "name": "City port (ferry and catamaran berths)", "d1": 7, "d2": 10.5, "quays": true,
+          "src": "Quay depth 10.5 m (MedCruise, Port of Split); berth sections 7 to 10 m (MarineLink port profile)",
+          "poly": [[43.5082, 16.4330], [43.5082, 16.4460], [43.5011, 16.4460], [43.5011, 16.4330]] },
+        { "name": "Outer side of the breakwater (cruise berths)", "d1": 10.5, "d2": 14, "quays": true,
+          "src": "Two cruise berths on the outer side of the breakwater, ships to 320 m and 270 m, draught 10.5 m (MedCruise); approach channel 12.5 to 13.7 m (Searates)",
+          "poly": [[43.5008, 16.4355], [43.5008, 16.4465], [43.4990, 16.4465], [43.4990, 16.4355]] }
+      ],
+      "places": [
+        { "name": "Gat sv. Duje", "at": [43.50300, 16.44035] },
+        { "name": "Gat sv. Petra", "at": [43.50455, 16.44205] },
+        { "name": "Breakwater", "at": [43.50040, 16.44000] }
+      ]
+    }
+  },
+  "grids": [
+    { "cell": 40, "bbox": [43.470, 16.395, 43.525, 16.480] },
+    { "cell": 8, "bbox": [43.496, 16.428, 43.510, 16.452] }
+  ],
+  "cap": 60,
+  "emodnet": { "bbox": [43.470, 16.395, 43.525, 16.480] }
+}

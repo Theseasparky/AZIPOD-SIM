@@ -477,6 +477,7 @@ const MIA_PACK = parsePack(await fetchAreaPack('miami'));
 installArea('miami', MIA_PACK);
 installArea('lalb', parsePack(await fetchAreaPack('lalb')));
 installArea('ijmuiden', parsePack(await fetchAreaPack('ijmuiden')));
+installArea('split', parsePack(await fetchAreaPack('split')));
 const MIAMI_CHART = await fetchAreaChart('miami') as CM;
 test('PortMiami chart: depth grid honours the charted soundings (within 0.6 m at 90 % of them)', () => {
   const mia = SCENARIOS.find(s => s.id === 'miami-terminal-v')!;
@@ -1613,5 +1614,50 @@ test('usage counts: coming back is counted in coarse bands, and a count carries 
   assert.deepEqual([...u.searchParams.keys()].sort(), ['e', 'p', 'rnd', 't']);                 // a path, a title, the event flag and a cache-buster: nothing else
   assert.deepEqual([...new URL(countUrl('shipshape', '/app', 'SHIPSHAPE 5.3.0', false, 'abcde')).searchParams.keys()].sort(), ['p', 'rnd', 't']);
 });
+
+console.log('Port of Split (open data)');
+{
+  const split = SCENARIOS.filter(s => s.area === 'split');
+  test('Split: four scenarios, each starting afloat in deep enough water with its ship fitting its berth', () => {
+    assert.equal(split.length, 4);
+    for (const sc of split) {
+      const sp = SHIPS[sc.ship!], d = depthAt(sc);
+      assert.ok(d(sc.start.n, sc.start.e) > sp.T + 2, `${sc.id}: ${d(sc.start.n, sc.start.e).toFixed(1)} m at the start`);
+      assert.ok(fits(sc, sp.T, sc.berthRef ? berthFor(sc, sp.B, 0) : sc.berth, !!sp.towPoints, sp.station === 'dp'), `${sc.id}: fits`);
+      if (sc.berthRef) assert.ok(berthFor(sc, sp.B, 0), `${sc.id}: has its berth`);
+    }
+    assert.ok(split[0].berths!.some(b => /Berth 19$/.test(b.name)) && split[0].berths!.some(b => /Breakwater · Berth 26$/.test(b.name)), 'the named berths');
+  });
+  test('Split: the cruise berth outside the breakwater has the published 10.5 m alongside, the ferry basin 7 to 10.5 m', () => {
+    const sc = split.find(s => s.id === 'split-cruise')!, d = depthAt(sc), b = berthFor(sc, SHIPS.spirit.B, 0)!;
+    assert.ok(d(b.n, b.e) >= 10.4, `cruise berth ${d(b.n, b.e).toFixed(1)} m`);
+    const f = split.find(s => s.id === 'split-ferry')!, bf = berthFor(f, SHIPS.ropax.B, 0)!, df = depthAt(f)(bf.n, bf.e);
+    assert.ok(df >= 7 && df <= 10.5, `ferry berth ${df.toFixed(1)} m`);
+  });
+  test('Mediterranean moor: two bow anchors and stern lines hold a yacht stern-to the quay in a 20 kn crosswind', () => {
+    const sc = split.find(s => s.id === 'split-medmoor')!, sp = SHIPS.superyacht;
+    setShip('superyacht'); setHull(buildHull(ACTIVE.L, ACTIVE.B, ACTIVE.xg, ACTIVE.LOA));
+    // stern 6 m off the north quay (its face runs east–west at about n = 382), bow out to the south
+    const n0 = 382 - 6 - sp.LOA / 2 + sp.xg, e0 = -50;
+    const env: Env = { ...calm, windSpeed: 20 * KN, windFrom: 90 * DEG, depth: 9 };
+    const rt = new Runtime(ACTIVE, makeState(ACTIVE, n0, e0, 180, 0), { pods: ACTIVE.pods.map(() => ({ alpha: 0, rpm: 0 })), bt: 0 }, env, harbourOf(sc));
+    // both bow anchors laid out ahead and to either side, about 120 m of chain each, held on the brakes
+    rt.anchors.slice(0, 2).forEach((a, k) => {
+      rt.anchor(k, 'letgo'); a.out = 125; a.pos = [n0 - sp.LOA / 2 - 105, e0 + (k ? 30 : -30)]; a.depth = 9 + 3; a.mode = 'brake';
+    });
+    for (const i of [4, 5]) { assert.ok(rt.passLine(i), `${rt.lines[i].name} ashore`); rt.lines[i].mode = 'auto'; }
+    // the first minutes take up the slack in the chain and the lines; after that she must not move
+    for (let i = 0; i < 2 * 1200; i++) rt.step();
+    const n2 = rt.state.n, e2 = rt.state.e;
+    for (let i = 0; i < 8 * 1200; i++) rt.step();
+    const settled = Math.hypot(n2 - n0, e2 - e0), moved = Math.hypot(rt.state.n - n2, rt.state.e - e2);
+    const turned = Math.abs(Math.atan2(Math.sin(rt.state.psi - Math.PI), Math.cos(rt.state.psi - Math.PI)));
+    assert.ok(settled < 20, `took up ${settled.toFixed(1)} m of slack`);
+    assert.ok(moved < 1, `moved ${moved.toFixed(2)} m once brought up`);
+    assert.ok(turned < 12 * DEG, `turned ${(turned / DEG).toFixed(1)}°`);
+    assert.ok(rt.lines.every(l => l.state !== 'parted') && rt.anchors.every(a => a.state !== 'lost'), 'nothing parted');
+    assert.ok(rt.anchors.slice(0, 2).every(a => a.dragV < 0.05), 'neither anchor drags');
+  });
+}
 
 console.log(`\n${pass} passed${process.exitCode ? ', some failed' : ''}`);

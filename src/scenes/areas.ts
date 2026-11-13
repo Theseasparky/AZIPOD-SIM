@@ -6,6 +6,7 @@ import type { Pt } from '../physics/contact';
 import MIAMI_META from './miami/miami.meta.json';
 import LALB_META from './lalb/lalb.meta.json';
 import IJM_META from './ijmuiden/ijmuiden.meta.json';
+import SPLIT_META from './split/split.meta.json';
 
 export interface AreaFace { a: Pt; b: Pt; nrm: Pt; depth: number; len: number; name: string; place?: string | null; whole?: boolean }
 export interface AreaMeta {
@@ -38,6 +39,13 @@ export const AREAS: Record<string, AreaDef> = {
       { match: /Berths? (408|T?121|23[89]|240)\b/, kind: 'tanker' },
       { match: /Berths? (9[1-3]|8[89]|90)\b/, kind: 'cruise' },
       { match: /Berths? (40[1-6]|30[1-6]|1[0-3]\d|2[1-7]\d)\b|Pier (J|E|G|T|A|400|300)\b/, kind: 'container' },
+    ],
+  },
+  split: {
+    meta: SPLIT_META as unknown as AreaMeta,
+    kinds: [
+      { match: /Breakwater · Berth 2[67]$|Breakwater · face/, kind: 'cruise' },
+      { match: /Berth \d/, kind: 'ferry' },
     ],
   },
   ijmuiden: {

@@ -7,6 +7,7 @@ import { gunzip } from './pack';
 const URLS: Record<string, { pack: string; chart: string }> = {
   miami: { pack: new URL('./miami/miami.azp', import.meta.url).href, chart: new URL('./miami/miami.azc', import.meta.url).href },
   lalb: { pack: new URL('./lalb/lalb.azp', import.meta.url).href, chart: new URL('./lalb/lalb.azc', import.meta.url).href },
+  split: { pack: new URL('./split/split.azp', import.meta.url).href, chart: new URL('./split/split.azc', import.meta.url).href },
   ijmuiden: { pack: new URL('./ijmuiden/ijmuiden.azp', import.meta.url).href, chart: new URL('./ijmuiden/ijmuiden.azc', import.meta.url).href },
 };
 /** The areas' data files (for "download for offline use"). */
