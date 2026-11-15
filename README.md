@@ -4,7 +4,7 @@
 
 **Learn to handle ships, from a small harbour tug to a giant container ship, right in your web browser.**
 
-👉 **Open it:** https://skipjack.app
+👉 **Open it:** https://shipshape.skipjack.app
 
 It's free, runs on phones, tablets and computers, and once installed it keeps working with no internet connection.
 
@@ -67,7 +67,7 @@ If a ship is too big or too deep for a harbour or a lock, the simulator tells yo
 | --- | --- |
 | Android, Windows, Mac, Linux, Chromebook (Chrome or Edge) | Tap **INSTALL** in the app, or the install icon in the address bar |
 | iPhone, iPad | Open it in Safari, tap Share, then **Add to Home Screen** |
-| No install, no internet at all | Download [the offline copy](https://skipjack.app/shipshape-offline.html), a single file that opens in any browser |
+| No install, no internet at all | Download [the offline copy](https://shipshape.skipjack.app/shipshape-offline.html), a single file that opens in any browser |
 
 The app updates itself. When a new version is ready, it shows a **RELOAD** button.
 
