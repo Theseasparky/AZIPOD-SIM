@@ -31,7 +31,6 @@ jobs:
       - name: Build PWA and offline single-file copy
         run: npm run build:all
         env:
-          BASE: /${{ github.event.repository.name }}/
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
           # anonymous usage counts: the GoatCounter site code, set as the repository variable STATS_SITE (empty = none sent)
           STATS_SITE: ${{ vars.STATS_SITE }}

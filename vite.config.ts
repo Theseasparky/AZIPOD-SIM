@@ -51,7 +51,7 @@ export default defineConfig(({ mode }) => {
           id: './',
           name: 'SHIPSHAPE — ship-handling simulator',
           short_name: 'SHIPSHAPE',
-          description: 'Learn to handle ships: 23 ships from tugs to giant container ships, real ports in 3D, wind, current, tugs and mooring. Works offline.',
+          description: 'Free ship-handling simulator: 25 ships from tugs to giant container ships, real ports on real charts, wind, current, tugs, anchors and mooring. Works offline.',
           lang: 'en',
           start_url: './',
           scope: './',
@@ -74,7 +74,7 @@ export default defineConfig(({ mode }) => {
             // area packs (depths, land, charts) and 3D scenery: fetched when an area is first opened, kept after
             { urlPattern: /\.(azp|azc|scn)$/, handler: 'CacheFirst', options: { cacheName: 'area-data', expiration: { maxEntries: 60 } } },
           ],
-          globIgnores: ['**/*-offline.html'],
+          globIgnores: ['**/*-offline.html', 'og.png'],
           navigateFallback: 'index.html',
           cleanupOutdatedCaches: true,
           maximumFileSizeToCacheInBytes: 5_000_000,
