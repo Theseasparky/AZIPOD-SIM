@@ -2,7 +2,7 @@
 // port), Learn (the training guide), the FAQ, and the files search engines and AI assistants read (sitemap,
 // robots, llms.txt). Everything is generated from the simulator's own data, so the pages cannot drift from it.
 // Run after `vite build`:  tsx scripts/site.ts [outDir]   (default dist)
-import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SHIPS, propulsionSummary, type ShipSpec, type StationKind } from '../src/physics/ship';
@@ -14,6 +14,7 @@ import { appliesTo } from '../src/guide/families';
 import { fill, tokensIn } from '../src/guide/tokens';
 import type { Card, Claim, Exercise, Procedure, Track } from '../src/guide/types';
 import pkg from '../package.json';
+import { GLOSSARY } from './site-glossary';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUT = process.argv[2] ?? join(ROOT, 'dist');
@@ -36,10 +37,16 @@ const app = (q: Record<string, string | undefined> = {}) => {
 const ships = Object.values(SHIPS);
 const shipName = (id: string) => SHIPS[id]?.name ?? id;
 
-interface Page { path: string; title: string; description: string; body: string; ld?: object[]; md: string; nav?: string; crumbs?: [string, string][]; priority?: number }
+interface Page { path: string; title: string; description: string; body: string; ld?: object[]; md: string; nav?: string; crumbs?: [string, string][]; priority?: number; image?: Shot }
+/** A screenshot from site/img (made by npm run site:shots), 1200 × 630. */
+interface Shot { src: string; alt: string }
+const shot = (rel: string, alt: string): Shot | undefined => existsSync(join(ROOT, 'site/img', rel)) ? { src: `/site/img/${rel}`, alt } : undefined;
+const figure = (im: Shot | undefined, cap?: string) => im ? `<figure class="shot"><img src="${im.src}" alt="${esc(im.alt)}" width="1200" height="630" loading="lazy" decoding="async" />${cap ? `<figcaption>${esc(cap)}</figcaption>` : ''}</figure>` : '';
+const imageLd = (im: Shot | undefined) => im ? { image: { '@type': 'ImageObject', url: SITE + im.src, width: 1200, height: 630, caption: im.alt } } : {};
 const pages: Page[] = [];
 
 const NAV: [string, string][] = [['/', 'Simulator'], ['/ships/', 'Fleet'], ['/places/', 'Places'], ['/learn/', 'Learn'], ['/faq/', 'FAQ'], ['/about/', 'About']];
+const FOOT: [string, string][] = [...NAV, ['/learn/glossary/', 'Glossary'], ['/news/', "What's new"]];
 
 function crumbsLd(c: [string, string][]) {
   return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: c.map(([href, name], i) => ({ '@type': 'ListItem', position: i + 1, name, item: SITE + href })) };
@@ -48,7 +55,8 @@ function crumbsLd(c: [string, string][]) {
 function render(p: Page) {
   const url = SITE + p.path;
   const crumbs: [string, string][] = p.crumbs ?? [];
-  const ld = [...(p.ld ?? []), ...(crumbs.length > 1 ? [crumbsLd(crumbs)] : [])];
+  const ld = [...(p.ld ?? []).map((o, i) => i === 0 ? { ...o, dateModified: TODAY, inLanguage: 'en', ...imageLd(p.image) } : o), ...(crumbs.length > 1 ? [crumbsLd(crumbs)] : [])];
+  const og = p.image ?? { src: '/og.png', alt: "SHIPSHAPE: a cruise ship's conning readouts, the harbour chart and the Azipod controls" };
   const nav = NAV.map(([h, t]) => `<li><a href="${h}"${p.nav === h ? ' aria-current="page"' : ''}>${t}</a></li>`).join('');
   const crumbHtml = crumbs.length > 1
     ? `<nav class="crumbs" aria-label="Breadcrumb"><ol>${crumbs.map(([h, t], i) => `<li>${i === crumbs.length - 1 ? `<span aria-current="page">${esc(t)}</span>` : `<a href="${h}">${esc(t)}</a>`}</li>`).join('')}</ol></nav>`
@@ -68,12 +76,14 @@ function render(p: Page) {
 <meta property="og:title" content="${esc(p.title)}" />
 <meta property="og:description" content="${esc(p.description)}" />
 <meta property="og:url" content="${url}" />
-<meta property="og:image" content="${SITE}/og.png" />
+<meta property="og:image" content="${SITE}${og.src}" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="SHIPSHAPE: a cruise ship's conning readouts, the harbour chart and the Azipod controls" />
+<meta property="og:image:alt" content="${esc(og.alt)}" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="${SITE}/og.png" />
+<meta name="twitter:image" content="${SITE}${og.src}" />
+<meta name="twitter:image:alt" content="${esc(og.alt)}" />
+<link rel="alternate" type="application/atom+xml" title="SHIPSHAPE: what's new" href="/feed.xml" />
 <meta name="theme-color" content="#f7f9fa" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#06121a" media="(prefers-color-scheme: dark)" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -93,8 +103,8 @@ ${ld.map(o => `<script type="application/ld+json">${JSON.stringify(o).replace(/<
 ${p.body}
 </main>
 <footer class="site"><div class="wrap">
-<p>SHIPSHAPE ${pkg.version} · a free ship-handling simulator by Khalil Mahboub. For training and enjoyment only: not for navigation.</p>
-<nav aria-label="Footer"><ul>${NAV.map(([h, t]) => `<li><a href="${h}">${t}</a></li>`).join('')}<li><a href="/shipshape-offline.html">Offline copy</a></li><li><a href="${REPO}">Source on GitHub</a></li></ul></nav>
+<p>SHIPSHAPE ${pkg.version} · a free ship-handling simulator by Khalil Mahboub · page updated <time datetime="${TODAY}">${TODAY}</time>. For training and enjoyment only: not for navigation.</p>
+<nav aria-label="Footer"><ul>${FOOT.map(([h, t]) => `<li><a href="${h}">${t}</a></li>`).join('')}<li><a href="/shipshape-offline.html">Offline copy</a></li><li><a href="${REPO}">Source on GitHub</a></li></ul></nav>
 </div></footer>
 </body>
 </html>
@@ -202,7 +212,7 @@ ${groups.map(({ g, list }) => `<h2 id="${g.toLowerCase().replace(/[^a-z]+/g, '-'
 <ul class="grid">${list.map(s => `<li><div class="card"><h3><a href="/ships/${s.id}/">${esc(s.name)}</a></h3><p class="meta">${esc(typeOf(s))} · ${num(s.LOA, 1)} m · ${num(s.vmaxKn, 1)} kn</p><p>${esc(propulsionSummary(s))}</p><a class="go" href="${app({ ship: s.id })}">Handle her now</a></div></li>`).join('')}</ul>`).join('\n')}`;
   const md = `# The SHIPSHAPE fleet\n\n${groups.map(({ g, list }) => `## ${g}\n\n${list.map(s => `- [${s.name}](${SITE}/ships/${s.id}/): ${typeOf(s)}, ${shipLine(s)}`).join('\n')}`).join('\n\n')}`;
   pages.push({
-    path: '/ships/', nav: '/ships/', priority: 0.9,
+    path: '/ships/', nav: '/ships/', priority: 0.9, image: shot('ships/spirit.jpg', 'A 293 m Azipod cruise ship in SHIPSHAPE\'s 3D view'),
     title: `The fleet: ${total.ships} ships to handle · SHIPSHAPE ship simulator`,
     description: clip(`Handle ${total.ships} ships in a free browser simulator: Azipod cruise ships, ferries, tugs, tankers, container ships, an LNG carrier, a frigate, an icebreaker and superyachts, each with her own controls.`),
     crumbs: [['/', 'SHIPSHAPE'], ['/ships/', 'Fleet']],
@@ -229,10 +239,12 @@ for (const s of ships) {
     ['Propulsion', propulsionSummary(s)],
     ['Bridge controls', station],
   ];
-  const sc = (x: Scenario) => `<li><a href="/places/${placeOf(x).id}/#${x.id}">${esc(x.name)}</a> · <a href="${app({ scenario: x.id, ship: s.id })}">open with her</a></li>`;
+  const im = shot(`ships/${s.id}.jpg`, `The ${s.name} in SHIPSHAPE's 3D view, with her conning readouts and bridge controls`);
+  const sc = (x: Scenario) => `<li><a href="/places/${placeOf(x).id}/${x.id}/">${esc(x.name)}</a> · <a href="${app({ scenario: x.id, ship: s.id })}">open with her</a></li>`;
   const body = `<div class="hero"><p class="kicker">${esc(typeOf(s))}</p><h1>${esc(s.name)}</h1>
 <p class="lede">${esc(shipLine(s))}.</p>
 <div class="cta"><a class="btn primary" href="${app({ ship: s.id, scenario: own[0]?.id })}">Handle her in the simulator</a><a class="btn" href="/ships/">The whole fleet</a></div></div>
+${figure(im)}
 <h2>Particulars</h2>
 <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
 ${s.note ? `<h2>About the model</h2><p>${esc(s.note)}</p>` : ''}
@@ -242,7 +254,7 @@ ${guide.length ? `<h2>From the training guide</h2><ul>${guide.map(it => `<li><a 
 ${sister.length ? `<h2>Same hull, other conditions</h2><ul>${sister.map(o => `<li><a href="/ships/${o.id}/">${esc(o.name)}</a></li>`).join('')}</ul>` : ''}`;
   const md = `# ${s.name}\n\n${typeOf(s)}. ${shipLine(s)}.\n\n${facts.map(([k, v]) => `- ${k}: ${v}`).join('\n')}\n\n${s.note ?? ''}\n\nOpen in the simulator: ${SITE}${app({ ship: s.id, scenario: own[0]?.id })}${own.length ? `\n\nScenarios written for her: ${own.map(x => x.name).join('; ')}.` : ''}`;
   pages.push({
-    path: `/ships/${s.id}/`, nav: '/ships/', priority: 0.7,
+    path: `/ships/${s.id}/`, nav: '/ships/', priority: 0.7, image: im,
     title: `${s.name} · ship-handling simulator · SHIPSHAPE`,
     description: clip(`Handle the ${s.name} in a free browser simulator: ${typeOf(s).toLowerCase()}, ${num(s.LOA, 1)} m, ${propulsionSummary(s)}. Particulars, controls and scenarios.`),
     crumbs: [['/', 'SHIPSHAPE'], ['/ships/', 'Fleet'], [`/ships/${s.id}/`, s.name]],
@@ -257,7 +269,7 @@ ${sister.length ? `<h2>Same hull, other conditions</h2><ul>${sister.map(o => `<l
 <p class="lede">${listing(realNames)} on their real charts, plus harbours and open-water exercises built to teach one thing at a time. ${total.scenarios} scenarios in all.</p></div>
 <ul class="grid">${places.map(p => `<li><div class="card"><h2><a href="/places/${p.id}/">${esc(p.name)}</a></h2><p class="meta">${p.scenarios.length} scenario${p.scenarios.length > 1 ? 's' : ''}</p><p>${esc(clip(p.about, 170))}</p></div></li>`).join('')}</ul>`;
   pages.push({
-    path: '/places/', nav: '/places/', priority: 0.9,
+    path: '/places/', nav: '/places/', priority: 0.9, image: shot('places/split-medmoor.jpg', 'A superyacht moored stern-to in the Port of Split, 3D view beside the chart'),
     title: `Ports and scenarios: ${listing(realNames)} · SHIPSHAPE`,
     description: clip(`Practise ship handling in ${listing(realNames)} on real charts, with wind, current, tugs and mooring lines. ${total.scenarios} free scenarios in the browser.`),
     crumbs: [['/', 'SHIPSHAPE'], ['/places/', 'Places']],
@@ -274,13 +286,13 @@ ${sister.length ? `<h2>Same hull, other conditions</h2><ul>${sister.map(o => `<l
 <p class="toc">${p.scenarios.map(s => `<a href="#${s.id}">${esc(s.name)}</a>`).join('<br />')}</p>
 ${p.scenarios.map(s => {
   const sp = SHIPS[s.ship ?? 'becancour'] ?? SHIPS.becancour;
-  return `<article class="item" id="${s.id}" aria-labelledby="${s.id}-h"><h3 id="${s.id}-h">${esc(s.name)}</h3>
+  return `<article class="item" id="${s.id}" aria-labelledby="${s.id}-h"><h3 id="${s.id}-h"><a href="/places/${p.id}/${s.id}/">${esc(s.name)}</a></h3>
 <p>${esc(s.brief)}</p>
 <dl class="facts"><dt>Ship</dt><dd><a href="/ships/${sp.id}/">${esc(sp.name)}</a></dd><dt>Wind</dt><dd>${wind(s)}</dd><dt>Current</dt><dd>${current(s)}</dd><dt>Depth</dt><dd>${depth(s)}</dd><dt>Start</dt><dd>${num(s.start.kn, 1)} kn on ${String(Math.round(s.start.psi)).padStart(3, '0')}°</dd></dl>
 <div class="cta"><a class="btn primary" href="${app({ scenario: s.id, ship: sp.id })}">Open this scenario</a></div></article>`;
 }).join('\n')}`;
     pages.push({
-      path: `/places/${p.id}/`, nav: '/places/', priority: 0.8,
+      path: `/places/${p.id}/`, nav: '/places/', priority: 0.8, image: shot(`places/${p.scenarios[0].id}.jpg`, `${p.scenarios[0].name}: chart and 3D view in SHIPSHAPE`),
       title: `${p.name} ship-handling scenarios · SHIPSHAPE simulator`,
       description: clip(`${p.name} in a free ship-handling simulator: ${p.scenarios.map(s => s.name.replace(/^[^·]*· /, '')).join(', ')}.`),
       crumbs: [['/', 'SHIPSHAPE'], ['/places/', 'Places'], [`/places/${p.id}/`, p.name]],
@@ -291,12 +303,47 @@ ${p.scenarios.map(s => {
   }
 }
 
+// ---- One page per scenario
+for (const p of places) for (const s of p.scenarios) {
+  const sp = SHIPS[s.ship ?? 'becancour'] ?? SHIPS.becancour;
+  const meta = s.area ? AREAS[s.area].meta : undefined;
+  const im = shot(`places/${s.id}.jpg`, `${s.name}: the ${sp.name} in SHIPSHAPE, 3D view beside the chart`);
+  const others = p.scenarios.filter(x => x !== s);
+  const exs = CONTENT.exercises.filter(e => e.scenario === s.id);
+  const fitting = !s.area && !s.needsData ? ships.filter(o => o !== sp && fitsHere(s, o)) : [];
+  const href = app({ scenario: s.id, ship: sp.id });
+  const facts: [string, string][] = [['Place', p.name], ['Ship', sp.name], ['Wind', wind(s)], ['Current', current(s)], ['Depth', depth(s)], ['Start', `${num(s.start.kn, 1)} kn, heading ${String(Math.round(s.start.psi)).padStart(3, '0')}°`]];
+  const body = `<div class="hero"><p class="kicker">${esc(p.name)}</p><h1>${esc(s.name)}</h1>
+<p class="lede">${esc(s.brief)}</p>
+<div class="cta"><a class="btn primary" href="${href}">Open this scenario</a><a class="btn" href="/places/${p.id}/">All of ${esc(p.short)}</a></div></div>
+${figure(im)}
+<h2>Conditions</h2>
+<dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${k === 'Ship' ? `<a href="/ships/${sp.id}/">${esc(v)}</a>` : k === 'Place' ? `<a href="/places/${p.id}/">${esc(v)}</a>` : esc(v)}</dd>`).join('')}</dl>
+<p class="note">${esc(p.chart)}</p>
+${exs.length ? `<h2>Guided exercise</h2><ul>${exs.map(e => `<li><a href="/learn/${TRACKS.find(t => t.id === e.track)!.slug}/#${e.id}">${esc(e.title)}</a>: ${esc(fill(e.brief, SHIPS[e.ship]))}</li>`).join('')}</ul>` : ''}
+<h2>Try her with another ship</h2>
+<p>Any ship in the fleet can be loaded here from Menu → Ships; the simulator warns when she draws too much water for the berth.${fitting.length ? ' These have water enough:' : ''}</p>
+${fitting.length ? `<ul class="toc">${fitting.map(o => `<li><a href="${app({ scenario: s.id, ship: o.id })}">${esc(o.name)}</a></li>`).join('')}</ul>` : ''}
+${others.length ? `<h2>More at ${esc(p.short)}</h2><ul>${others.map(o => `<li><a href="/places/${p.id}/${o.id}/">${esc(o.name)}</a></li>`).join('')}</ul>` : ''}`;
+  pages.push({
+    path: `/places/${p.id}/${s.id}/`, nav: '/places/', priority: 0.7, image: im,
+    title: `${s.name} · ship-handling scenario · SHIPSHAPE`,
+    description: clip(`${s.name}: ${s.brief}`),
+    crumbs: [['/', 'SHIPSHAPE'], ['/places/', 'Places'], [`/places/${p.id}/`, p.name], [`/places/${p.id}/${s.id}/`, s.name]],
+    ld: [{ '@context': 'https://schema.org', '@type': 'WebPage', name: s.name, url: `${SITE}/places/${p.id}/${s.id}/`, description: s.brief, isPartOf: { '@type': 'WebSite', name: 'SHIPSHAPE', url: SITE + '/' },
+      ...(meta ? { about: { '@type': 'Place', name: p.name, geo: { '@type': 'GeoCoordinates', latitude: meta.origin[0], longitude: meta.origin[1] } } } : {}),
+      potentialAction: { '@type': 'PlayAction', target: SITE + href, name: 'Open this scenario' } }],
+    body,
+    md: `# ${s.name}\n\n${s.brief}\n\n${facts.map(([k, v]) => `- ${k}: ${v}`).join('\n')}\n\nOpen: ${SITE}${href}`,
+  });
+}
+
 // ---- Learn
 {
   const counts = (t: Track) => [CONTENT.cards, CONTENT.procedures, CONTENT.exercises].map(xs => xs.filter(x => x.track === t).length);
   const body = `<div class="hero"><p class="kicker">Learn</p><h1>The training guide</h1>
 <p class="lede">The guide inside SHIPSHAPE explains what the ship is doing and why, step by step drills to run on her, and exercises with a debrief. Every statement carries its source: a model test, a standard, a manufacturer's manual or a port's own guidelines, or, where it says so, the simulator's own model.</p>
-<div class="cta"><a class="btn primary" href="/">Open the simulator</a></div></div>
+<div class="cta"><a class="btn primary" href="/">Open the simulator</a><a class="btn" href="/learn/glossary/">Glossary</a></div></div>
 <ul class="grid">${TRACKS.map(t => { const [c, p, e] = counts(t.id); return `<li><div class="card"><h2><a href="/learn/${t.slug}/">${t.title}</a></h2><p class="meta">${c} notes · ${p} drills · ${e} exercises</p><p>${esc(t.lede)}</p></div></li>`; }).join('')}</ul>
 <h2>How the guide keeps itself honest</h2>
 <p>Each statement is marked by how well it is established. <b>Measured</b> means published trials or model tests. <b>Published</b> means a standard, a manual, an incident report or port guidance. <b>Rule of thumb</b> is a cited textbook rule. <b>From the model</b> is what this simulator computes, and is the only kind allowed without an outside source. Figures in the text are taken from the ship's own particulars, so they always match the ship you are handling.</p>`;
@@ -351,6 +398,41 @@ ${exs.length ? `<h2>Exercises</h2>${exs.map(exHtml).join('\n')}` : ''}
   }
 }
 
+// ---- Glossary
+pages.push({
+  path: '/learn/glossary/', nav: '/learn/', priority: 0.8,
+  title: 'Ship-handling glossary: Azipod, pivot point, squat, Med moor and more · SHIPSHAPE',
+  description: clip(`Plain definitions of ${GLOSSARY.length} ship-handling terms: Azipod, ASD and Voith tugs, CPP, direct-reversing engines, pivot point, squat, bank effect, scope, Mediterranean moor, DP and more.`),
+  crumbs: [['/', 'SHIPSHAPE'], ['/learn/', 'Learn'], ['/learn/glossary/', 'Glossary']],
+  ld: [{ '@context': 'https://schema.org', '@type': 'DefinedTermSet', '@id': `${SITE}/learn/glossary/`, name: 'Ship-handling glossary', url: `${SITE}/learn/glossary/`, author: AUTHOR,
+    hasDefinedTerm: GLOSSARY.map(t => ({ '@type': 'DefinedTerm', '@id': `${SITE}/learn/glossary/#${t.id}`, name: t.term, ...(t.also ? { alternateName: t.also } : {}), description: t.def, inDefinedTermSet: `${SITE}/learn/glossary/` })) }],
+  body: `<div class="hero"><p class="kicker">Learn</p><h1>Ship-handling glossary</h1><p class="lede">The words pilots, masters and tug crews use, in plain English, with a link to where each can be seen or tried in the simulator.</p></div>
+<nav aria-label="Terms"><p class="toc">${GLOSSARY.map(t => `<a href="#${t.id}">${esc(t.term)}</a>`).join('<br />')}</p></nav>
+<dl class="glossary">${GLOSSARY.map(t => `<div id="${t.id}"><dt>${esc(t.term)}${t.also ? ` <span class="note">(${esc(t.also.join(', '))})</span>` : ''}</dt><dd><p>${esc(t.def)}</p>${t.see ? `<p class="note">See: ${t.see.map(([h, n]) => `<a href="${h}">${esc(n)}</a>`).join(' · ')}</p>` : ''}</dd></div>`).join('\n')}</dl>`,
+  md: `# Ship-handling glossary\n\n${GLOSSARY.map(t => `**${t.term}**${t.also ? ` (${t.also.join(', ')})` : ''}: ${t.def}`).join('\n\n')}`,
+});
+
+// ---- What's new (also the Atom feed)
+const NEWS: { v: string; date: string; title: string; text: string; link?: string }[] = [
+  { v: '5.4.0', date: TODAY, title: 'Easy to find, easy to read', text: 'Plain reading pages beside the simulator: a page for every ship and every scenario, the training guide with its sources, a ship-handling glossary, and questions and answers. Every page opens the simulator with that ship or scenario loaded, and works with a keyboard and a screen reader.', link: '/ships/' },
+  { v: '5.3.1', date: '2026-11-13', title: 'Lines on both sides', text: 'Rig the mooring lines on port, starboard or both at once, and send a whole side ashore, set all its winches, or let it all go with one tap. For a Mediterranean moor with lines from both quarters, or a ship held in the middle of a slip.', link: '/places/split/split-medmoor/' },
+  { v: '5.3.0', date: '2026-11-13', title: 'Anchors, the Port of Split, and finer control', text: 'Two bow anchors on every ship and a stern anchor on the ferries and yachts, with an ANCHOR panel to work them. The Port of Split with its ferry berths, cruise berths and a Mediterranean-moor scenario. Plus and minus buttons beside every power lever and 5° buttons beside every wheel and pod dial. A tidier menu with Ships, Places and Settings tabs and search.', link: '/places/split/' },
+  { v: '5.2.0', date: '2026-11-10', title: 'A cleaner console', text: 'The readouts, buttons and panels redrawn as a flat, dark instrument console with one typeface and larger figures.' },
+  { v: '5.1.0', date: '2026-11-07', title: 'An optional training guide', text: 'Drills for an Azipod crash stop, a crash astern on a direct-reversing engine, stopping a waterjet ship, working two assist tugs and releasing a tug\'s line before it girts, plus exercises with a debrief. Every statement carries its source.', link: '/learn/' },
+  { v: '5.0.0', date: '2026-11-06', title: 'Real charts, real harbours, and a lock', text: 'Los Angeles and Long Beach and IJmuiden to Amsterdam on their real charts, PortMiami out to its sea buoy, depth contours, soundings and every buoy and light, and the Zeesluis IJmuiden as a working lock.', link: '/places/' },
+  { v: '4.0.0', date: '2026-10-28', title: 'A whole fleet', text: 'From three Azipod cruise ships to every way a ship can be driven: tankers and container ships on a telegraph, ferries with controllable-pitch propellers, ASD, Voith and rotor tugs, a fast ferry on waterjets, DP vessels, an icebreaker, a frigate and a push convoy, with realistic 3D models.', link: '/ships/' },
+];
+pages.push({
+  path: '/news/', priority: 0.6,
+  title: "What's new in SHIPSHAPE · ship-handling simulator updates",
+  description: clip(`The latest SHIPSHAPE updates: ${NEWS.slice(0, 3).map(n => n.title.toLowerCase()).join('; ')}.`),
+  crumbs: [['/', 'SHIPSHAPE'], ['/news/', "What's new"]],
+  ld: [{ '@context': 'https://schema.org', '@type': 'Blog', name: "What's new in SHIPSHAPE", url: `${SITE}/news/`, author: AUTHOR, blogPost: NEWS.map(n => ({ '@type': 'BlogPosting', headline: `${n.v}: ${n.title}`, datePublished: n.date, url: `${SITE}/news/#v${n.v.replace(/\./g, '-')}`, author: AUTHOR, description: n.text })) }],
+  body: `<div class="hero"><p class="kicker">Updates</p><h1>What's new</h1><p class="lede">SHIPSHAPE updates itself: open it and the newest version loads. Follow along with the <a href="/feed.xml">Atom feed</a>.</p></div>
+${NEWS.map(n => `<article class="item" id="v${n.v.replace(/\./g, '-')}" aria-labelledby="v${n.v.replace(/\./g, '-')}-h"><h2 id="v${n.v.replace(/\./g, '-')}-h">${esc(n.title)}</h2><p class="note">Version ${n.v} · <time datetime="${n.date}">${n.date}</time></p><p>${esc(n.text)}</p>${n.link ? `<p><a href="${n.link}">Take a look</a></p>` : ''}</article>`).join('\n')}`,
+  md: `# What's new in SHIPSHAPE\n\n${NEWS.map(n => `## ${n.v} (${n.date}): ${n.title}\n\n${n.text}`).join('\n\n')}`,
+});
+
 // ---- FAQ
 const FAQ: [string, string][] = [
   ['What is SHIPSHAPE?', `SHIPSHAPE is a free ship-handling simulator that runs in a web browser. You take the controls of one of ${total.ships} ships, each with the propulsion and the bridge controls her crew would use, and bring her alongside, through a lock, out to an anchorage or into a tight harbour, in wind, current and shallow water.`],
@@ -399,6 +481,7 @@ pages.push({
 <h2>Accessibility</h2><p>These pages are written to WCAG 2.2 AA: they work with a keyboard and a screen reader, follow the system's light or dark setting, respect reduced motion, and keep text contrast at AA or better. The simulator itself is a visual, real-time instrument; its controls have labels and keyboard shortcuts, and every readout is also given in text. If something gets in your way, please say so through the contact below.</p>
 <h2>Privacy</h2><p>No account, no cookies and no personal data. Where anonymous counts are switched on, only aggregated figures are kept (visits, which ships and places are opened, and a rough band of how often people come back), and the setting can be turned off in the menu.</p>
 <h2>Who made it</h2><p>SHIPSHAPE is developed by <b>Khalil Mahboub</b>, a ship's captain and maritime systems enthusiast. Questions, feedback or collaborations: Instagram <a href="https://www.instagram.com/snowskyz/" rel="noopener">@snowskyz</a>. The source is on <a href="${REPO}">GitHub</a>.</p>
+<h2>Citing SHIPSHAPE</h2><p>If you use SHIPSHAPE in teaching, writing or research, please cite it as:</p><p><cite>Mahboub, K. (${TODAY.slice(0, 4)}). SHIPSHAPE: a ship-handling simulator for the web (version ${pkg.version}). ${SITE}/</cite></p>
 <h2>Credits</h2><p>Typeface Geologica, by the Geologica Project Authors, under the SIL Open Font License 1.1. Chart data from NOAA, Rijkswaterstaat, EMODnet and OpenStreetMap contributors (ODbL). 3D ship models are credited by name in the simulator's menu.</p>`,
   md: `# About SHIPSHAPE\n\n${ABOUT.what}\n\n## Why it exists\n\n${ABOUT.why}\n\n## What is modelled\n\n${ABOUT.model}\n\n## Who made it\n\nDeveloped by Khalil Mahboub, a ship's captain and maritime systems enthusiast.\n\nNot for navigation.`,
 });
@@ -451,6 +534,8 @@ The simulator is at ${SITE}/ . Deep links open a scenario with a given ship: ${S
 - [Fleet](${SITE}/ships/): all ${total.ships} ships with particulars and controls
 - [Places](${SITE}/places/): ${listing(realNames)}, practice harbours and open-water exercises
 - [Learn](${SITE}/learn/): the sourced training guide on Azipods, tugs and specialised propulsion
+- [Glossary](${SITE}/learn/glossary/): ${GLOSSARY.length} ship-handling terms defined in plain English
+- [What's new](${SITE}/news/): dated release notes (Atom feed at ${SITE}/feed.xml)
 
 ## Ships
 
@@ -458,7 +543,7 @@ ${ships.map(s => `- [${s.name}](${SITE}/ships/${s.id}/): ${typeOf(s)}, ${shipLin
 
 ## Places
 
-${places.map(p => `- [${p.name}](${SITE}/places/${p.id}/): ${p.scenarios.map(s => s.name).join('; ')}`).join('\n')}
+${places.map(p => `### [${p.name}](${SITE}/places/${p.id}/)\n\n${p.scenarios.map(s => `- [${s.name}](${SITE}/places/${p.id}/${s.id}/): ${clip(s.brief, 200)}`).join('\n')}`).join('\n\n')}
 
 ## Learn
 
@@ -471,5 +556,41 @@ ${TRACKS.map(t => `- [${t.title}](${SITE}/learn/${t.slug}/): ${t.lede}`).join('\
 `);
 write('llms-full.txt', `# SHIPSHAPE: full text\n\n> ${intro}\n\n${pages.map(p => p.md).join('\n\n---\n\n')}\n`);
 write(`${INDEXNOW_KEY}.txt`, INDEXNOW_KEY);
+write('feed.xml', `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>SHIPSHAPE: what's new</title>
+  <subtitle>Updates to SHIPSHAPE, the free ship-handling simulator for the web.</subtitle>
+  <link href="${SITE}/feed.xml" rel="self" />
+  <link href="${SITE}/news/" />
+  <id>${SITE}/news/</id>
+  <updated>${NEWS[0].date}T00:00:00Z</updated>
+  <author><name>Khalil Mahboub</name></author>
+  <icon>${SITE}/favicon.svg</icon>
+${NEWS.map(n => `  <entry>
+    <title>${esc(`${n.v}: ${n.title}`)}</title>
+    <link href="${SITE}/news/#v${n.v.replace(/\./g, '-')}" />
+    <id>${SITE}/news/#v${n.v.replace(/\./g, '-')}</id>
+    <updated>${n.date}T00:00:00Z</updated>
+    <summary>${esc(n.text)}</summary>
+  </entry>`).join('\n')}
+</feed>
+`);
+if (existsSync(join(ROOT, 'site/img'))) cpSync(join(ROOT, 'site/img'), join(OUT, 'site/img'), { recursive: true });
+
+// every link between the pages must land on a page and, where it names one, an anchor that exists
+const known = new Set(['/', '/feed.xml', '/shipshape-offline.html', ...pages.map(p => p.path)]);
+const ids = new Map(pages.map(p => [p.path, new Set([...p.body.matchAll(/ id="([^"]+)"/g)].map(m => m[1]))]));
+const broken: string[] = [];
+for (const p of pages) for (const [, href] of p.body.matchAll(/href="(\/[^"?]*)(?:\?[^"]*)?"/g)) {
+  const [path, hash] = href.split('#');
+  if (!known.has(path)) broken.push(`${p.path} → ${href}`);
+  else if (hash && !ids.get(path)?.has(hash)) broken.push(`${p.path} → ${href} (no such anchor)`);
+}
+if (broken.length) { console.error('broken links:\n' + broken.join('\n')); process.exit(1); }
+
+// the service worker answers navigations with the app unless vite.config.ts lists the section: check every one is listed
+const deny = /navigateFallbackDenylist: \[\/\^\\\/\(([a-z|]+)\)/.exec(readFileSync(join(ROOT, 'vite.config.ts'), 'utf8'))?.[1].split('|') ?? [];
+const missing = [...new Set(pages.map(p => p.path.split('/')[1]))].filter(sec => !deny.includes(sec));
+if (missing.length) { console.error(`add to navigateFallbackDenylist in vite.config.ts: ${missing.join(', ')}`); process.exit(1); }
 write('site/urls.txt', urls.map(([u]) => SITE + u).join('\n') + '\n');
 console.log(`site: ${pages.length} pages, sitemap of ${urls.length} URLs, llms.txt, robots.txt → ${OUT}`);

@@ -90,6 +90,14 @@ td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .note { font-size: 0.92rem; color: var(--muted); max-width: var(--measure); }
 article.item { border-top: 1px solid var(--rule); margin-top: 2rem; padding-top: 0.2rem; }
 article.item h3 { margin-top: 1rem; }
+figure.shot { margin: 1.6rem 0 0; max-width: 60rem; }
+figure.shot img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper-2); }
+figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.4rem; }
+dl.glossary { max-width: var(--measure); }
+dl.glossary > div { border-top: 1px solid var(--rule); padding: 0.9rem 0 0.2rem; scroll-margin-top: 1rem; }
+dl.glossary dt { font-weight: 500; font-size: 1.08rem; }
+dl.glossary dd { margin: 0; }
+dl.glossary dd p { margin-top: 0.35rem; }
 details.faq { border-top: 1px solid var(--rule); padding: 0.8rem 0; max-width: var(--measure); }
 details.faq summary { cursor: pointer; font-weight: 400; font-size: 1.08rem; }
 details.faq p { margin-top: 0.5rem; }

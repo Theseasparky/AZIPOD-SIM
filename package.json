@@ -9,6 +9,7 @@
     "build:all": "npm run build && npm run build:single && cp dist-single/index.html dist/shipshape-offline.html && cp dist-single/index.html dist/azipod-bridge-offline.html && tsx scripts/site.ts",
     "site": "tsx scripts/site.ts",
     "a11y": "node scripts/a11y.mjs",
+    "site:shots": "node scripts/site-shots.mjs",
     "preview": "vite preview",
     "test": "tsx scripts/test.ts && tsx scripts/guide-test.ts",
     "trials": "tsx scripts/trials.ts",
