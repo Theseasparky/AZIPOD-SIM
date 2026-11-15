@@ -115,6 +115,9 @@ export function currentField(sc: Scenario, kn: number, setDeg: number): CurrentF
   return (n, e) => { const k = f(n, e); return [cN * k, cE * k]; };
 }
 
+/** Scenarios away from any harbour: the menu lists them together as open water and special operations. */
+export const OPEN_WATER = new Set(['escort', 'ice', 'rotor', 'dp', 'anchorage', 'trials']);
+
 export const SCENARIOS: Scenario[] = [
   MIAMI, MIAMI_APPROACH, MIAMI_CARGO,
   ...SPLIT_SCENARIOS,

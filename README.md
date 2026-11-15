@@ -8,6 +8,10 @@
 
 It's free, runs on phones, tablets and computers, and once installed it keeps working with no internet connection.
 
+![A 90 m superyacht moored stern-to on her anchors in the Port of Split: the 3D view beside the chart, with the conning readouts above and the propulsion and helm controls below](site/img/places/split-medmoor.jpg)
+
+Read more: [the fleet](https://shipshape.skipjack.app/ships/) · [places and scenarios](https://shipshape.skipjack.app/places/) · [training guide](https://shipshape.skipjack.app/learn/) · [glossary](https://shipshape.skipjack.app/learn/glossary/) · [FAQ](https://shipshape.skipjack.app/faq/)
+
 > **For training and fun only. Not for real navigation.** The ships behave very much like real ones, but never exactly the same. Don't use it to plan a real manoeuvre.
 
 ## What is it?
@@ -81,6 +85,7 @@ On a phone or tablet, just use the levers and wheels on screen. On a computer yo
 
 ## What's new
 
+- **Version 5.4: easy to find, easy to read.** SHIPSHAPE now has plain reading pages beside the simulator, generated from its own data: [the fleet](https://shipshape.skipjack.app/ships/) with a page per ship, [the places](https://shipshape.skipjack.app/places/) with a page per scenario, [the training guide](https://shipshape.skipjack.app/learn/) with its sources, a [ship-handling glossary](https://shipshape.skipjack.app/learn/glossary/), [what's new](https://shipshape.skipjack.app/news/) (with an Atom feed), [questions and answers](https://shipshape.skipjack.app/faq/) and [about](https://shipshape.skipjack.app/about/). Every page links straight into the simulator with that ship or scenario loaded. They work with a keyboard and a screen reader, pass automated WCAG 2.2 AA checks in light and dark, and carry structured data for search engines, with a sitemap, an `llms.txt` summary for AI assistants and IndexNow announcements on every deploy.
 - **Version 5.3.1: lines on both sides.** Rig the mooring lines on port, starboard or both at once (Lines → Side → Both), and send a whole side ashore, set all its winches, or let it all go with one tap. For a Mediterranean moor with lines from both quarters, or a ship held in the middle of a slip.
 - **Version 5.3: anchors, the Port of Split, and finer control.**
   - Two bow anchors on every ship, a stern anchor on the ferries and yachts, and an ANCHOR panel to work them.

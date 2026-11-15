@@ -48,3 +48,12 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+      # tell Bing, Yandex, Seznam and Naver (and through Bing, ChatGPT search and Copilot) that the pages changed
+      - name: Announce the pages through IndexNow
+        continue-on-error: true
+        run: |
+          site=https://shipshape.skipjack.app
+          urls=$(curl -fsS "$site/site/urls.txt" | jq -R . | jq -sc .)
+          curl -fsS -X POST https://api.indexnow.org/indexnow -H 'Content-Type: application/json; charset=utf-8' \
+            -d "{\"host\":\"shipshape.skipjack.app\",\"key\":\"8b8f8d6d1f88d4f02f414e14dbea8c38\",\"keyLocation\":\"$site/8b8f8d6d1f88d4f02f414e14dbea8c38.txt\",\"urlList\":$urls}" \
+            -w 'IndexNow: HTTP %{http_code}\n'

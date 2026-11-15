@@ -59,7 +59,13 @@ export default defineConfig(({ mode }) => {
           orientation: 'any',
           background_color: '#06121a',
           theme_color: '#06121a',
-          categories: ['education', 'navigation', 'simulation'],
+          categories: ['education', 'games', 'navigation', 'simulation'],
+          // shown in the richer install dialog on Android and desktop Chrome and Edge
+          screenshots: [
+            { src: 'site/img/places/split-medmoor.jpg', sizes: '1200x630', type: 'image/jpeg', form_factor: 'wide', label: 'Mediterranean moor in the Port of Split: 3D view beside the chart' },
+            { src: 'site/img/ships/spirit.jpg', sizes: '1200x630', type: 'image/jpeg', form_factor: 'wide', label: 'A 293 m Azipod cruise ship with her pod levers and dials' },
+            { src: 'site/img/places/ijm-lock-in.jpg', sizes: '1200x630', type: 'image/jpeg', form_factor: 'wide', label: 'Through the Zeesluis IJmuiden' },
+          ],
           icons: [
             { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
             { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -76,6 +82,8 @@ export default defineConfig(({ mode }) => {
           ],
           globIgnores: ['**/*-offline.html', 'og.png'],
           navigateFallback: 'index.html',
+          // the reading pages, the 404 page and the files for search engines are real pages: never answer them with the app
+          navigateFallbackDenylist: [/^\/(about|ships|places|learn|faq|news|site)(\/|$)/, /\.(txt|xml)$/, /404\.html$/],
           cleanupOutdatedCaches: true,
           maximumFileSizeToCacheInBytes: 5_000_000,
         },
