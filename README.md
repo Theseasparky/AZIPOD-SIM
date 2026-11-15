@@ -81,6 +81,7 @@ On a phone or tablet, just use the levers and wheels on screen. On a computer yo
 
 ## What's new
 
+- **Version 5.4: easy to find, easy to read.** SHIPSHAPE now has plain reading pages beside the simulator, generated from its own data: [the fleet](https://shipshape.skipjack.app/ships/) with a page per ship, [the places](https://shipshape.skipjack.app/places/) with every scenario, [the training guide](https://shipshape.skipjack.app/learn/) with its sources, [questions and answers](https://shipshape.skipjack.app/faq/) and [about](https://shipshape.skipjack.app/about/). Every page links straight into the simulator with that ship or scenario loaded. They work with a keyboard and a screen reader, pass automated WCAG 2.2 AA checks in light and dark, and carry structured data for search engines, with a sitemap, an `llms.txt` summary for AI assistants and IndexNow announcements on every deploy.
 - **Version 5.3.1: lines on both sides.** Rig the mooring lines on port, starboard or both at once (Lines → Side → Both), and send a whole side ashore, set all its winches, or let it all go with one tap. For a Mediterranean moor with lines from both quarters, or a ship held in the middle of a slip.
 - **Version 5.3: anchors, the Port of Split, and finer control.**
   - Two bow anchors on every ship, a stern anchor on the ferries and yachts, and an ANCHOR panel to work them.

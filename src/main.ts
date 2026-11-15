@@ -21,7 +21,7 @@ import { makeState, wrap } from './physics/sim';
 import { DT, LeverMode, Runtime } from './physics/runtime';
 import { LINE, WinchMode, lineSide } from './physics/mooring';
 import type { Alt, PredictJob, Track } from './physics/predict';
-import { SCENARIOS, safeStart, Scenario, berthFor, currentField, depthAt, fits, navDepthAt, waterOf, type Water } from './scenarios';
+import { SCENARIOS, OPEN_WATER, safeStart, Scenario, berthFor, currentField, depthAt, fits, navDepthAt, waterOf, type Water } from './scenarios';
 import { ensureScenario } from './scenes/loaders';
 import { AREAS } from './scenes/areas';
 import { loadChart } from './ui/chart';
@@ -1061,7 +1061,6 @@ function renderShipList() {
   filterMenu();
 }
 /** Which group a scenario is listed under: its real-chart area, else schematic harbours or open water. */
-const OPEN_WATER = new Set(['escort', 'ice', 'rotor', 'dp', 'anchorage', 'trials']);
 const groupOf = (s: Scenario) => s.area ? AREAS[s.area].meta.name : OPEN_WATER.has(s.id) ? 'Open water and special operations' : 'Practice harbours and channels';
 function renderScenarioList() {
   const box = $('scenarios'); box.innerHTML = '';
