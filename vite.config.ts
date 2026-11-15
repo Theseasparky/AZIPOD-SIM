@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => {
           globIgnores: ['**/*-offline.html', 'og.png'],
           navigateFallback: 'index.html',
           // the reading pages, the 404 page and the files for search engines are real pages: never answer them with the app
-          navigateFallbackDenylist: [/^\/(about|ships|places|learn|faq|news|site)(\/|$)/, /\.(txt|xml)$/, /404\.html$/],
+          navigateFallbackDenylist: [/^\/(about|ships|places|skills|learn|faq|news|site|es|hr|fr|it|pt|de|nl)(\/|$)/, /\.(txt|xml)$/, /404\.html$/],
           cleanupOutdatedCaches: true,
           maximumFileSizeToCacheInBytes: 5_000_000,
         },

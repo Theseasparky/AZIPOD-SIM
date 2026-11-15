@@ -53,6 +53,11 @@ nav.main ul { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; list-style: no
 nav.main li { margin: 0; }
 nav.main a { text-decoration: none; font-size: 0.95rem; padding: 0.5rem 0; display: inline-block; }
 nav.main a[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 2px; }
+.langs { flex-basis: 100%; }
+.langs ul { display: flex; flex-wrap: wrap; gap: 0.1rem 0.9rem; list-style: none; padding: 0; margin: 0; font-size: 0.85rem; }
+.langs li { margin: 0; }
+.langs a { display: inline-block; padding: 0.35rem 0; text-decoration: none; color: var(--muted); min-height: 24px; }
+.langs a[aria-current="true"] { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); }
 .crumbs { font-size: 0.85rem; color: var(--muted); margin-top: 1.6rem; }
 .crumbs ol { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .crumbs li { margin: 0; }
