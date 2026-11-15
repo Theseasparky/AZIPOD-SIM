@@ -82,6 +82,12 @@ export default defineConfig(({ mode }) => {
           ],
           globIgnores: ['**/*-offline.html', 'og.png'],
           navigateFallback: 'index.html',
+          // only the simulator's own address (with or without its ?scenario=… deep-link query) is answered with the app;
+          // every other page goes to the network, so a reading page added later can never be swallowed by the app
+          navigateFallbackAllowlist: [/^\/(index\.html)?(\?.*)?$/],
+          // a new version takes over at once instead of waiting until every tab is closed; the app then offers a reload
+          skipWaiting: true,
+          clientsClaim: true,
           // the reading pages, the 404 page and the files for search engines are real pages: never answer them with the app
           navigateFallbackDenylist: [/^\/(about|ships|places|skills|learn|faq|news|site|es|hr|fr|it|pt|de|nl)(\/|$)/, /\.(txt|xml)$/, /404\.html$/],
           cleanupOutdatedCaches: true,

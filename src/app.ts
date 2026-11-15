@@ -38,6 +38,11 @@ export function initApp(onGateClosed: () => void) {
       onNeedRefresh() { toast('A new version is ready.', { label: 'RELOAD', run: () => update(true) }, 0); },
       onOfflineReady() { toast('Saved for offline use. It now works without internet.'); },
     });
+    // a new version takes over by itself (skipWaiting); say so, and reload only when the player chooses
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (hadController) toast('SHIPSHAPE has been updated.', { label: 'RELOAD', run: () => location.reload() }, 0);
+    });
   }
 
   // Chrome / Edge / Android: real install button
