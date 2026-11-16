@@ -6,7 +6,7 @@ export default (c: Ctx): Locale => ({
   ui: {
     sim: 'Simulator', fleet: 'Vloot', places: 'Plaatsen', skills: 'Manoeuvres', learn: 'Leren', faq: 'Vragen', about: 'Over', glossary: 'Woordenlijst', news: 'Nieuws',
     skip: 'Naar de inhoud', mainNav: 'Hoofdmenu', footNav: 'Voettekst', crumbs: 'Kruimelpad', language: 'Taal',
-    byline: 'een gratis scheepsmanoeuvreersimulator van Khalil Mahboub', updated: 'pagina bijgewerkt op', notNav: 'Alleen voor training en plezier: niet voor navigatie.',
+    byline: 'een gratis scheepsmanoeuvreersimulator van Kal.M', updated: 'pagina bijgewerkt op', notNav: 'Alleen voor training en plezier: niet voor navigatie.',
     offline: 'Offline kopie', source: 'Broncode op GitHub',
     openSim: 'Open de simulator', open: 'Openen', see: 'Zie', english: 'in het Engels',
     whatItIs: 'Waar het om gaat', howTo: 'Hoe het gaat', practise: 'Oefen het in SHIPSHAPE', ships: 'Schepen om te proberen', terms: 'Begrippen', guide: 'Uit de trainingsgids', moreSkills: 'Meer manoeuvres',
@@ -27,7 +27,7 @@ export default (c: Ctx): Locale => ({
     ],
   },
   about: {
-    title: 'Over SHIPSHAPE · gratis manoeuvreersimulator van kapitein Khalil Mahboub',
+    title: 'Over SHIPSHAPE · gratis manoeuvreersimulator van kapitein Kal.M',
     description: `SHIPSHAPE is een gratis scheepsmanoeuvreersimulator voor het web: ${c.ships} schepen, echte havens op echte kaarten en oefenhavens.`,
     h1: 'Over SHIPSHAPE',
     what: `SHIPSHAPE is een gratis scheepsmanoeuvreersimulator voor het web. Hij zet je op de brug van ${c.ships} schepen, van cruiseschepen met Azipods en havensleepboten tot een geladen VLCC, en laat je ze binnenbrengen in IJmuiden en Amsterdam, PortMiami, Los Angeles en Long Beach, en Split op echte kaarten, of oefenen in speciaal gebouwde havens en op open zee.`,
@@ -35,7 +35,7 @@ export default (c: Ctx): Locale => ({
     model: 'Elk schip is een manoeuvreermodel met drie vrijheidsgraden (langs, dwars en gieren, met slingeren voor de schepen waar slagzij telt), opgebouwd uit gepubliceerde rompgegevens waar die er zijn: de MMG-coëfficiënten uit gedwongen modelproeven voor de referentierompen KVLCC2 en KCS, en regressiemodellen voor de rest. Schroeven, roeren, Azipods, roerpropellers, Voith-Schneiderpropellers, waterjets, rotorzeilen en boegschroeven worden één voor één gemodelleerd, met ondiep water, oevereffect, interactie tussen schepen, wind, stroom, sleepboten, trossen, ankers en een werkende sluis. De resultaten worden vergeleken met gepubliceerde proefvaarten en de IMO-manoeuvreernormen.',
     access: 'Deze pagina’s volgen WCAG 2.2 AA: ze werken met toetsenbord en schermlezer, volgen de lichte of donkere modus van het systeem en beperkte beweging, en houden een tekstcontrast van AA of beter. De simulator zelf is een visueel instrument in realtime; de bedieningselementen hebben labels en sneltoetsen, en elke uitlezing is ook als tekst beschikbaar. Loop je ergens tegenaan, laat het ons weten via het contact hieronder.',
     privacy: 'Geen account, geen cookies en geen persoonsgegevens. Als anonieme tellingen aanstaan, worden alleen samengevoegde cijfers bewaard (bezoeken, welke schepen en plaatsen worden geopend, en een ruwe schatting van hoe vaak mensen terugkomen), en de instelling kan in het menu worden uitgezet.',
-    who: 'SHIPSHAPE wordt ontwikkeld door Khalil Mahboub, kapitein en liefhebber van maritieme systemen. Vragen, feedback of samenwerking:',
+    who: 'SHIPSHAPE wordt ontwikkeld door Kal.M, kapitein en liefhebber van maritieme systemen. Vragen, feedback of samenwerking:',
     citeIntro: 'Gebruik je SHIPSHAPE in onderwijs, publicaties of onderzoek, citeer het dan zo:',
     credits: 'Lettertype Geologica, van de auteurs van het Geologica-project, onder de SIL Open Font License 1.1. Kaartgegevens van NOAA, Rijkswaterstaat, EMODnet en de bijdragers aan OpenStreetMap (ODbL). De 3D-scheepsmodellen worden bij naam vermeld in het menu van de simulator.',
     h: { why: 'Waarom hij bestaat', model: 'Wat er wordt gemodelleerd', data: 'Kaarten en gegevens', access: 'Toegankelijkheid', privacy: 'Privacy', who: 'Wie hem heeft gemaakt', cite: 'SHIPSHAPE citeren', credits: 'Verantwoording' },
@@ -58,7 +58,7 @@ export default (c: Ctx): Locale => ({
       ['Is hij beschikbaar in mijn taal?', 'De leespagina’s (deze vragen, Over, de plaatsen, de manoeuvres en de woordenlijst) zijn er in het Engels, Spaans, Kroatisch, Frans, Italiaans, Portugees, Duits en Nederlands. De bediening van de simulator en de gegevens van schepen en scenario’s zijn in het Engels.'],
       ['Werkt hij op mijn telefoon?', 'Ja. De bediening is gemaakt voor aanraking, met knoppen + en − voor een exact toerental en stappen van 5° voor roer of azimut. Op de computer bedient het toetsenbord de belangrijkste elementen; de toetsen staan in het menu.'],
       ['Verzamelt hij mijn gegevens?', 'Geen persoonsgegevens. Als anonieme tellingen aanstaan, stuurt de site alleen samengevoegde cijfers (een bezoek, welk schip en scenario werden geopend en een ruwe frequentie), zonder cookies of kenmerk. Hij respecteert Do Not Track en Global Privacy Control, en je kunt het uitzetten in het menu.'],
-      ['Wie heeft hem gemaakt?', 'SHIPSHAPE wordt ontwikkeld door Khalil Mahboub, kapitein en liefhebber van maritieme systemen.'],
+      ['Wie heeft hem gemaakt?', 'SHIPSHAPE wordt ontwikkeld door Kal.M, kapitein en liefhebber van maritieme systemen.'],
     ],
   },
   places: {

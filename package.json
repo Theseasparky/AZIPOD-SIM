@@ -1,6 +1,6 @@
 {
   "name": "shipshape",
-  "version": "5.5.1",
+  "version": "5.5.2",
   "description": "Twin-Azipod ship-handling simulator (PWA)",
   "scripts": {
     "dev": "vite",
@@ -18,7 +18,7 @@
     "golden": "tsx scripts/golden.ts",
     "guide:dossier": "tsx scripts/guide-dossier.ts"
   },
-  "author": "Khalil Mahboub (VOLARtech)",
+  "author": "Kal.M (VOLARtech)",
   "license": "UNLICENSED",
   "devDependencies": {
     "@types/node": "^22.9.0",

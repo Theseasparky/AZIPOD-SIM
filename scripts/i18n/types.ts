@@ -14,7 +14,7 @@ export interface Locale {
   ui: {
     sim: string; fleet: string; places: string; skills: string; learn: string; faq: string; about: string; glossary: string; news: string;
     skip: string; mainNav: string; footNav: string; crumbs: string; language: string;
-    /** "a free ship-handling simulator by Khalil Mahboub" */
+    /** "a free ship-handling simulator by Kal.M" */
     byline: string; updated: string; notNav: string; offline: string; source: string;
     openSim: string; open: string; see: string; english: string;
     whatItIs: string; howTo: string; practise: string; ships: string; terms: string; guide: string; moreSkills: string;

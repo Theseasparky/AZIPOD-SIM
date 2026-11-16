@@ -7,7 +7,7 @@ export default (c: Ctx): Locale => ({
   ui: {
     sim: 'Simulator', fleet: 'Fleet', places: 'Places', skills: 'Skills', learn: 'Learn', faq: 'FAQ', about: 'About', glossary: 'Glossary', news: "What's new",
     skip: 'Skip to content', mainNav: 'Main', footNav: 'Footer', crumbs: 'Breadcrumb', language: 'Language',
-    byline: 'a free ship-handling simulator by Khalil Mahboub', updated: 'page updated', notNav: 'For training and enjoyment only: not for navigation.',
+    byline: 'a free ship-handling simulator by Kal.M', updated: 'page updated', notNav: 'For training and enjoyment only: not for navigation.',
     offline: 'Offline copy', source: 'Source on GitHub',
     openSim: 'Open the simulator', open: 'Open', see: 'See', english: 'in English',
     whatItIs: 'What it is', howTo: 'How it is done', practise: 'Practise it in SHIPSHAPE', ships: 'Ships to try', terms: 'Words to know', guide: 'From the training guide', moreSkills: 'More skills',
@@ -15,7 +15,7 @@ export default (c: Ctx): Locale => ({
     scenarios: n => `${n} scenario${n === 1 ? '' : 's'}`,
   },
   about: {
-    title: 'About SHIPSHAPE · a free ship-handling simulator by Captain Khalil Mahboub',
+    title: 'About SHIPSHAPE · a free ship-handling simulator by Captain Kal.M',
     description: `SHIPSHAPE is a free ship-handling simulator for the web: ${c.ships} ships, real ports on real charts, and purpose-built practice harbours.`,
     h1: 'About SHIPSHAPE',
     what: `SHIPSHAPE is a free ship-handling simulator for the web. It puts you on the bridge of ${c.ships} ships, from Azipod cruise ships and harbour tugs to a laden VLCC, and lets you bring them into PortMiami, Split, Los Angeles and Long Beach, and IJmuiden and Amsterdam on real charts, or practise in purpose-built harbours and open water.`,
@@ -23,7 +23,7 @@ export default (c: Ctx): Locale => ({
     model: 'Each ship is a three-degree-of-freedom manoeuvring model (surge, sway and yaw, with roll for the ships where heel matters), built from published hull data where it exists: the MMG captive-test coefficients for the KVLCC2 and KCS benchmark hulls, and regression models for the rest. Propellers, rudders, Azipods, azimuth drives, Voith Schneider units, waterjets, rotor sails and thrusters are modelled unit by unit, with shallow water, bank effect, ship-to-ship interaction, wind, current, tugs, mooring lines, anchors and a working sea lock. Results are checked against published trials and the IMO manoeuvring standards.',
     access: 'These pages are written to WCAG 2.2 AA: they work with a keyboard and a screen reader, follow the system\'s light or dark setting, respect reduced motion, and keep text contrast at AA or better. The simulator itself is a visual, real-time instrument; its controls have labels and keyboard shortcuts, and every readout is also given in text. If something gets in your way, please say so through the contact below.',
     privacy: 'No account, no cookies and no personal data. Where anonymous counts are switched on, only aggregated figures are kept (visits, which ships and places are opened, and a rough band of how often people come back), and the setting can be turned off in the menu.',
-    who: 'SHIPSHAPE is developed by Khalil Mahboub, a ship\'s captain and maritime systems enthusiast. Questions, feedback or collaborations:',
+    who: 'SHIPSHAPE is developed by Kal.M, a ship\'s captain and maritime systems enthusiast. Questions, feedback or collaborations:',
     citeIntro: 'If you use SHIPSHAPE in teaching, writing or research, please cite it as:',
     credits: 'Typeface Geologica, by the Geologica Project Authors, under the SIL Open Font License 1.1. Chart data from NOAA, Rijkswaterstaat, EMODnet and OpenStreetMap contributors (ODbL). 3D ship models are credited by name in the simulator\'s menu.',
     h: { why: 'Why it exists', model: 'What is modelled', data: 'Charts and data', access: 'Accessibility', privacy: 'Privacy', who: 'Who made it', cite: 'Citing SHIPSHAPE', credits: 'Credits' },
@@ -46,7 +46,7 @@ export default (c: Ctx): Locale => ({
       ['Is it available in my language?', 'The reading pages (this FAQ, About, the places, the skills and the glossary) are available in English, Spanish, Croatian, French, Italian, Portuguese, German and Dutch. The simulator\'s own controls and the ship and scenario details are in English.'],
       ['Does it work on a phone?', 'Yes. The controls are made for touch, with + and − buttons for exact rpm and 5° steps of rudder or azimuth. On a computer the keyboard drives the main controls; the keys are listed in the menu.'],
       ['Does it collect my data?', 'No personal data. If anonymous counts are switched on, the site sends only aggregated figures (a visit, which ship and scenario were opened, and a rough "how often" band) without cookies or any identifier. It honours Do Not Track and Global Privacy Control, and you can switch it off in the menu.'],
-      ['Who made it?', 'SHIPSHAPE is developed by Khalil Mahboub, a ship\'s captain and maritime systems enthusiast.'],
+      ['Who made it?', 'SHIPSHAPE is developed by Kal.M, a ship\'s captain and maritime systems enthusiast.'],
     ],
   },
   places: {

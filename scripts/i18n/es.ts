@@ -6,7 +6,7 @@ export default (c: Ctx): Locale => ({
   ui: {
     sim: 'Simulador', fleet: 'Flota', places: 'Lugares', skills: 'Maniobras', learn: 'Aprender', faq: 'Preguntas', about: 'Acerca de', glossary: 'Glosario', news: 'Novedades',
     skip: 'Ir al contenido', mainNav: 'Principal', footNav: 'Pie de página', crumbs: 'Ruta de navegación', language: 'Idioma',
-    byline: 'un simulador de maniobra de buques gratuito, de Khalil Mahboub', updated: 'página actualizada el', notNav: 'Solo para formación y entretenimiento: no apto para la navegación.',
+    byline: 'un simulador de maniobra de buques gratuito, de Kal.M', updated: 'página actualizada el', notNav: 'Solo para formación y entretenimiento: no apto para la navegación.',
     offline: 'Copia sin conexión', source: 'Código en GitHub',
     openSim: 'Abrir el simulador', open: 'Abrir', see: 'Ver', english: 'en inglés',
     whatItIs: 'En qué consiste', howTo: 'Cómo se hace', practise: 'Practícalo en SHIPSHAPE', ships: 'Buques para probar', terms: 'Términos clave', guide: 'De la guía de formación', moreSkills: 'Más maniobras',
@@ -27,7 +27,7 @@ export default (c: Ctx): Locale => ({
     ],
   },
   about: {
-    title: 'Acerca de SHIPSHAPE · simulador de maniobra de buques gratuito del capitán Khalil Mahboub',
+    title: 'Acerca de SHIPSHAPE · simulador de maniobra de buques gratuito del capitán Kal.M',
     description: `SHIPSHAPE es un simulador de maniobra de buques gratuito para la web: ${c.ships} buques, puertos reales sobre cartas reales y puertos de práctica.`,
     h1: 'Acerca de SHIPSHAPE',
     what: `SHIPSHAPE es un simulador de maniobra de buques gratuito para la web. Te sitúa en el puente de ${c.ships} buques, desde cruceros con Azipod y remolcadores de puerto hasta un VLCC cargado, y te permite llevarlos a PortMiami, Split, Los Ángeles y Long Beach, e IJmuiden y Ámsterdam sobre cartas reales, o practicar en puertos diseñados para ello y en mar abierto.`,
@@ -35,7 +35,7 @@ export default (c: Ctx): Locale => ({
     model: 'Cada buque es un modelo de maniobra de tres grados de libertad (avance, deriva y guiñada, con balance en los buques donde la escora importa), construido con datos de casco publicados cuando existen: los coeficientes MMG de ensayos cautivos de los cascos de referencia KVLCC2 y KCS, y modelos de regresión para el resto. Hélices, timones, Azipods, propulsores azimutales, unidades Voith Schneider, waterjets, velas de rotor y hélices transversales se modelan una a una, con aguas poco profundas, efecto orilla, interacción entre buques, viento, corriente, remolcadores, cabos, anclas y una esclusa en funcionamiento. Los resultados se contrastan con pruebas de mar publicadas y con las normas de maniobrabilidad de la OMI.',
     access: 'Estas páginas siguen las pautas WCAG 2.2 AA: funcionan con teclado y lector de pantalla, respetan el modo claro u oscuro del sistema y la reducción de movimiento, y mantienen un contraste de texto AA o superior. El simulador en sí es un instrumento visual en tiempo real; sus mandos tienen etiquetas y atajos de teclado, y cada lectura se ofrece también como texto. Si algo te lo impide, dínoslo por el contacto de abajo.',
     privacy: 'Sin cuenta, sin cookies y sin datos personales. Si los recuentos anónimos están activados, solo se guardan cifras agregadas (visitas, qué buques y lugares se abren y una franja aproximada de la frecuencia con que se vuelve), y el ajuste se puede desactivar en el menú.',
-    who: 'SHIPSHAPE lo desarrolla Khalil Mahboub, capitán de la marina mercante y apasionado de los sistemas marítimos. Preguntas, comentarios o colaboraciones:',
+    who: 'SHIPSHAPE lo desarrolla Kal.M, capitán de la marina mercante y apasionado de los sistemas marítimos. Preguntas, comentarios o colaboraciones:',
     citeIntro: 'Si utilizas SHIPSHAPE en docencia, publicaciones o investigación, cítalo así:',
     credits: 'Tipografía Geologica, de los autores del proyecto Geologica, bajo la SIL Open Font License 1.1. Datos cartográficos de NOAA, Rijkswaterstaat, EMODnet y los colaboradores de OpenStreetMap (ODbL). Los modelos 3D de los buques se citan por nombre en el menú del simulador.',
     h: { why: 'Por qué existe', model: 'Qué se modela', data: 'Cartas y datos', access: 'Accesibilidad', privacy: 'Privacidad', who: 'Quién lo ha hecho', cite: 'Cómo citar SHIPSHAPE', credits: 'Créditos' },
@@ -58,7 +58,7 @@ export default (c: Ctx): Locale => ({
       ['¿Está disponible en mi idioma?', 'Las páginas de lectura (estas preguntas, Acerca de, los lugares, las maniobras y el glosario) están en inglés, español, croata, francés, italiano, portugués, alemán y neerlandés. Los mandos del propio simulador y las fichas de buques y escenarios están en inglés.'],
       ['¿Funciona en el móvil?', 'Sí. Los mandos están pensados para pantallas táctiles, con botones + y − para fijar las rpm con exactitud y pasos de 5° de timón o acimut. En el ordenador, el teclado maneja los mandos principales; las teclas se indican en el menú.'],
       ['¿Recoge mis datos?', 'Ningún dato personal. Si los recuentos anónimos están activados, el sitio envía solo cifras agregadas (una visita, qué buque y escenario se abrieron y una franja aproximada de frecuencia), sin cookies ni identificadores. Respeta Do Not Track y Global Privacy Control, y puedes desactivarlo en el menú.'],
-      ['¿Quién lo ha hecho?', 'SHIPSHAPE lo desarrolla Khalil Mahboub, capitán de la marina mercante y apasionado de los sistemas marítimos.'],
+      ['¿Quién lo ha hecho?', 'SHIPSHAPE lo desarrolla Kal.M, capitán de la marina mercante y apasionado de los sistemas marítimos.'],
     ],
   },
   places: {
