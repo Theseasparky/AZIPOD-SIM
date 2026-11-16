@@ -6,7 +6,7 @@ export default (c: Ctx): Locale => ({
   ui: {
     sim: 'Simulator', fleet: 'Flota', places: 'Mjesta', skills: 'Manevri', learn: 'Učenje', faq: 'Pitanja', about: 'O projektu', glossary: 'Pojmovnik', news: 'Novosti',
     skip: 'Preskoči na sadržaj', mainNav: 'Glavni izbornik', footNav: 'Podnožje', crumbs: 'Putanja', language: 'Jezik',
-    byline: 'besplatni simulator manevriranja brodom, autor Khalil Mahboub', updated: 'stranica ažurirana', notNav: 'Samo za obuku i zabavu: nije za navigaciju.',
+    byline: 'besplatni simulator manevriranja brodom, autor Kal.M', updated: 'stranica ažurirana', notNav: 'Samo za obuku i zabavu: nije za navigaciju.',
     offline: 'Izvanmrežna kopija', source: 'Izvorni kod na GitHubu',
     openSim: 'Otvori simulator', open: 'Otvori', see: 'Vidi', english: 'na engleskom',
     whatItIs: 'O čemu je riječ', howTo: 'Kako se izvodi', practise: 'Vježbajte u SHIPSHAPE-u', ships: 'Brodovi za isprobati', terms: 'Ključni pojmovi', guide: 'Iz vodiča za obuku', moreSkills: 'Još manevara',
@@ -27,7 +27,7 @@ export default (c: Ctx): Locale => ({
     ],
   },
   about: {
-    title: 'O SHIPSHAPE-u · besplatni simulator manevriranja kapetana Khalila Mahbouba',
+    title: 'O SHIPSHAPE-u · besplatni simulator manevriranja kapetana Kal.M',
     description: `SHIPSHAPE je besplatni simulator manevriranja brodom za web: ${c.ships} brodova, stvarne luke na stvarnim kartama i luke za vježbu.`,
     h1: 'O SHIPSHAPE-u',
     what: `SHIPSHAPE je besplatni simulator manevriranja brodom za web. Postavlja vas na zapovjedni most ${c.ships} brodova, od kruzera s Azipodima i lučkih tegljača do nakrcanog VLCC-a, i omogućuje vam da ih uvedete u Split, PortMiami, Los Angeles i Long Beach te IJmuiden i Amsterdam na stvarnim kartama, ili da vježbate u posebno izrađenim lukama i na otvorenom moru.`,
@@ -35,7 +35,7 @@ export default (c: Ctx): Locale => ({
     model: 'Svaki brod je model manevriranja s tri stupnja slobode (zalijetanje, zanošenje i zaošijanje, uz ljuljanje kod brodova gdje je nagib važan), izrađen iz objavljenih podataka o trupu gdje postoje: MMG koeficijenti iz pokusa s vezanim modelom za referentne trupove KVLCC2 i KCS te regresijski modeli za ostale. Propeleri, kormila, Azipodi, azimutni propulzori, Voith Schneider jedinice, vodomlazni porivnici, rotorska jedra i bočni porivnici modelirani su jedan po jedan, uz plitku vodu, efekt obale, međudjelovanje brodova, vjetar, struju, tegljače, konope, sidra i ustavu koja radi. Rezultati se uspoređuju s objavljenim pokusnim vožnjama i IMO standardima upravljivosti.',
     access: 'Ove stranice slijede smjernice WCAG 2.2 AA: rade s tipkovnicom i čitačem zaslona, prate svijetli ili tamni način sustava i smanjeno kretanje te održavaju kontrast teksta AA ili bolji. Sam simulator je vizualni instrument u stvarnom vremenu; njegove komande imaju oznake i tipkovničke prečace, a svako očitanje dostupno je i kao tekst. Ako vam nešto smeta, javite nam se putem kontakta ispod.',
     privacy: 'Bez računa, bez kolačića i bez osobnih podataka. Ako je anonimno brojanje uključeno, čuvaju se samo zbirni podaci (posjeti, koji se brodovi i mjesta otvaraju te okvirna učestalost povratka), a postavka se može isključiti u izborniku.',
-    who: 'SHIPSHAPE razvija Khalil Mahboub, kapetan i zaljubljenik u pomorske sustave. Pitanja, povratne informacije ili suradnja:',
+    who: 'SHIPSHAPE razvija Kal.M, kapetan i zaljubljenik u pomorske sustave. Pitanja, povratne informacije ili suradnja:',
     citeIntro: 'Ako SHIPSHAPE koristite u nastavi, pisanju ili istraživanju, citirajte ga ovako:',
     credits: 'Pismo Geologica, autori projekta Geologica, pod licencom SIL Open Font License 1.1. Kartografski podaci: NOAA, Rijkswaterstaat, EMODnet i suradnici OpenStreetMapa (ODbL). 3D modeli brodova navedeni su po imenu u izborniku simulatora.',
     h: { why: 'Zašto postoji', model: 'Što se modelira', data: 'Karte i podaci', access: 'Pristupačnost', privacy: 'Privatnost', who: 'Tko ga je napravio', cite: 'Kako citirati SHIPSHAPE', credits: 'Zasluge' },
@@ -58,7 +58,7 @@ export default (c: Ctx): Locale => ({
       ['Je li dostupan na mom jeziku?', 'Stranice za čitanje (ova pitanja, O projektu, mjesta, manevri i pojmovnik) dostupne su na engleskom, španjolskom, hrvatskom, francuskom, talijanskom, portugalskom, njemačkom i nizozemskom. Komande samog simulatora i opisi brodova i scenarija su na engleskom.'],
       ['Radi li na mobitelu?', 'Da. Komande su prilagođene dodiru, s gumbima + i − za točne okretaje i koracima od 5° za kormilo ili azimut. Na računalu tipkovnica upravlja glavnim komandama; tipke su navedene u izborniku.'],
       ['Prikuplja li moje podatke?', 'Nikakve osobne podatke. Ako je anonimno brojanje uključeno, stranica šalje samo zbirne podatke (posjet, koji su brod i scenarij otvoreni i okvirnu učestalost) bez kolačića i identifikatora. Poštuje Do Not Track i Global Privacy Control, a možete ga isključiti u izborniku.'],
-      ['Tko ga je napravio?', 'SHIPSHAPE razvija Khalil Mahboub, kapetan i zaljubljenik u pomorske sustave.'],
+      ['Tko ga je napravio?', 'SHIPSHAPE razvija Kal.M, kapetan i zaljubljenik u pomorske sustave.'],
     ],
   },
   places: {

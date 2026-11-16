@@ -33,7 +33,7 @@ const REPO = process.env.REPO_URL ?? 'https://github.com/Theseasparky/AZIPOD-SIM
 /** IndexNow key: a public token that proves to Bing, Yandex and the others that this site may announce its own pages. */
 export const INDEXNOW_KEY = '8b8f8d6d1f88d4f02f414e14dbea8c38';
 const TODAY = new Date().toISOString().slice(0, 10);
-const AUTHOR = { '@type': 'Person', name: 'Khalil Mahboub', jobTitle: 'Captain', url: `${SITE}/about/` };
+const AUTHOR = { '@type': 'Person', name: 'Kal.M', jobTitle: 'Captain', url: `${SITE}/about/` };
 const CTX: Ctx = { ships: Object.keys(SHIPS).length, scenarios: SCENARIOS.length, terms: GLOSSARY.length, version: pkg.version, year: TODAY.slice(0, 4) };
 /** English first: it is the original, the x-default, and the language of the simulator itself. */
 const LOCALES: Locale[] = [en, es, hr, fr, it, pt, de, nl].map(f => f(CTX));
@@ -111,7 +111,7 @@ function render(p: Page) {
 <title>${esc(p.title)}</title>
 <meta name="description" content="${esc(p.description)}" />
 <link rel="canonical" href="${url}" />
-<meta name="author" content="Khalil Mahboub" />
+<meta name="author" content="Kal.M" />
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="SHIPSHAPE" />
@@ -469,10 +469,10 @@ ${FAQ.map(([q, a], i) => `<details class="faq"${i < 3 ? ' open' : ''}><summary>$
 const ABOUT = EN.about;
 pages.push({
   path: '/about/', nav: '/about/', priority: 0.7, key: 'about',
-  title: 'About SHIPSHAPE · a free ship-handling simulator by Captain Khalil Mahboub',
+  title: 'About SHIPSHAPE · a free ship-handling simulator by Captain Kal.M',
   description: clip(ABOUT.what),
   crumbs: [['/', 'SHIPSHAPE'], ['/about/', 'About']],
-  ld: [{ '@context': 'https://schema.org', '@type': 'AboutPage', name: 'About SHIPSHAPE', url: `${SITE}/about/`, mainEntity: { '@type': 'Person', name: 'Khalil Mahboub', jobTitle: 'Captain', description: 'Ship\'s captain and maritime systems enthusiast, developer of SHIPSHAPE.', sameAs: ['https://www.instagram.com/snowskyz/'] } }],
+  ld: [{ '@context': 'https://schema.org', '@type': 'AboutPage', name: 'About SHIPSHAPE', url: `${SITE}/about/`, mainEntity: { '@type': 'Person', name: 'Kal.M', jobTitle: 'Captain', description: 'Ship\'s captain and maritime systems enthusiast, developer of SHIPSHAPE.', sameAs: ['https://www.instagram.com/snowskyz/'] } }],
   body: `<div class="hero"><p class="kicker">About</p><h1>About SHIPSHAPE</h1><p class="lede">${esc(ABOUT.what)}</p>
 <div class="cta"><a class="btn primary" href="/">Open the simulator</a></div></div>
 <h2>Why it exists</h2><p>${esc(ABOUT.why)}</p>
@@ -481,10 +481,10 @@ pages.push({
 <p class="note">SHIPSHAPE is for training and enjoyment only. It is not a navigational aid and its charts must not be used for navigation.</p>
 <h2>Accessibility</h2><p>These pages are written to WCAG 2.2 AA: they work with a keyboard and a screen reader, follow the system's light or dark setting, respect reduced motion, and keep text contrast at AA or better. The simulator itself is a visual, real-time instrument; its controls have labels and keyboard shortcuts, and every readout is also given in text. If something gets in your way, please say so through the contact below.</p>
 <h2>Privacy</h2><p>No account, no cookies and no personal data. Where anonymous counts are switched on, only aggregated figures are kept (visits, which ships and places are opened, and a rough band of how often people come back), and the setting can be turned off in the menu.</p>
-<h2>Who made it</h2><p>SHIPSHAPE is developed by <b>Khalil Mahboub</b>, a ship's captain and maritime systems enthusiast. Questions, feedback or collaborations: Instagram <a href="https://www.instagram.com/snowskyz/" rel="noopener">@snowskyz</a>. The source is on <a href="${REPO}">GitHub</a>.</p>
-<h2>Citing SHIPSHAPE</h2><p>If you use SHIPSHAPE in teaching, writing or research, please cite it as:</p><p><cite>Mahboub, K. (${TODAY.slice(0, 4)}). SHIPSHAPE: a ship-handling simulator for the web (version ${pkg.version}). ${SITE}/</cite></p>
+<h2>Who made it</h2><p>SHIPSHAPE is developed by <b>Kal.M</b>, a ship's captain and maritime systems enthusiast. Questions, feedback or collaborations: Instagram <a href="https://www.instagram.com/snowskyz/" rel="noopener">@snowskyz</a>. The source is on <a href="${REPO}">GitHub</a>.</p>
+<h2>Citing SHIPSHAPE</h2><p>If you use SHIPSHAPE in teaching, writing or research, please cite it as:</p><p><cite>Kal.M (${TODAY.slice(0, 4)}). SHIPSHAPE: a ship-handling simulator for the web (version ${pkg.version}). ${SITE}/</cite></p>
 <h2>Credits</h2><p>Typeface Geologica, by the Geologica Project Authors, under the SIL Open Font License 1.1. Chart data from NOAA, Rijkswaterstaat, EMODnet and OpenStreetMap contributors (ODbL). 3D ship models are credited by name in the simulator's menu.</p>`,
-  md: `# About SHIPSHAPE\n\n${ABOUT.what}\n\n## Why it exists\n\n${ABOUT.why}\n\n## What is modelled\n\n${ABOUT.model}\n\n## Who made it\n\nDeveloped by Khalil Mahboub, a ship's captain and maritime systems enthusiast.\n\nNot for navigation.`,
+  md: `# About SHIPSHAPE\n\n${ABOUT.what}\n\n## Why it exists\n\n${ABOUT.why}\n\n## What is modelled\n\n${ABOUT.model}\n\n## Who made it\n\nDeveloped by Kal.M, a ship's captain and maritime systems enthusiast.\n\nNot for navigation.`,
 });
 
 // ---- Skills, in every language
@@ -555,7 +555,7 @@ ${figure(shot('places/split-medmoor.jpg', `${L.skills.items['mediterranean-moori
   pages.push({
     path: `${P}/about/`, nav: `${P}/about/`, priority: 0.6, lang: L.code, key: 'about', title: A.title, description: clip(A.description),
     crumbs: [home, [`${P}/about/`, u.about]],
-    ld: [{ '@context': 'https://schema.org', '@type': 'AboutPage', name: A.h1, url: `${SITE}${P}/about/`, mainEntity: { '@type': 'Person', name: 'Khalil Mahboub', jobTitle: 'Captain', sameAs: ['https://www.instagram.com/snowskyz/'] } }],
+    ld: [{ '@context': 'https://schema.org', '@type': 'AboutPage', name: A.h1, url: `${SITE}${P}/about/`, mainEntity: { '@type': 'Person', name: 'Kal.M', jobTitle: 'Captain', sameAs: ['https://www.instagram.com/snowskyz/'] } }],
     body: `<div class="hero"><p class="kicker">${esc(u.about)}</p><h1>${esc(A.h1)}</h1><p class="lede">${esc(A.what)}</p>
 <div class="cta"><a class="btn primary" href="/">${esc(u.openSim)}</a></div>${note}</div>
 <h2>${esc(A.h.why)}</h2><p>${esc(A.why)}</p>
@@ -565,7 +565,7 @@ ${figure(shot('places/split-medmoor.jpg', `${L.skills.items['mediterranean-moori
 <h2>${esc(A.h.access)}</h2><p>${esc(A.access)}</p>
 <h2>${esc(A.h.privacy)}</h2><p>${esc(A.privacy)}</p>
 <h2>${esc(A.h.who)}</h2><p>${esc(A.who)} Instagram <a href="https://www.instagram.com/snowskyz/" rel="noopener">@snowskyz</a> · <a href="${REPO}">GitHub</a></p>
-<h2>${esc(A.h.cite)}</h2><p>${esc(A.citeIntro)}</p><p><cite>Mahboub, K. (${CTX.year}). SHIPSHAPE: a ship-handling simulator for the web (version ${pkg.version}). ${SITE}/</cite></p>
+<h2>${esc(A.h.cite)}</h2><p>${esc(A.citeIntro)}</p><p><cite>Kal.M (${CTX.year}). SHIPSHAPE: a ship-handling simulator for the web (version ${pkg.version}). ${SITE}/</cite></p>
 <h2>${esc(A.h.credits)}</h2><p>${esc(A.credits)}</p>`,
     md: `# ${A.h1}\n\n${A.what}\n\n## ${A.h.why}\n\n${A.why}\n\n## ${A.h.model}\n\n${A.model}`,
   });
@@ -642,7 +642,7 @@ Allow: /
 Sitemap: ${SITE}/sitemap.xml
 `);
 
-const intro = `SHIPSHAPE is a free ship-handling simulator that runs in a web browser, made by Captain Khalil Mahboub. ${total.ships} ships, each with her real propulsion and bridge controls (Azipods, telegraph and wheel, controllable-pitch propellers, tug drives, waterjets, dynamic positioning), in ${listing(realNames)} on real charts and in practice harbours, with wind, current, shallow water, tugs, mooring lines, anchors and a working sea lock. No account, no cost, works offline as an installable app. For training and enjoyment only, not for navigation.`;
+const intro = `SHIPSHAPE is a free ship-handling simulator that runs in a web browser, made by Captain Kal.M. ${total.ships} ships, each with her real propulsion and bridge controls (Azipods, telegraph and wheel, controllable-pitch propellers, tug drives, waterjets, dynamic positioning), in ${listing(realNames)} on real charts and in practice harbours, with wind, current, shallow water, tugs, mooring lines, anchors and a working sea lock. No account, no cost, works offline as an installable app. For training and enjoyment only, not for navigation.`;
 write('llms.txt', `# SHIPSHAPE
 
 > ${intro}
@@ -695,7 +695,7 @@ write('feed.xml', `<?xml version="1.0" encoding="utf-8"?>
   <link href="${SITE}/news/" />
   <id>${SITE}/news/</id>
   <updated>${NEWS[0].date}T00:00:00Z</updated>
-  <author><name>Khalil Mahboub</name></author>
+  <author><name>Kal.M</name></author>
   <icon>${SITE}/favicon.svg</icon>
 ${NEWS.map(n => `  <entry>
     <title>${esc(`${n.v}: ${n.title}`)}</title>

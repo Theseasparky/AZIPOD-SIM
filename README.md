@@ -117,7 +117,7 @@ On a phone or tablet, just use the levers and wheels on screen. On a computer yo
 
 ## Thanks and credits
 
-- **Developed by Khalil Mahboub**, Captain & Maritime Systems Enthusiast. Questions, feedback, or collaborations: Instagram [@snowskyz](https://www.instagram.com/snowskyz/) | WhatsApp [+1 (514) 574-1719](https://wa.me/15145741719)
+- **Developed by Kal.M**, Captain & Maritime Systems Enthusiast. Questions, feedback, or collaborations: Instagram [@snowskyz](https://www.instagram.com/snowskyz/) | WhatsApp [+1 (514) 574-1719](https://wa.me/15145741719)
 - **Sea charts of Miami and Los Angeles–Long Beach:** NOAA electronic navigational charts (public domain).
 - **IJmuiden, the Noordzeekanaal and Amsterdam:** Rijkswaterstaat inland electronic navigational charts, 1 m bathymetry and the PDOK buoy and beacon register (CC0). Open-sea depths off IJmuiden: [EMODnet Bathymetry](https://emodnet.ec.europa.eu/en/bathymetry) DTM (CC BY 4.0). All simplified and gridded for the simulator: not for navigation.
 - **Buildings and roads:** © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the Open Database License.
@@ -162,4 +162,4 @@ If the site owner has switched them on, the app counts visits anonymously with [
 
 ## Licence
 
-Not chosen yet. Until a licence is added, all rights are reserved by Khalil Mahboub (VOLARtech).
+Not chosen yet. Until a licence is added, all rights are reserved by Kal.M (VOLARtech).

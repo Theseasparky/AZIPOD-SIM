@@ -6,7 +6,7 @@ export default (c: Ctx): Locale => ({
   ui: {
     sim: 'Simulador', fleet: 'Frota', places: 'Locais', skills: 'Manobras', learn: 'Aprender', faq: 'Perguntas', about: 'Sobre', glossary: 'Glossário', news: 'Novidades',
     skip: 'Saltar para o conteúdo', mainNav: 'Principal', footNav: 'Rodapé', crumbs: 'Caminho', language: 'Idioma',
-    byline: 'um simulador de manobra de navios gratuito, de Khalil Mahboub', updated: 'página atualizada em', notNav: 'Apenas para formação e lazer: não serve para navegação.',
+    byline: 'um simulador de manobra de navios gratuito, de Kal.M', updated: 'página atualizada em', notNav: 'Apenas para formação e lazer: não serve para navegação.',
     offline: 'Cópia offline', source: 'Código-fonte no GitHub',
     openSim: 'Abrir o simulador', open: 'Abrir', see: 'Ver', english: 'em inglês',
     whatItIs: 'O que é', howTo: 'Como se faz', practise: 'Pratique no SHIPSHAPE', ships: 'Navios para experimentar', terms: 'Termos a conhecer', guide: 'Do guia de formação', moreSkills: 'Mais manobras',
@@ -27,7 +27,7 @@ export default (c: Ctx): Locale => ({
     ],
   },
   about: {
-    title: 'Sobre o SHIPSHAPE · simulador de manobra gratuito do comandante Khalil Mahboub',
+    title: 'Sobre o SHIPSHAPE · simulador de manobra gratuito do comandante Kal.M',
     description: `O SHIPSHAPE é um simulador de manobra de navios gratuito para a web: ${c.ships} navios, portos reais em cartas reais e portos de treino.`,
     h1: 'Sobre o SHIPSHAPE',
     what: `O SHIPSHAPE é um simulador de manobra de navios gratuito para a web. Coloca-o na ponte de ${c.ships} navios, desde navios de cruzeiro com Azipod e rebocadores de porto até um VLCC carregado, e deixa-o levá-los a PortMiami, Split, Los Angeles e Long Beach, IJmuiden e Amesterdão em cartas reais, ou treinar em portos construídos para isso e em mar aberto.`,
@@ -35,7 +35,7 @@ export default (c: Ctx): Locale => ({
     model: 'Cada navio é um modelo de manobra com três graus de liberdade (avanço, deriva e guinada, com balanço nos navios em que o adornamento importa), construído a partir de dados de casco publicados quando existem: os coeficientes MMG de ensaios cativos dos cascos de referência KVLCC2 e KCS, e modelos de regressão para os restantes. Hélices, lemes, Azipods, propulsores azimutais, Voith Schneider, hidrojatos, velas de rotor e propulsores transversais são modelados um a um, com águas pouco profundas, efeito de margem, interação entre navios, vento, corrente, rebocadores, cabos, âncoras e uma eclusa a funcionar. Os resultados são comparados com provas de mar publicadas e com as normas de manobrabilidade da IMO.',
     access: 'Estas páginas seguem as diretrizes WCAG 2.2 AA: funcionam com teclado e leitor de ecrã, seguem o modo claro ou escuro do sistema e a redução de movimento, e mantêm um contraste de texto AA ou superior. O simulador é um instrumento visual em tempo real; os seus comandos têm etiquetas e atalhos de teclado, e cada leitura é também apresentada em texto. Se algo o impedir, diga-nos através do contacto abaixo.',
     privacy: 'Sem conta, sem cookies e sem dados pessoais. Quando as contagens anónimas estão ativas, guardam-se apenas números agregados (visitas, que navios e locais são abertos e uma faixa aproximada da frequência de regresso), e a opção pode ser desligada no menu.',
-    who: 'O SHIPSHAPE é desenvolvido por Khalil Mahboub, comandante da marinha mercante e entusiasta de sistemas marítimos. Perguntas, comentários ou colaborações:',
+    who: 'O SHIPSHAPE é desenvolvido por Kal.M, comandante da marinha mercante e entusiasta de sistemas marítimos. Perguntas, comentários ou colaborações:',
     citeIntro: 'Se usar o SHIPSHAPE no ensino, em publicações ou em investigação, cite-o assim:',
     credits: 'Tipo de letra Geologica, dos autores do projeto Geologica, sob a SIL Open Font License 1.1. Dados cartográficos da NOAA, Rijkswaterstaat, EMODnet e colaboradores do OpenStreetMap (ODbL). Os modelos 3D dos navios são creditados pelo nome no menu do simulador.',
     h: { why: 'Porque existe', model: 'O que é modelado', data: 'Cartas e dados', access: 'Acessibilidade', privacy: 'Privacidade', who: 'Quem o fez', cite: 'Como citar o SHIPSHAPE', credits: 'Créditos' },
@@ -58,7 +58,7 @@ export default (c: Ctx): Locale => ({
       ['Está disponível no meu idioma?', 'As páginas de leitura (estas perguntas, Sobre, os locais, as manobras e o glossário) estão disponíveis em inglês, espanhol, croata, francês, italiano, português, alemão e neerlandês. Os comandos do simulador e as fichas de navios e cenários estão em inglês.'],
       ['Funciona no telemóvel?', 'Sim. Os comandos foram pensados para ecrãs táteis, com botões + e − para rotações exatas e passos de 5° de leme ou azimute. No computador, o teclado controla os comandos principais; as teclas estão indicadas no menu.'],
       ['Recolhe os meus dados?', 'Nenhum dado pessoal. Se as contagens anónimas estiverem ativas, o site envia apenas números agregados (uma visita, que navio e cenário foram abertos e uma faixa aproximada de frequência), sem cookies nem identificadores. Respeita Do Not Track e Global Privacy Control, e pode desligá-lo no menu.'],
-      ['Quem o fez?', 'O SHIPSHAPE é desenvolvido por Khalil Mahboub, comandante da marinha mercante e entusiasta de sistemas marítimos.'],
+      ['Quem o fez?', 'O SHIPSHAPE é desenvolvido por Kal.M, comandante da marinha mercante e entusiasta de sistemas marítimos.'],
     ],
   },
   places: {
