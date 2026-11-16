@@ -38,6 +38,8 @@ export function shaftUnit(label: string, y: number, prop: PropellerSpec, engine:
 }
 
 /** Standard bridge telegraph rpm table (fraction of MCR rpm): dead slow → navigation full. */
+/** Lever notches of the geared and electric ships: even fifths, ahead and astern. */
+export const LEVERS = { ahead: [0.2, 0.4, 0.6, 0.8, 1], astern: [0.2, 0.4, 0.6, 0.8, 1] };
 export const TELEGRAPH_2S = { ahead: [0.3, 0.42, 0.55, 0.72, 1.0], astern: [0.3, 0.42, 0.55, 0.72, 0.8] };
 
 /** Air-start system with classification-society capacity (12 consecutive starts, alternating). */

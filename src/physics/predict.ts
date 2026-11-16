@@ -11,10 +11,6 @@ import type { HarbourIndex } from './spatial';
 import { engines, fullAstern, helm, isHelmShip } from './pilot';
 
 export type Alt = 'current' | 'port' | 'stbd' | 'crash' | 'coast';
-export const ALT_LABEL: Record<Alt, string> = {
-  current: 'As set', port: 'Pods 35° → port turn', stbd: 'Pods 35° → stbd turn', crash: 'Crash stop (pods swung)', coast: 'Stop rpm (coast)',
-};
-
 export interface PredictJob {
   id: number;
   shipId: string;

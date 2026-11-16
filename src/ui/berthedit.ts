@@ -77,7 +77,6 @@ export function resetBerth() {
   diff = empty();
   try { localStorage.removeItem(KEY2(S.sc.id)); localStorage.removeItem(KEY1(S.sc.id)); } catch { /* ignored */ }
 }
-export const isEdited = () => { try { return localStorage.getItem(KEY2(S.sc.id)) !== null || localStorage.getItem(KEY1(S.sc.id)) !== null; } catch { return false; } };
 
 /** Nearest point on a berth face (else on a quay or pier edge with water off it): point, distance, outward normal. */
 function nearestEdge(n: number, e: number) {

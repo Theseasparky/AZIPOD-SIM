@@ -84,8 +84,6 @@ export interface Scenario {
   lockDef?: LockDef; lockOpen?: 'a' | 'b' | null;
   /** Structures to add to the area's land: shut gates of the locks that are not worked. */
   extraSolids?: Pt[][];
-  /** Key the berth editor keeps this device's changes under (default: the id). */
-  editKey?: string;
   bollardInfo?: BollardInfo[];                    // what each bollard is (height, fitting, SWL), parallel to bollards
 }
 
@@ -638,3 +636,5 @@ export function fits(sc: Scenario, T: number, berth = sc.berth, tug = true, dp =
   const ok = (n: number, e: number, need: number) => d(n, e) >= need;
   return ok(sc.start.n, sc.start.e, 1.1 * T) && (!berth || ok(berth.n, berth.e, 1.05 * T));
 }
+/** Can this ship play the scenario? (A real-chart area is judged once its depths are loaded.) */
+export const fitsHere = (s: Scenario, sp: ShipSpec) => !!s.needsData || fits(s, sp.T, s.berthFace ? berthFor(s, sp.B, 0) : s.berth, !!sp.towPoints, sp.station === 'dp');

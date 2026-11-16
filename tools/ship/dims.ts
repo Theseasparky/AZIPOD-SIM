@@ -1,4 +1,4 @@
-// Dump each ship's fit box for gltf_to_ship.py: stem and stern as the hull outline draws them, beam, draught.
+// Dump each ship's fit box for build_models.py (which passes it to prepare_ship.py): stem and stern as the hull outline draws them, beam, draught.
 import { SHIPS } from '../../src/physics/ship';
 const out: Record<string, { stem: number; stern: number; beam: number; draught: number; bridgeX: number }> = {};
 for (const [id, s] of Object.entries(SHIPS)) {

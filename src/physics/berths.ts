@@ -8,11 +8,10 @@
 //  - equipment the scenario already has is kept, in its place and first in the lists; the rules only fill
 //    the gaps.
 import type { Fender, Obstacle, Pt } from './contact';
-import { fenderReaction } from './contact';
+import { bboxOf, fenderReaction } from './contact';
 import type { DepthField } from './harbour';
 import type { ShipSpec } from './ship';
 import { BoxIndex } from './spatial';
-const bboxOfPoly = (p: Pt[]): [number, number, number, number] => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const [n, e] of p) { if (n < a) a = n; if (e < b) b = e; if (n > c) c = n; if (e > d) d = e; } return [a, b, c, d]; };
 
 export type BerthKind = 'container' | 'tanker' | 'cruise' | 'ferry' | 'roro' | 'general' | 'bulk' | 'tug' | 'yacht'
   | 'pontoon' | 'lockwall' | 'waiting' | 'dolphins';
@@ -413,7 +412,7 @@ export function equipBerths(specs: BerthSpec[], fenders: Fender[], bollards: Pt[
 /** Point-in-solid test over a harbour's structures (quays, piers, dolphins; not banks, not ships). */
 export function solidTest(obstacles: Obstacle[]) {
   const hard = obstacles.filter(o => o.kind !== 'bank' && o.kind !== 'ship');
-  const idx = hard.length > 64 ? new BoxIndex(hard.map(o => o.bbox ?? bboxOfPoly(o.poly))) : null;
+  const idx = hard.length > 64 ? new BoxIndex(hard.map(o => o.bbox ?? bboxOf(o.poly))) : null;
   return (n: number, e: number) => {
     for (const k of idx ? idx.query(n, e, n, e) : hard.keys()) {
       const o = hard[k];

@@ -11,7 +11,7 @@
 // a few passes for a handful of units.
 import { DEG, RHO, RHO_AIR, ShipSpec, wrapAngle } from './ship';
 import type { Command, ShipState } from './sim';
-import type { Est } from './allocation';
+import { type Est, solve3 } from './allocation';
 import { propThrust } from './units/shaft';
 
 export interface Actuator {
@@ -317,13 +317,3 @@ export function capability(spec: ShipSpec, acts = actuators(spec), dirs = 36, cu
   return { intact, worst, worstUnit, dirs };
 }
 
-function solve3(A: number[][], b: number[]): number[] {
-  const [[a, bb, c], [d, e, f], [g, h, i]] = A;
-  const det = a * (e * i - f * h) - bb * (d * i - f * g) + c * (d * h - e * g);
-  const inv = [
-    [(e * i - f * h) / det, (c * h - bb * i) / det, (bb * f - c * e) / det],
-    [(f * g - d * i) / det, (a * i - c * g) / det, (c * d - a * f) / det],
-    [(d * h - e * g) / det, (bb * g - a * h) / det, (a * e - bb * d) / det],
-  ];
-  return inv.map(r => r[0] * b[0] + r[1] * b[1] + r[2] * b[2]);
-}

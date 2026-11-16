@@ -12,12 +12,9 @@
 // interaction (t_R, a_H, x_H). C_N is capped per rudder type: a conventional rudder stalls,
 // a flap rudder gives more lift, a Schilling rudder keeps lift towards 70°.
 import { RHO, DEG } from '../consts';
-import type { CppProgram, PodSpec, PropellerSpec, RudderSpec, ShaftSpec, ShipSpec, EngineSpec } from '../ship';
+import type { CppProgram, PodSpec, PropellerSpec, RudderSpec, ShipSpec, EngineSpec } from '../ship';
 
 export interface ShaftForce { X: number; Y: number; N: number; T: number; FN: number; uR: number; TT: number; Q: number }
-
-/** Signed shaft speed n [rps] and pitch factor of a unit. */
-export function shaftN(sh: ShaftSpec, rpm: number) { return rpm * sh.engine.n; }
 
 /** Effective wake 1 − w_P in a turn (MMG standard method, C1 = 2, C2 = 1.6 / 1.1). */
 function wakeFactor(p: PropellerSpec, up: number, vp: number, side: number) {

@@ -6,7 +6,7 @@ name: chart data
 on:
   workflow_dispatch:
     inputs:
-      region: { description: 'region file in tools/chart/regions (miami, lalb, ijmuiden)', default: 'miami' }
+      region: { description: 'region file in tools/chart/regions (miami, lalb, ijmuiden, split)', default: 'miami' }
 permissions:
   contents: write
 jobs:

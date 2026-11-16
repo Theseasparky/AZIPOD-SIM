@@ -3,7 +3,7 @@ import { initApp, persist, toast } from './app';
 addEventListener('azb-model-failed', e => toast(`Couldn't download the 3D model of ${(e as CustomEvent<string>).detail}, so it is drawn in plain shapes. Check the connection${location.hostname === 'volartech.github.io' ? ', and open SHIPSHAPE from its new address' : ''}.`,
   location.hostname === 'volartech.github.io' ? { label: 'OPEN', run: () => location.assign('https://shipshape.skipjack.app/') } : undefined, 9000));
 import type { View3D } from './view3d/view';
-import { DEG, KN, SHIP, SHIPS, propulsionSummary, setShip, type ShipSpec } from './physics/ship';
+import { DEG, KN, SHIP, SHIPS, SHIP_GROUPS, propulsionSummary, setShip, shipGroup, type ShipSpec } from './physics/ship';
 import { Traffic } from './physics/traffic';
 import { TrafficAI, groundVel, makeTraffic } from './physics/aitraffic';
 import { AisMap, computeAis } from './ui/ais';
@@ -21,7 +21,7 @@ import { makeState, wrap } from './physics/sim';
 import { DT, LeverMode, Runtime } from './physics/runtime';
 import { LINE, WinchMode, lineSide } from './physics/mooring';
 import type { Alt, PredictJob, Track } from './physics/predict';
-import { SCENARIOS, OPEN_WATER, safeStart, Scenario, berthFor, currentField, depthAt, fits, navDepthAt, waterOf, type Water } from './scenarios';
+import { SCENARIOS, OPEN_WATER, safeStart, Scenario, berthFor, currentField, depthAt, fitsHere, navDepthAt, waterOf, type Water } from './scenarios';
 import { ensureScenario } from './scenes/loaders';
 import { AREAS } from './scenes/areas';
 import { loadChart } from './ui/chart';
@@ -144,7 +144,7 @@ async function openScenario(sc: Scenario, at?: { n: number; e: number; psi: numb
   const seq = ++openSeq;                                  // a later pick wins over a download still in flight
   // a ship that draws too much for this water: take the scenario's own ship instead
   const want = SHIPS[S.shipId ?? sc.ship ?? 'becancour'];
-  if (S.shipId && !sc.needsData && !fits(sc, want.T, sc.berthFace ? berthFor(sc, want.B, 0) : sc.berth, !!want.towPoints, want.station === 'dp')) {
+  if (S.shipId && !fitsHere(sc, want)) {
     toast(`${sc.name} ${sc.tugsOnly && !want.towPoints ? 'needs a tug' : `is too shallow for the ${want.name} (draught ${want.T} m)`}. Loaded with ${SHIPS[sc.ship ?? 'becancour'].name}.`);
     S.shipId = null;
   }
@@ -992,8 +992,6 @@ function keyControl(dt: number) {
 // ---------------------------------------------------------------- sheet
 /** The menu: three tabs (Ships, Places, Settings), collapsible groups and a search box over the two lists. */
 const menu = { tab: 'ships' as 'ships' | 'places' | 'settings', open: {} as Record<string, boolean>, q: '' };
-const SHIP_GROUPS = ['Cruise ships and yachts', 'Ferries', 'Cargo ships', 'Tugs', 'Offshore', 'Special ships'];
-const shipGroup = (sp: ShipSpec) => { const t = sp.type ?? 'cruise'; return /cruise|yacht/.test(t) ? 0 : /ferry|ropax/.test(t) ? 1 : /tanker|container|bulk|gas/.test(t) ? 2 : /tug/.test(t) ? 3 : /psv|ahts/.test(t) ? 4 : 5; };
 /** A collapsible group in a list; it opens by itself when it holds the current choice, until the player says otherwise. */
 function menuGroup(box: HTMLElement, key: string, title: string, count: number, hasCur: boolean) {
   const d = document.createElement('details'); d.className = 'grp'; d.dataset.key = key;
@@ -1029,7 +1027,6 @@ document.querySelectorAll<HTMLElement>('details.sec:not([data-tab])').forEach(d 
 document.querySelectorAll<HTMLElement>('.tabs [role=tab]').forEach(b => (b.onclick = () => setMenuTab(b.dataset.tab as typeof menu.tab)));
 $<HTMLInputElement>('menu-q').oninput = e => { menu.q = (e.target as HTMLInputElement).value; filterMenu(); };
 
-const fitsHere = (s: Scenario, sp: ShipSpec) => !!s.needsData || fits(s, sp.T, s.berthFace ? berthFor(s, sp.B, 0) : s.berth, !!sp.towPoints, sp.station === 'dp');
 function renderShipList() {
   const box = $('ships'); box.innerHTML = '';
   const def = SHIPS[S.sc.ship ?? 'becancour'];

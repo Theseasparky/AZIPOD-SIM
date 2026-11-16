@@ -443,6 +443,9 @@ export function resistanceCt(s: ShipSpec, u: number, hT: number): number {
 
 const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
+/** How the ship menu and the fleet pages group the ships. */
+export const SHIP_GROUPS = ['Cruise ships and yachts', 'Ferries', 'Cargo ships', 'Tugs', 'Offshore', 'Special ships'];
+export const shipGroup = (sp: ShipSpec) => { const t = sp.type ?? 'cruise'; return /cruise|yacht/.test(t) ? 0 : /ferry|ropax/.test(t) ? 1 : /tanker|container|bulk|gas/.test(t) ? 2 : /tug/.test(t) ? 3 : /psv|ahts/.test(t) ? 4 : 5; };
 export const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 
 /** One-line propulsion summary for lists and the pilot card. */

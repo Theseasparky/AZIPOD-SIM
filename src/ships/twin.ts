@@ -5,9 +5,8 @@
 // regression. Origin at the CG (positions from midship minus xg).
 import { DEG } from '../physics/consts';
 import type { EngineSpec, PropellerSpec, RudderSpec, ShipSpec } from '../physics/ship';
-import { AIR_2S, POD_DEFAULTS, TELEGRAPH_2S, rudder, shaftUnit } from './base';
+import { LEVERS, AIR_2S, POD_DEFAULTS, TELEGRAPH_2S, rudder, shaftUnit } from './base';
 
-const LEVERS = { ahead: [0.2, 0.4, 0.6, 0.8, 1], astern: [0.2, 0.4, 0.6, 0.8, 1] };
 
 /** Twin units at ±y, outward turning (port shaft left-handed). */
 function twin(y: number, prop: PropellerSpec, engine: EngineSpec, rud: (y: number) => RudderSpec | undefined, tel: { ahead: number[]; astern: number[] } = TELEGRAPH_2S) {

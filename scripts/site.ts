@@ -5,8 +5,8 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SHIPS, propulsionSummary, type ShipSpec, type StationKind } from '../src/physics/ship';
-import { OPEN_WATER, SCENARIOS, berthFor, fits, type Scenario } from '../src/scenarios';
+import { SHIPS, SHIP_GROUPS, propulsionSummary, shipGroup, type ShipSpec, type StationKind } from '../src/physics/ship';
+import { OPEN_WATER, SCENARIOS, fitsHere, type Scenario } from '../src/scenarios';
 import { AREAS } from '../src/scenes/areas';
 import { CONTENT } from '../src/guide/content';
 import { SOURCES } from '../src/guide/sources';
@@ -169,9 +169,6 @@ const TYPE: Record<string, string> = {
   inland: 'Inland push convoy', naval: 'Frigate', yacht: 'Yacht',
 };
 const typeOf = (s: ShipSpec) => TYPE[s.type ?? 'cruise'] ?? 'Ship';
-const SHIP_GROUPS = ['Cruise ships and yachts', 'Ferries', 'Cargo ships', 'Tugs', 'Offshore', 'Special ships'];
-const shipGroup = (sp: ShipSpec) => { const t = sp.type ?? 'cruise'; return /cruise|yacht/.test(t) ? 0 : /ferry|ropax/.test(t) ? 1 : /tanker|container|bulk|gas/.test(t) ? 2 : /tug/.test(t) ? 3 : /psv|ahts/.test(t) ? 4 : 5; };
-const fitsHere = (s: Scenario, sp: ShipSpec) => !!s.needsData || fits(s, sp.T, s.berthFace ? berthFor(s, sp.B, 0) : s.berth, !!sp.towPoints, sp.station === 'dp');
 const shipLine = (s: ShipSpec) => `${num(s.LOA, 1)} m × ${num(s.B, 1)} m, ${num(s.T, 1)} m draught · ${propulsionSummary(s)}`;
 
 // ---------------------------------------------------------------- places
