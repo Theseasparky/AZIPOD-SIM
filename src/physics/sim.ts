@@ -2,7 +2,7 @@
 //   (M_RB + M_A) ν̇ = τ − C_RB(ν)ν − C_A(ν_r)ν_r − D(ν_r) + M_A ν̇_c
 // ν = [u v r] over ground in body axes, ν_r = ν − ν_c (water-relative),
 // ν̇_c = [r v_c, −r u_c, 0] for an earth-fixed current seen from rotating axes.
-import { DEG, Hydro, RHO, RHO_AIR, ShipSpec, deriveHydro, resistanceCt } from './ship';
+import { DEG, Hydro, RHO, RHO_AIR, ShipSpec, deriveHydro, resistanceCt, wrapAngle } from './ship';
 import { Obstacle, Fender, contactForces, ContactInfo, Pt } from './contact';
 import type { HarbourIndex } from './spatial';
 import { MooringLine, lineForces } from './mooring';
@@ -82,7 +82,7 @@ export function emptyBreakdown(nPods: number): Breakdown {
   };
 }
 
-export const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+export const wrap = wrapAngle;
 
 /** Tunnel-thruster side force under way, fraction of the bollard value: half by 3–4 kn, then level. */
 export const thrusterEff = (u: number) => 0.5 + 0.5 * Math.exp(-((u / 1.2) ** 2));

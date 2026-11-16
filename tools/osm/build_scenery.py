@@ -2,7 +2,7 @@
 """Build the 3D harbour scenery (land, buildings, green areas, roads and bridges, trees, cranes).
 
 Land comes from the NOAA ENC (band 5 where it exists, band 4 around it), everything else from
-OpenStreetMap (© OpenStreetMap contributors, ODbL 1.0). Same local frame as build_chart.py.
+OpenStreetMap (© OpenStreetMap contributors, ODbL 1.0). Same local frame as tools/chart/build_region.py.
 usage: build_scenery.py <enc-dir> <osm.json> <out.bin>
 
 format 'SCN1' (little endian, coordinates i16 × 0.25 m as [n, e]):

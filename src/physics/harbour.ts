@@ -16,7 +16,7 @@ export function inPoly(n: number, e: number, poly: Pt[]) {
   }
   return ins;
 }
-/** Charted depth on a regular grid (row 0 = south), as built by tools/chart/build_chart.py. */
+/** Charted depth on a regular grid (row 0 = south), as built by tools/chart/build_region.py. */
 export interface DepthGrid { e0: number; n0: number; cell: number; nx: number; ny: number; unit: number; data: string }
 const b64 = (s: string) => {
   const bin = atob(s), out = new Uint8Array(bin.length);

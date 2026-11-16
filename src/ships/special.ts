@@ -3,10 +3,9 @@
 // Origin at the CG (positions from midship minus xg).
 import { DEG } from '../physics/consts';
 import type { PodSpec, ShipSpec } from '../physics/ship';
-import { POD_DEFAULTS, rudder, shaftUnit } from './base';
+import { LEVERS, POD_DEFAULTS, rudder, shaftUnit } from './base';
 import { PANAMAX } from './cargo';
 
-const LEVERS = { ahead: [0.2, 0.4, 0.6, 0.8, 1], astern: [0.2, 0.4, 0.6, 0.8, 1] };
 
 /** Polar icebreaker, 110 m: three Azipods, icebreaking bow (Lindqvist level-ice resistance). */
 const IB_XG = -2;

@@ -8,6 +8,7 @@
 //   blockage). Design aim (PIANC WG155): hawser forces ≤ 1 ‰ of the ship's weight.
 // Values marked "config" are estimates for the IJmuiden Zeesluis, kept in its LockDef.
 import type { Obstacle, Pt } from './contact';
+import { G, RHO } from './consts';
 import type { ShipSpec } from './ship';
 import type { ShipState, Wrench } from './sim';
 
@@ -42,7 +43,6 @@ export type Phase = 'idle' | 'preparing' | 'opening' | 'entering' | 'mooring' | 
 export interface VhfLine { t: number; from: string; text: string }
 interface Gate { pos: number; target: number; v: number; blocked: boolean }   // pos 0 shut … 1 open
 
-const G = 9.81, RHO = 1025;
 
 export class LockSim {
   readonly L: number; readonly u: Pt; readonly w: Pt;

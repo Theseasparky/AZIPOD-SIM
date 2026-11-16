@@ -89,7 +89,7 @@ function btDemand(spec: ShipSpec, joy: JoyInput, btEff: number) {
   return Math.abs(solveForces(spec, joy, btEff)[4]) / (spec.bowThruster.Tmax * Math.max(0.05, btEff));
 }
 
-function solve3(A: number[][], b: number[]): number[] {
+export function solve3(A: number[][], b: number[]): number[] {
   const [[a, bb, c], [d, e, f], [g, h, i]] = A;
   const det = a * (e * i - f * h) - bb * (d * i - f * g) + c * (d * h - e * g);
   const inv = [

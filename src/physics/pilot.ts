@@ -20,12 +20,6 @@ export function engines(spec: ShipSpec, cmd: Command, f: number) {
   });
 }
 
-/** Current engine order, signed fraction (for "keep the power on while you turn"). */
-export function enginesNow(spec: ShipSpec, cmd: Command) {
-  const p = spec.pods[0], c = cmd.pods[0];
-  return p.shaft?.prop.cpp ? (c.pitch ?? 0) : p.kind === 'waterjet' && (c.bucket ?? 1) < 0 ? -c.rpm : c.rpm;
-}
-
 /** Highest astern order the telegraph has (shaft ships), or full astern. */
 export function fullAstern(spec: ShipSpec) {
   const sh = spec.pods[0].shaft;
