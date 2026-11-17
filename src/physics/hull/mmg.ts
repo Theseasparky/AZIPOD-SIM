@@ -17,7 +17,8 @@ export function mmgHull(s: ShipSpec, h: Hydro, ur: number, vr: number, r: number
   if (out.w === 0) return out;
   const q = 0.5 * RHO * s.L * s.T * U * U;
   // shallow water: sway damping grows fastest, the (destabilising) N_v next, yaw damping least
-  const fv = h.fsh, fnv = h.fsh ** 0.8, fnr = h.fsh ** 0.6;
+  // (unified hulls: the published factors of Taimuri et al. 2020 for the linear groups)
+  const fv = h.unified ? h.sh.Yv : h.fsh, fnv = h.unified ? h.sh.Nv : h.fsh ** 0.8, fnr = h.unified ? h.sh.Nr : h.fsh ** 0.6;
   out.X = q * (-c.R0 * h.rShallow + c.Xvv * v * v + c.Xvr * v * rp + c.Xrr * rp * rp + c.Xvvvv * v ** 4);
   out.Y = q * (fv * (c.Yv * v + c.Yvvv * v ** 3 + c.Yvvr * v * v * rp) + c.Yr * rp + c.Yvrr * v * rp * rp + c.Yrrr * rp ** 3);
   out.N = q * s.L * (fnv * (c.Nv * v + c.Nvvv * v ** 3 + c.Nvvr * v * v * rp) + fnr * (c.Nr * rp + c.Nvrr * v * rp * rp + c.Nrrr * rp ** 3));

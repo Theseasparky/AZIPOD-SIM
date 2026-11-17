@@ -29,10 +29,18 @@ export const KVLCC2_RUDDER = rudder({
 export const KVLCC2: ShipSpec = {
   ...POD_DEFAULTS,
   id: 'kvlcc2', name: 'VLCC · KVLCC2 hull', type: 'tanker', station: 'telegraph', load: 'laden',
-  note: 'KVLCC2 benchmark hull (KRISO) with the published MMG captive-test coefficients (Yasukawa & Yoshimura 2015). Resistance corrected to full scale; engine, air-start system, windage and transverse thrust are typical VLCC values, not measured data.',
+  note: 'KVLCC2 benchmark hull (KRISO) with the published MMG captive-test coefficients (Yasukawa & Yoshimura 2015). Below manoeuvring speed, at large drift and going astern: the unified low-speed hull model (Yoshimura et al. 2009) with cross-flow drag measured on the near-sister VLCC Esso Osaka. Resistance corrected to full scale; engine, air-start system, windage and transverse thrust are typical VLCC values, not measured data.',
   LOA: 333, vmaxKn: 15.8,
   L, B: 58, T: 20.8, Cb: 312600 / (320 * 58 * 20.8), xg: 0,
   mmg: KVLCC2_MMG,
+  // One hull model at every speed and drift: the captive linear derivatives above with the cross-flow drag
+  // measured on Esso Osaka, a VLCC of nearly the same proportions (L/B 6.13, L/d 14.9, Cb 0.83 against
+  // 5.52, 15.4, 0.81), in circular-motion tests up to 180° drift (Yoshimura et al. 2009, Table 2).
+  hull: {
+    model: 'unified', class: 'captive',
+    cross: { CD: 0.879, CrY: 2.058, CrN: 0.543, source: 'Esso Osaka, Yoshimura, Nakao & Ishibashi (2009) Table 2' },
+    source: 'Yasukawa & Yoshimura (2015) linear derivatives; Esso Osaka cross-flow (Yoshimura et al. 2009)',
+  },
   pods: [shaftUnit('MAIN', 0, KVLCC2_PROP, {
     type: 'direct2s', P: 27e6, n: 76 / 60, nMin: 0.27, barred: [0.45, 0.53], loadTime: 900, I: 2.2e6, air: AIR_2S,
   }, KVLCC2_RUDDER, TELEGRAPH_2S)],

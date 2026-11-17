@@ -1,6 +1,6 @@
 {
   "name": "shipshape",
-  "version": "5.5.3",
+  "version": "5.6.0",
   "description": "Twin-Azipod ship-handling simulator (PWA)",
   "scripts": {
     "dev": "vite",

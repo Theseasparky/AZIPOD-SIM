@@ -134,6 +134,33 @@ She is set up from her pilot card, wheelhouse poster, particulars and loading co
 
 The lever is her bridge programme: each order sets shaft speed and pitch as on the pilot card (dead slow 56.3 rpm and 40 % pitch up to navigation full 89.3 rpm and 100 %; astern −28 % to −100 % pitch). Clarke's regression gives her a tactical diameter about 15 % larger than the poster's in the laden condition, even with a large rudder; the advance and the ballast circle match. The propeller curves, the rudder area and type (taken as a high-lift rudder, since a plain one stalls before her 45°) are assumed.
 
+## Hull model: moving the fleet onto published data
+
+A literature review (2026) classified every ship by the data behind its hull model. Only the laden KVLCC2 has a
+published captive-test MMG set (Yasukawa & Yoshimura 2015); the other ships use Clarke's regression, and every
+shaft ship borrows KVLCC2's propeller–rudder interaction constants. The fleet is being moved ship by ship onto:
+
+- **Unified hull** (`src/physics/hull/unified.ts`): Yoshimura, Nakao & Ishibashi (2009), MARSIM'09. Linear MMG
+  derivatives plus one cross-flow drag integral with C_D, C_rY, C_rN, valid from zero speed to 180° drift. The paper
+  prints C_rY in the yaw integral; its zero-speed turning equation (Eq. 10) holds only with C_rN, which is used. The
+  C_D, C_rY, C_rN regressions (Eq. 19–21) are evaluated only inside their database (L/d 13.07–21.95, L/B 4.79–6.90).
+- **Linear derivatives without captive data**: Kijima et al. (1990), Eq. (7), in Yoshimura's MMG form.
+- **Shallow water**: Taimuri et al. (2020), Table 7: Kijima-type factors for Y'v, N'r and the cross-flow drag, the
+  A1–A3 polynomial for Y'r, Ankudinov's factors for N'v and the added masses; held at their h/T 1.2 value below that
+  depth. Ankudinov's K2 is taken as 0.0342/(h/T − 1) for every hull: the printed B/T > 4 branch gives factors above 50.
+
+**KVLCC2, first ship moved.** The unified model alone, even with cross-flow coefficients fitted to KVLCC2's own
+captive nonlinear terms, does not reproduce the captive model at sea speed: it lacks the drift and turn drag terms
+(speed in a 35° turn fell from 4.6 to 2.3–2.9 kn) and its single integral cannot match the captive cubic couplings
+(zig-zag overshoots 25–55 % low). So for a ship with captive data the captive MMG polynomials stay in charge where
+the tests reached (manoeuvring speed, moderate drift and yaw) and the unified model, with cross-flow coefficients
+measured on Esso Osaka up to 180° drift (Yoshimura 2009, Table 2), covers slow speed, large drift and sternway. In
+deep water KVLCC2's turning and zig-zags are unchanged; in shallow water both parts use the published factors.
+
+**Open check.** At h/T 1.2 the published cross-flow factor makes KVLCC2's 90° drift force 6.7 × the deep value
+(today's power law gave 3 ×). Tanker current-force data (OCIMF) is usually quoted nearer 4–5 × at that depth; compare
+when that document is obtained.
+
 ## Open questions
 
 These were looked into but could not be settled from published data. They are listed rather than tuned to a guess.

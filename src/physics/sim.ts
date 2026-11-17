@@ -134,7 +134,22 @@ export class Model {
     let Xh = -0.5 * RHO * h.S * Ct * Math.abs(ur) * ur - h.Xlin * ur * Math.exp(-ur * ur);
     let Yh = h.kYv * Math.abs(ur) * vr + h.kYr * ur * r - h.Ylin * vr;
     let Nh = h.kNv * ur * vr + h.kNr * Math.abs(ur) * r - h.Nlin * r;
-    for (const sp of h.strips) {
+    if (h.unified) {
+      // Unified hull (Yoshimura et al. 2009): linear terms plus one cross-flow drag integral along the
+      // length, taken about midship with the yaw-rate factors C_rY (sway) and C_rN (yaw); local current
+      // at each station keeps current shear across the hull. Moment moved to the reference point.
+      Xh += h.Xvr * vr * r;
+      let Yc = 0, Nc = 0;
+      for (const sp of h.strips) {
+        const pn = st.n + sp.x * cps, pe = st.e + sp.x * sps;
+        const [lN, lE] = env.current(pn, pe);
+        const vl = v - (-sps * lN + cps * lE), xm = sp.x - h.xMid;
+        const vy = vl + h.CrY * xm * r, vn = vl + h.CrN * xm * r;
+        Yc -= h.cfK * Math.abs(vy) * vy * sp.dx;
+        Nc -= h.cfK * Math.abs(vn) * vn * xm * sp.dx;
+      }
+      Nh += Nc + h.xMid * (Yh + Yc); Yh += Yc;
+    } else for (const sp of h.strips) {
       // local lateral current at strip (captures current shear across the hull)
       const pn = st.n + sp.x * cps, pe = st.e + sp.x * sps;
       const [lN, lE] = env.current(pn, pe);
@@ -144,7 +159,8 @@ export class Model {
       Yh += f; Nh += f * sp.x;
     }
     if (s.mmg) {
-      // MMG standard method at manoeuvring speed, the low-speed cross-flow model below it.
+      // Captive-test MMG polynomials where the tests reached (manoeuvring speed, moderate drift and yaw);
+      // the low-speed model (unified cross-flow, or Clarke + strips) outside that range.
       // The polynomial N_H already holds the Munk moment, which C_A(ν_r)ν_r added above.
       const m = mmgHull(s, h, ur, vr, r, this.mm);
       if (m.w > 0) {
