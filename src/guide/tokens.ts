@@ -2,7 +2,7 @@
 // figure and cannot drift from the model. fill() resolves them for one ship.
 import { DEG, KN } from '../physics/consts';
 import { thrusterEff } from '../physics/sim';
-import { AIR_BRAKE_N, CAMSHAFT_T } from '../physics/units/shaft';
+import { AIR_BRAKE_N, LOAD_DOWN_N, CAMSHAFT_T } from '../physics/units/shaft';
 import { PUBLISHED } from '../physics/validation';
 import type { ShipSpec } from '../physics/ship';
 
@@ -35,6 +35,8 @@ const SPEC: Record<string, (s: ShipSpec) => string> = {
   nozzle: s => num((s.pods.find(p => p.jet)?.jet?.nozzleMax ?? 0) / DEG),
   /** Direct-reversing engines: the shaft speed an astern start waits for [% of MCR rpm] and the camshaft change-over [s]. */
   brakeN: () => num(AIR_BRAKE_N * 100),
+  /** Direct-reversing engines: the shaft speed the load-down programme brings her to on a stop from sea speed before the fuel comes off [% of MCR rpm]. */
+  loadDownN: () => num(LOAD_DOWN_N * 100),
   camshaft: s => num(s.pods.find(p => p.shaft?.engine.reverseTime !== undefined)?.shaft?.engine.reverseTime ?? CAMSHAFT_T),
   /** What a tunnel thruster still gives at {thrKn} kn through the water [% of its bollard push]. */
   thrKn: () => num(THR_KN),

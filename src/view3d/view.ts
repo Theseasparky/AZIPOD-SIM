@@ -161,6 +161,8 @@ export class View3D {
   private lamps: THREE.Object3D[] = [];
   private lit: THREE.MeshStandardNodeMaterial[] = [];
   private kit: HarbourKit | null = null;
+  /** Her own fenders, hung over the side (one cylinder each, rebuilt when the set changes, squeezed live). */
+  private shipFenderG = new THREE.Group(); private shipFenderSig = ''; private shipFenderMat: THREE.Material | null = null;
   private aids: Aids3D | null = null;
   private lock3d: Lock3D | null = null; private holeAt = '';
   private tugs: THREE.Group[] = [];
@@ -1052,6 +1054,37 @@ export class View3D {
     this.scene.background = on ? this.underFog.color : this.aboveBg;
   }
 
+  /** Her own pneumatic fenders: floating at the waterline against her side, flattened by the load on them. */
+  private updateShipFenders() {
+    const sf = S.rt.world.shipFenders ?? [], g = this.shipFenderG;
+    if (g.parent !== this.ship) this.ship.add(g);
+    const sig = sf.map(f => `${f.x.toFixed(2)},${f.y.toFixed(2)},${f.height}`).join(';');
+    if (sig !== this.shipFenderSig) {
+      this.shipFenderSig = sig;
+      g.children.forEach(m => (m as THREE.Mesh).geometry.dispose()); g.clear();
+      this.shipFenderMat ??= this.mat(0x2a2a2c, { rough: 0.8 });
+      for (const f of sf) {
+        // a cylinder lying along her side; body (x fwd, y stbd) → ship group (y, up, −x)
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(f.height / 2, f.height / 2, f.width * 0.8, 20, 1), this.shipFenderMat);
+        const ends = new THREE.Mesh(new THREE.SphereGeometry(f.height / 2, 16, 10), this.shipFenderMat); ends.scale.set(1, f.width * 0.12 / (f.height / 2) + 0.4, 1);
+        const pod = new THREE.Group(); pod.add(m);
+        for (const k of [-1, 1]) { const c = ends.clone(); c.position.y = k * f.width * 0.4; pod.add(c); }
+        pod.userData.f = f;
+        g.add(pod);
+      }
+    }
+    const defl = new Map<number, number>();
+    for (const c of S.rt.ci.shipFenders ?? []) defl.set(c.i, c.defl);
+    g.children.forEach((pod, i) => {
+      const f = sf[i]; if (!f) return;
+      const d = Math.min(defl.get(i) ?? 0, 0.9 * f.height), h = f.height - d, k = h / f.height;
+      pod.position.set(f.y + f.ny * h / 2, f.height * 0.3, -(f.x + f.nx * h / 2));
+      // pod axes: x outboard (flattened by the load), y along her side (the cylinder's axis), z down
+      const N = new THREE.Vector3(f.ny, 0, -f.nx), T = new THREE.Vector3(f.nx, 0, f.ny);
+      pod.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(N, T, new THREE.Vector3().crossVectors(N, T)));
+      pod.scale.set(k, 1, 1);
+    });
+  }
   render() {
     const rt = S.rt, st = rt.state, psi = st.psi;
     const now = performance.now(), dtReal = this.lastT ? Math.min(0.1, (now - this.lastT) / 1000) : 0;
@@ -1071,6 +1104,7 @@ export class View3D {
     this.ship.rotation.y = -psi;
     this.ship.rotation.x = -(dm?.trim ?? 0);
     this.ship.rotation.z = -(rt.roll?.phi ?? 0) - (dm?.list ?? 0);
+    this.updateShipFenders();
     rt.traffic.forEach((tr, k) => { const g = this.trafficG[k]; if (!g) return; g.position.set(tr.st.e, lvAt(tr.st.n, tr.st.e), -tr.st.n); g.rotation.y = -tr.st.psi; });
     const esc = rt.escort;
     this.other.visible = !!esc;

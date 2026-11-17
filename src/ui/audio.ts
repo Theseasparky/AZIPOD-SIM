@@ -193,7 +193,7 @@ export function updateAudio(dtReal: number) {
   const w = rt.env.windSpeed / 15;
   set(wind.g.gain, 0.012 * Math.min(2, w * w)); set(wind.f.frequency, 700 + 500 * Math.random(), 0.8);
   // structure contact: scraping while steel slides along a wall; rumble while aground
-  const ci = rt.ci, hard = ci.active && ci.points.length > ci.fenders.length;
+  const ci = rt.ci, hard = ci.active && ci.points.length > ci.fenders.length + (ci.shipFenders?.length ?? 0);
   set(scrape.g.gain, hard ? Math.min(0.5, 0.1 + 0.6 * spd) : 0, 0.05); set(scrape.f.frequency, 900 + 900 * Math.min(1, spd));
   set(rumble.g.gain, ag ? Math.min(1, 0.3 + (rt.world.aground ?? 0) + spd * 0.4) : 0, 0.1);
   // anchor chain: links clattering out through the hawse pipe while it runs, a slower clank when heaving in

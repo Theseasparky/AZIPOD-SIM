@@ -592,6 +592,19 @@ export function drawShip() {
       ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.setLineDash([]);
     }
   }
+  // her own fenders, hung over the side: squeezed by the load on them, coloured as the quay's are
+  const sf = rt.world.shipFenders;
+  if (sf?.length) {
+    const defl = new Map<number, number>();
+    for (const f of rt.ci.shipFenders ?? []) defl.set(f.i, f.defl);
+    for (let i = 0; i < sf.length; i++) {
+      const f = sf[i], d = Math.min(defl.get(i) ?? 0, f.height), over = d > f.dRated * f.height, h = Math.max(0.3, f.height - d);
+      ctx.save(); ctx.translate(f.x + f.nx * h / 2, f.y + f.ny * h / 2); ctx.rotate(Math.atan2(f.ny, f.nx) + Math.PI / 2);
+      ctx.beginPath(); ctx.roundRect(-f.width / 2, -h / 2, f.width, h, h / 2);
+      ctx.fillStyle = over ? C.warn : d > 0 ? C.own : C.ink; ctx.fill();
+      ctx.restore();
+    }
+  }
   // fairleads
   if (full()) for (const l of rt.lines) { ctx.fillStyle = C.muted; ctx.fillRect(l.fair[0] - 0.8, l.fair[1] - 0.8, 1.6, 1.6); }
   const btx = SHIP.bowThruster.x;
@@ -678,6 +691,18 @@ function fenderStandoff(n: number, e: number) {
   return h;
 }
 /** Distance from bow and stern shoulders to the nearest structure, with closing speed. */
+/** Choosing a start on the chart: a ghost of her hull where she would lie, green with water enough under her, red without. */
+export function drawStartGhost(p: { n: number; e: number; psi: number; kn: number } | null, ok: boolean) {
+  if (!p) return;
+  ctx.save(); bodyTransform({ n: p.n, e: p.e, psi: p.psi * Math.PI / 180 } as Pose);
+  hullPath();
+  ctx.globalAlpha = 0.28; ctx.fillStyle = ok ? C.stbd : C.warn; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.strokeStyle = ok ? C.stbd : C.warn; ctx.lineWidth = px(2); ctx.setLineDash([px(5), px(4)]); ctx.stroke(); ctx.setLineDash([]);
+  // her head: a line out ahead of the bow
+  const bow = Math.max(...HULL.map(q => q[0]));
+  ctx.beginPath(); ctx.moveTo(bow, 0); ctx.lineTo(bow + Math.max(20, SHIP.L * 0.25), 0); ctx.stroke();
+  ctx.restore();
+}
 export function updateQuayLines(dt: number) {
   const est = shownPose();
   const refs = [SHIP.L * 0.35 - SHIP.xg, -SHIP.L * 0.4 - SHIP.xg];
@@ -735,7 +760,8 @@ export function drawOverlay() {
     ctx.fillStyle = col; ctx.fillText(txt, x, y);
   };
   // forward and aft side speed: the two numbers a docking officer watches
-  for (const [x, lab] of [[SHIP.L * 0.42 - SHIP.xg, 'FWD'], [-SHIP.L * 0.42 - SHIP.xg, 'AFT']] as [number, string][]) {
+  // (an option: most cargo ships have no wing readout of them, so the officer judges them by eye)
+  if (S.disp.latSpd) for (const [x, lab] of [[SHIP.L * 0.42 - SHIP.xg, 'FWD'], [-SHIP.L * 0.42 - SHIP.xg, 'AFT']] as [number, string][]) {
     const lat = est.v + est.r * x;
     const moving = Math.abs(lat) > 0.005, side = lat >= 0 ? 1 : -1;
     const [ax, ay] = toScr(...bodyToWorld(est, x, side * SHIP.B / 2));

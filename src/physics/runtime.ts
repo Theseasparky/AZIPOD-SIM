@@ -51,7 +51,7 @@ export class Runtime {
   model: Model;
   gust = new Gust();
   bd: Breakdown;
-  ci: ContactInfo = { active: false, points: [], fenders: [] };
+  ci: ContactInfo = { active: false, points: [], fenders: [], shipFenders: [] };
   status: ActStatus;
   sensors: Sensors;
   world: World;
@@ -391,11 +391,16 @@ export class Runtime {
     if (ci.active) {
       const vin = Math.max(0, ...ci.points.map(p => -p.vn));
       const F = ci.points.reduce((a, p) => a + p.F, 0);
-      const hard = ci.points.length > ci.fenders.length;
+      const nShip = ci.shipFenders?.length ?? 0;
+      const hard = ci.points.length > ci.fenders.length + nShip;
       let maxDefl = 0;
       for (const f of ci.fenders) {
         const fd = this.harbour.fenders[f.i];
         maxDefl = Math.max(maxDefl, f.defl / (fd.dRated * fd.height));
+      }
+      for (const f of ci.shipFenders ?? []) {
+        const fd = this.world.shipFenders?.[f.i];
+        if (fd) maxDefl = Math.max(maxDefl, f.defl / (fd.dRated * fd.height));
       }
       const dE = ci.points.reduce((a, p) => a + p.F * Math.max(0, -p.vn), 0) * dt;
       if (!this.wasInContact) {
@@ -405,7 +410,7 @@ export class Runtime {
       const ev = this.contactLog[0];
       ev.vn = Math.max(ev.vn, vin); ev.F = Math.max(ev.F, F); ev.hard ||= hard;
       ev.energy += dE; ev.maxDefl = Math.max(ev.maxDefl, maxDefl);
-      ev.fenders = Math.max(ev.fenders, ci.fenders.length);
+      ev.fenders = Math.max(ev.fenders, ci.fenders.length + nShip);
     }
     this.wasInContact = ci.active;
   }

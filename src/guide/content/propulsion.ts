@@ -50,7 +50,7 @@ const CARDS: Card[] = [
       { text: 'Putting the telegraph from full ahead to stop does not stop the engine at once: the load programme brings the rpm down over time.', src: ['marinesite-crash'], conf: 'rule' },
       { text: 'In a full astern crash stop the track reach (measured along the path) should generally not exceed 15 ship lengths. For low-powered large-displacement vessels this may be modified, but in no case should exceed 20 ship lengths, subject to special consideration and approval.', src: ['imo-msc137'], conf: 'published' },
     ],
-    sim: 'The model cuts the fuel the moment you order stop or astern (no load programme), waits until the shaft is down to {brakeN} % of full rpm, then starts on air; the {camshaft} s camshaft change runs during the wait. The console reads REVERSING, WAITING · SHAFT TOO FAST, STARTING ASTERN.',
+    sim: 'A stop from sea speed stays on fuel while the load-down programme brings her to {loadDownN} % rpm (STOP · LOAD-DOWN), then cuts it; a lower stop or any astern order cuts it at once. Astern waits for {brakeN} % rpm, then starts on air during the {camshaft} s camshaft change.',
     tip: { when: 'astern-waiting', hold: 3, cool: 120, prio: 2 },
   },
   {

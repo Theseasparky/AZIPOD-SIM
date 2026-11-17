@@ -10,6 +10,8 @@ import { AisMap, computeAis } from './ui/ais';
 import { drawDamagePlan, renderDamage } from './ui/dmgpanel';
 import { EditMode, editAt, loadBerth, resetBerth } from './ui/berthedit';
 import { initBerthPicker, renderBerthPicker, targetFor } from './ui/berthpicker';
+import { addShipFenderAt, clearShipFenders, cycleShipFenderSize, loadShipFenders, removeShipFenderNear, shipFenderCount } from './ui/shipfenders';
+import { SPEEDS_KN, pick as startPick, saveStart, savedStart } from './ui/startpick';
 import { initLockPanel, updateLockPanel } from './ui/lockpanel';
 import { initGuide, resetGuide, updateGuide } from './ui/guide';
 import type { Exercise } from './guide/types';
@@ -21,7 +23,7 @@ import { makeState, wrap } from './physics/sim';
 import { DT, LeverMode, Runtime } from './physics/runtime';
 import { LINE, WinchMode, lineSide } from './physics/mooring';
 import type { Alt, PredictJob, Track } from './physics/predict';
-import { SCENARIOS, OPEN_WATER, safeStart, Scenario, berthFor, currentField, depthAt, fits, navDepthAt, waterOf, type Water } from './scenarios';
+import { SCENARIOS, OPEN_WATER, safeStart, startDepthOk, Scenario, berthFor, currentField, depthAt, fits, navDepthAt, waterOf, type Water } from './scenarios';
 import { ensureScenario } from './scenes/loaders';
 import { AREAS } from './scenes/areas';
 import { loadChart } from './ui/chart';
@@ -57,7 +59,7 @@ function loadScenario(sc: Scenario, at?: { n: number; e: number; psi: number; kn
   S.sc = sc;
   loadBerth();                                            // this device's own fenders and bollards, if any
   postHarbour();                                          // …and the predictor worker sees the same ones
-  setEdit(null);
+  setEdit(null); closeStartPick();
   const shipChanged = setShip(S.shipId ?? sc.ship ?? 'becancour') !== S.rt?.spec;
   if (sc.berthFace) sc.berth = berthFor(sc, SHIP.B, 0);
   S.berth.target = targetFor(sc);
@@ -65,11 +67,18 @@ function loadScenario(sc: Scenario, at?: { n: number; e: number; psi: number; kn
     setHull(buildHull(SHIP.L, SHIP.B, SHIP.xg, SHIP.LOA));
     sheetStarted = false;                 // pilot card, trials: recompute for this ship
   }
+  // the player's own start for this scenario, if they chose one on the chart
+  const mine = at ? null : savedStart(sc);
+  if (mine) {
+    const w = startDepthOk(sc, mine, SHIP.LOA, SHIP.B, SHIP.T);
+    setTimeout(() => toast(w.ok ? 'Starting where you chose. Berth menu → Choose start on the chart to change it.'
+      : `Starting where you chose, but ${isFinite(w.least) ? `there is only ${w.least.toFixed(1)} m there for the ${SHIP.name}'s ${SHIP.T} m draught` : 'she lies in a quay there'}.`), 300);
+  }
   // a ship that draws too much for the start spot starts on the nearest deep-enough water instead
-  const s0 = at ? { ...at, moved: 0 } : safeStart(sc, SHIP.LOA, SHIP.B, SHIP.T);
+  const s0 = at ? { ...at, moved: 0 } : mine ? { ...mine, moved: 0 } : safeStart(sc, SHIP.LOA, SHIP.B, SHIP.T);
   if (s0.moved > 1) setTimeout(() => toast(`Too shallow for the ${SHIP.name} at the usual start: she starts ${s0.moved.toFixed(0)} m away, in deeper water.`), 300);
   const st = makeState(SHIP, s0.n, s0.e, s0.psi, s0.kn);
-  const kn0 = at ? at.kn : sc.start.kn, rpm0 = Math.min(1, kn0 / SHIP.vmaxKn);
+  const kn0 = at ? at.kn : mine ? mine.kn : sc.start.kn, rpm0 = Math.min(1, kn0 / SHIP.vmaxKn);
   st.pods.forEach(p => (p.rpm = rpm0));
   S.cmd = { pods: SHIP.pods.map(() => ({ alpha: 0, rpm: rpm0 })), bt: 0, mode: 'twin' };
   // shaft ships start on the nearest telegraph step (or pitch), engine running
@@ -89,6 +98,7 @@ function loadScenario(sc: Scenario, at?: { n: number; e: number; psi: number; kn
       mooringSide: S.berth.target?.side ?? sc.mooringSide ?? (sc.bollards.length ? -1 : undefined),
       tugSide: SHIP.towPoints || !sc.tugSide ? undefined : S.berth.pick?.sc === sc.id ? (-S.berth.pick.side as -1 | 1) : sc.tugSide });
   S.rt.sensors.mode = S.sensMode;
+  loadShipFenders();                                      // the fenders this device hangs over her side
   if (sc.escort) S.rt.attachEscort(sc.escort, SHIPS[sc.escort.ship]);
   if (sc.dpScript) S.rt.dpScript = sc.dpScript.map(x => ({ ...x }));
   if (sc.traffic) S.rt.traffic = sc.traffic.map(t => new Traffic(SHIPS[t.ship], t));
@@ -296,6 +306,7 @@ function requestPrediction(now: number) {
     ext: { ...rt.world.ext! },
     ...(rt.anchors.some(a => a.pos) ? { anchors: rt.anchors.filter(a => a.pos).map(a => ({ ...a, pos: [...a.pos!] as [number, number], mode: 'brake' as const })) } : {}),
     horizon: S.pred.horizon, alts,
+    ...(rt.world.shipFenders?.length ? { shipFenders: rt.world.shipFenders } : {}),
     ...(S.water ? { water: S.water.snap() } : {}),
     ...(rt.harbour.lineZ ? (() => { const z = rt.harbour.lineZ!(rt.state); return { lineZ: { fair: z.fair, bol: rt.lines.map(l => (l.state === 'fast' ? z.bol(l.bollard) : z.fair)) } }; })() : {}),
   };
@@ -306,6 +317,7 @@ function requestPrediction(now: number) {
 // ---------------------------------------------------------------- HUD
 function setLat(id: string, v: number) {
   const el = $(id);
+  if (!S.disp.latSpd) { el.textContent = '—'; el.className = 'val'; return; }
   el.textContent = (v < -0.005 ? '◂ ' : v > 0.005 ? '▸ ' : '') + D.latFmt(v);
   el.className = 'val ' + (v < -0.005 ? 'port' : v > 0.005 ? 'stbd' : '');
 }
@@ -816,16 +828,59 @@ $('b-retraffic').onclick = () => {
   S.traffic.seed = (Math.random() * 2 ** 31) >>> 0; setRandomTraffic(); toast('New traffic.');
 };
 // ---------------------------------------------------------------- berth editor
-let editMode: EditMode | null = null;
-function setEdit(m: EditMode | null) {
+type AnyEdit = EditMode | 'shipfender';
+let editMode: AnyEdit | null = null;
+function setEdit(m: AnyEdit | null) {
+  if (m) closeStartPick();
   const was = editMode; editMode = m; D.setEditing(!!m);
   if (m) $('p-lines').hidden = $('p-tugs').hidden = $('p-dmg').hidden = $('p-lock').hidden = $('p-coach').hidden = $('p-anchor').hidden = true;   // the chart clear to tap on
   $('edit-bar').hidden = !m;
   document.querySelectorAll<HTMLButtonElement>('[data-em]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.em === m)));
-  if (m) $('edit-hint').textContent = m === 'remove' ? 'Tap a bollard or fender to take it away.' : `Tap near a quay edge to put a ${m} there.`;
+  if (m) $('edit-hint').textContent = m === 'remove' ? 'Tap a bollard or fender (on the quay or on her side) to take it away.'
+    : m === 'shipfender' ? `Tap close to her side to hang a fender there (${shipFenderCount()} on board).` : `Tap near a quay edge to put a ${m} there.`;
   if (was && !m) { v3?.harbourChanged(); S.rt.reindex(); postHarbour(); }
 }
-document.querySelectorAll<HTMLButtonElement>('[data-em]').forEach(b => (b.onclick = () => setEdit(b.dataset.em as EditMode)));
+document.querySelectorAll<HTMLButtonElement>('[data-em]').forEach(b => (b.onclick = () => setEdit(b.dataset.em as AnyEdit)));
+$('edit-fsize').onclick = () => { $('edit-fsize').textContent = cycleShipFenderSize(); setEdit('shipfender'); };
+$('edit-sfclear').onclick = () => { clearShipFenders(); $('edit-hint').textContent = 'Her own fenders are all taken in.'; };
+/** A tap on the chart while editing: the berth's gear, or her own fenders. */
+function editTap(n: number, e: number) {
+  if (editMode === 'shipfender') return addShipFenderAt(n, e);
+  if (editMode === 'remove') { const r = removeShipFenderNear(n, e); if (r) return r; }
+  return editAt(editMode as EditMode, n, e);
+}
+
+// ---------------------------------------------------------------- start chosen on the chart
+function startHint() {
+  const p = startPick.pose; if (!p) return;
+  const w = startDepthOk(S.sc, p, SHIP.LOA, SHIP.B, SHIP.T);
+  startPick.ok = w.ok; startPick.least = w.least;
+  $('st-speed').textContent = `${p.kn} kn`;
+  $('st-hint').textContent = !isFinite(w.least) && w.least < 0 ? 'She would lie in a quay there: tap open water.'
+    : `Heading ${pad3(p.psi)}°, ${p.kn} kn. Least water under her ${isFinite(w.least) ? `${w.least.toFixed(1)} m` : 'deep'} for a ${SHIP.T} m draught${w.ok ? '.' : ': she would take the ground here.'} Tap to move her.`;
+}
+function openStartPick() {
+  setEdit(null);
+  const st = S.rt.state;
+  startPick.on = true;
+  startPick.pose = { n: st.n, e: st.e, psi: Math.round(((st.psi / DEG) % 360 + 360) % 360), kn: 0 };
+  $('start-bar').hidden = false;
+  $('p-lines').hidden = $('p-tugs').hidden = $('p-dmg').hidden = $('p-lock').hidden = $('p-coach').hidden = $('p-anchor').hidden = true;
+  startHint();
+}
+function closeStartPick() { startPick.on = false; startPick.pose = null; $('start-bar').hidden = true; }
+const turnStart = (d: number) => { const p = startPick.pose; if (!p) return; p.psi = ((p.psi + d) % 360 + 360) % 360; startHint(); };
+$('st-left').onclick = () => turnStart(-10);
+$('st-right').onclick = () => turnStart(10);
+$('st-speed').onclick = () => { const p = startPick.pose; if (!p) return; p.kn = SPEEDS_KN[(SPEEDS_KN.indexOf(p.kn) + 1) % SPEEDS_KN.length]; startHint(); };
+$('st-go').onclick = () => {
+  const p = startPick.pose; if (!p) return;
+  saveStart(S.sc, { ...p }); closeStartPick();
+  loadScenario(S.sc);                                   // takes the saved start, and says if it is shallow
+};
+$('st-clear').onclick = () => { saveStart(S.sc, null); closeStartPick(); loadScenario(S.sc); toast(`Back to the scenario's own start.`); };
+$('st-cancel').onclick = closeStartPick;
+$('b-startpick').onclick = () => { $('b-close').click(); openStartPick(); };
 $('edit-done').onclick = () => setEdit(null);
 $('edit-reset').onclick = () => { resetBerth(); $('edit-hint').textContent = "The scenario's own fenders and bollards are back."; };
 $('b-editberth').onclick = () => { $('b-close').click(); setEdit('bollard'); };
@@ -893,7 +948,10 @@ D.cv.addEventListener('pointerdown', e => { downAt = ptrs.size === 1 ? { x: e.cl
 const up = (e: PointerEvent) => {
   if (editMode && downAt && ptrs.size === 1 && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 6) {
     const [n, ee] = D.fromScr(e.clientX, e.clientY);
-    $('edit-hint').textContent = editAt(editMode, n, ee); uiTick('step');
+    $('edit-hint').textContent = editTap(n, ee); uiTick('step');
+  } else if (startPick.on && startPick.pose && downAt && ptrs.size === 1 && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 6) {
+    const [n, ee] = D.fromScr(e.clientX, e.clientY);
+    startPick.pose.n = n; startPick.pose.e = ee; startHint(); uiTick('step');
   }
   ptrs.delete(e.pointerId);
 };
@@ -1098,6 +1156,7 @@ const syncers = [
 ($('s-gu') as HTMLInputElement).onchange = e => { S.env.gusts = (e.target as HTMLInputElement).checked; applyEnv(); };
 ($('s-static') as HTMLInputElement).onchange = e => { S.pred.staticArc = (e.target as HTMLInputElement).checked; };
 ($('s-truth') as HTMLInputElement).onchange = e => { S.disp.truth = (e.target as HTMLInputElement).checked; };
+($('s-latspd') as HTMLInputElement).onchange = e => { S.disp.latSpd = (e.target as HTMLInputElement).checked; };
 // sound & haptics
 const sndIn = $<HTMLInputElement>('s-sound'), volIn = $<HTMLInputElement>('s-vol'), hapIn = $<HTMLInputElement>('s-hap');
 const canVibrate = 'vibrate' in navigator;
@@ -1210,6 +1269,7 @@ function frame(now: number) {
     D.drawEscort();
     D.drawTraffic();
     D.drawShip();
+    D.drawStartGhost(startPick.on ? startPick.pose : null, startPick.ok);
     D.drawOverlay();
     D.drawEnvGauge();
   }
@@ -1305,6 +1365,7 @@ openScenario(SCENARIOS.find(s => s.id === Q.get('scenario')) ?? SCENARIOS[0]).th
   uiSyncs.forEach(f => f());
   ($('s-static') as HTMLInputElement).checked = S.pred.staticArc;
   ($('s-truth') as HTMLInputElement).checked = S.disp.truth;
+  ($('s-latspd') as HTMLInputElement).checked = S.disp.latSpd;
   renderModel(S.rt.model.h);
   syncEnvUI();
   if (!CAPTURE) requestAnimationFrame(t => { last = t; frame(t); }); else last = 0;

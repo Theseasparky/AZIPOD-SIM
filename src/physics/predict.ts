@@ -4,7 +4,7 @@
 import type { Anchor } from './anchor';
 import { DEG, ShipSpec } from './ship';
 import { Command, Env, Model, ShipState, World, cloneState, mismatched, rk4, updateActuators, Wrench } from './sim';
-import { ContactInfo, contactForces, Fender, Obstacle, Pt } from './contact';
+import { ContactInfo, contactForces, Fender, Obstacle, Pt, type ShipFender } from './contact';
 import type { MooringLine } from './mooring';
 import type { DepthField } from './harbour';
 import type { HarbourIndex } from './spatial';
@@ -34,6 +34,8 @@ export interface PredictJob {
   water?: { outer: number; inner: number; chamber: number; gates: Obstacle[] };
   /** Fairlead height and each line's bollard height (parallel to lines), for three-dimensional lines. */
   lineZ?: { fair: number; bol: number[] };
+  /** Fenders she carries over her side: the first touch is on them, not her plating. */
+  shipFenders?: ShipFender[];
 }
 export interface Pose { t: number; n: number; e: number; psi: number; u: number; v: number; r: number }
 export interface Track { alt: Alt; poses: Pose[]; stopT: number | null; stopDist: number; dist: number; contactT: number | null; groundT: number | null }
@@ -53,7 +55,7 @@ export function runPrediction(spec: ShipSpec, job: PredictJob, sw: ScenarioWorld
   const world: World = { obstacles: [], fenders: [], contact: false, lines, bollards, ext: job.ext, depthAt: sw.depthAt, squat: 0, anchors: job.anchors,
     ...(job.lineZ && ownPts ? { lineZ: { fair: job.lineZ.fair, bol: (i: number) => job.lineZ!.bol[i] ?? job.lineZ!.fair } } : {}) };
   const probe: ContactInfo = { active: false, points: [], fenders: [] };
-  const startsInContact = (() => { contactForces(job.state, sw.obstacles, sw.fenders, probe, sw.index); return probe.active; })();
+  const startsInContact = (() => { contactForces(job.state, sw.obstacles, sw.fenders, probe, sw.index, job.shipFenders); return probe.active; })();
   const dt = job.horizon > 240 ? 1 : 0.5;
   return job.alts.map(alt => {
     const st = cloneState(job.state);
@@ -79,7 +81,7 @@ export function runPrediction(spec: ShipSpec, job: PredictJob, sw: ScenarioWorld
         poses.push({ t, n: st.n, e: st.e, psi: st.psi, u: st.u, v: st.v, r: st.r });
         nextRec += 1;
         if (!startsInContact && Math.round(t) % 2 === 0) {
-          contactForces(st, sw.obstacles, sw.fenders, probe, sw.index);
+          contactForces(st, sw.obstacles, sw.fenders, probe, sw.index, job.shipFenders);
           if (probe.active) { contactT = t; break; }
         }
         if ((world.aground ?? 0) > 0.05) { groundT = t; break; }

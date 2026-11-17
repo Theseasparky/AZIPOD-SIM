@@ -93,9 +93,17 @@
 
   <div class="edit-bar" id="edit-bar" hidden role="toolbar" aria-label="Edit fenders and bollards">
     <span class="tag">Edit berth</span>
-    <button class="cb" data-em="bollard">+ Bollard</button><button class="cb" data-em="fender">+ Fender</button><button class="cb" data-em="remove">Remove</button>
-    <button class="cb" id="edit-reset">Reset</button><button class="cb" id="edit-done">Done</button>
+    <button class="cb" data-em="bollard">+ Bollard</button><button class="cb" data-em="fender">+ Fender</button><button class="cb" data-em="shipfender">+ Ship fender</button><button class="cb" data-em="remove">Remove</button>
+    <button class="cb" id="edit-fsize" title="Size of the next fender hung over her side">Ø2.5 × 5.5 m</button>
+    <button class="cb" id="edit-reset">Reset</button><button class="cb" id="edit-sfclear">Clear ship fenders</button><button class="cb" id="edit-done">Done</button>
     <span class="hint" id="edit-hint">Tap near a quay edge.</span>
+  </div>
+  <div class="edit-bar" id="start-bar" hidden role="toolbar" aria-label="Choose where she starts">
+    <span class="tag">Choose start</span>
+    <button class="cb" id="st-left" aria-label="Turn 10 degrees to port">⟲ 10°</button><button class="cb" id="st-right" aria-label="Turn 10 degrees to starboard">10° ⟳</button>
+    <button class="cb" id="st-speed">0 kn</button>
+    <button class="cb" id="st-go">Start here</button><button class="cb" id="st-clear">Use scenario start</button><button class="cb" id="st-cancel">Cancel</button>
+    <span class="hint" id="st-hint">Tap the chart where she should start.</span>
   </div>
 
   <aside class="ais" id="ais" hidden aria-label="AIS targets">
@@ -220,14 +228,14 @@
         <span class="lbl">Lie</span>
         <div class="seg" id="seg-side"><button data-v="-1">Port side to</button><button data-v="1">Starboard side to</button></div>
         <span class="lbl">Practice</span>
-        <div class="seg"><button id="b-startoff">Start off this berth</button></div>
+        <div class="seg"><button id="b-startoff">Start off this berth</button><button id="b-startpick">Choose start on the chart</button></div>
         <p class="note" id="berth-info" style="grid-column: 1 / -1"></p>
       </div>
       <div class="env-grid">
         <span class="lbl">Fenders and bollards</span>
         <div class="seg"><button id="b-editberth">Edit on the chart</button></div>
       </div>
-      <p class="note">Every quay, pier and dolphin face is fitted out for the biggest ship that fits it: fenders sized for her berthing energy, bollards all along. Put your own on any of them too: tap near a face to add a bollard on it or a fender on it, or tap one to take it away. Your changes are kept for each scenario on this device; RESET puts the scenario’s own back.</p>
+      <p class="note">Every quay, pier and dolphin face is fitted out for the biggest ship that fits it: fenders sized for her berthing energy, bollards all along. Put your own on any of them too: tap near a face to add a bollard on it or a fender on it, or tap one to take it away. Your changes are kept for each scenario on this device; RESET puts the scenario’s own back. + SHIP FENDER hangs a pneumatic fender over her own side instead (tap close to her hull): it goes where she goes, for a berth with no fenders, a pier corner or lying alongside another ship, and stays with that ship on this device.</p>
       </details>
       <details class="sec" id="sec-guide"><summary><h2>Training guide <span class="sub">optional, off by default</span></h2></summary>
       <div class="env-grid">
@@ -269,7 +277,7 @@
         <div class="seg" id="seg-src"><button data-v="ideal">Ideal model</button><button data-v="onboard">Onboard</button></div>
         <label class="chk"><input type="checkbox" id="s-static" /> Static ROT arc (what most ECDIS and PPUs draw)</label>
       </div>
-      <p class="note">Clean chart detail (default) shows the predicted bow and stern tracks with ghost hulls and the forward/aft side speeds; Full adds the shoulder tracks, time labels, force arrows, wash marks and the effects list. Onboard runs the predictor the way a real bridge does: from sensor readings, an estimated current, measured wind and a ship model that is a few percent off. Ideal sees the truth. PRED cycles off, track only, and track plus what-if.</p>
+      <p class="note">Clean chart detail (default) shows the predicted bow and stern tracks with ghost hulls and the forward/aft side speeds (turn those off under Sensors &amp; display); Full adds the shoulder tracks, time labels, force arrows, wash marks and the effects list. Onboard runs the predictor the way a real bridge does: from sensor readings, an estimated current, measured wind and a ship model that is a few percent off. Ideal sees the truth. PRED cycles off, track only, and track plus what-if.</p>
       </details>
       <details class="sec"><summary><h2>Sensors &amp; display</h2></summary>
       <div class="env-grid">
@@ -280,6 +288,7 @@
         <label for="s-vec">Speed vector <output id="o-vec"></output></label><input type="range" id="s-vec" min="1" max="6" step="1" />
         <span class="lbl">Lateral speed units</span>
         <div class="seg" id="seg-unit"><button data-v="cm">cm/s</button><button data-v="ms">m/s</button><button data-v="kn">kn</button></div>
+        <label class="chk"><input type="checkbox" id="s-latspd" /> Show forward/aft lateral speeds (most cargo ships have no such readout on the wings)</label>
         <span class="lbl">Palette</span>
         <div class="seg" id="seg-pal"><button data-v="auto">Auto</button><button data-v="day">Day</button><button data-v="dusk">Dusk</button><button data-v="night">Night</button></div>
         <label class="chk"><input type="checkbox" id="s-truth" /> Show true position (instructor)</label>
