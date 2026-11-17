@@ -187,7 +187,8 @@ export interface MmgHull {
   /** Where the tests reached, as fade-out windows [from, to] in forward speed u [m/s], |v′| = |sin β| and |r′|;
    *  outside them the low-speed model takes over (default: u 0.6–1.8, |v′| 0.55–0.85, |r′| 0.9–1.4). */
   range?: { u?: [number, number]; v?: [number, number]; r?: [number, number] };
-  R0: number; Xvv: number; Xvr: number; Xrr: number; Xvvvv: number;
+  /** Bare-hull resistance ÷ ½ρLdU²; left out where the source gives none (the simulator's own resistance stays). */
+  R0?: number; Xvv: number; Xvr: number; Xrr: number; Xvvvv: number;
   Yv: number; Yr: number; Yvvv: number; Yvvr: number; Yvrr: number; Yrrr: number;
   Nv: number; Nr: number; Nvvv: number; Nvvr: number; Nvrr: number; Nrrr: number;
   kzz?: number;               // yaw radius of gyration ÷ L (default 0.25)

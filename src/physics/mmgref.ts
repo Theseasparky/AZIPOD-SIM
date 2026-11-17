@@ -22,7 +22,7 @@ export function mmgDeriv(s: MmgShip, st: MmgState, nP: number): [number, number,
   const vp = v / U, rp = r * L / U;
   // hull
   const q = 0.5 * RHO * L * d * U * U;
-  const XH = q * (-c.R0 + c.Xvv * vp * vp + c.Xvr * vp * rp + c.Xrr * rp * rp + c.Xvvvv * vp ** 4);
+  const XH = q * (-c.R0! + c.Xvv * vp * vp + c.Xvr * vp * rp + c.Xrr * rp * rp + c.Xvvvv * vp ** 4);
   const YH = q * (c.Yv * vp + c.Yr * rp + c.Yvvv * vp ** 3 + c.Yvvr * vp * vp * rp + c.Yvrr * vp * rp * rp + c.Yrrr * rp ** 3);
   const NH = q * L * (c.Nv * vp + c.Nr * rp + c.Nvvv * vp ** 3 + c.Nvvr * vp * vp * rp + c.Nvrr * vp * rp * rp + c.Nrrr * rp ** 3);
   // propeller (wake in manoeuvring: 1 − w_P = (1 − w_P0)[1 + (1 − e^(−C1|β_P|))(C2 − 1)])

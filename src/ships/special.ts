@@ -124,22 +124,41 @@ export const PUSH_CONVOY: ShipSpec = {
 
 /** Frigate on the DTMB 5415 hull (the open benchmark surface combatant), twin CPP, twin rudders, 30 kn. */
 const FR_XG = -2.5;
+/** DTMB 5512 (1:46.6 geosim of the 5415) bare-hull captive tests, Fn 0.28, IIHR 100 m tank (Yoon 2009, PhD thesis,
+ *  University of Iowa), values as tabulated by Hajivand & Mousavizadegan (2015), Int. J. Nav. Archit. Ocean Eng. 7:
+ *  Tables 12–18 (EFD columns). The tabulated nonlinear terms are Taylor derivatives (the paper's Eq. 33 has 1/6 and 1/2
+ *  in front of them), so the polynomial coefficients are Yvvv/6, Yvvr/2 and so on. The tabulated Y'r equals the
+ *  measured Y'r − m' (with m' = 0.136, the PMM balance carries the model's inertia): that is the only reading that
+ *  leaves the hull course-stable, as the 5415 is, so m' is added back to get the hull-only MMG derivative. No resistance
+ *  is tabulated: the simulator's own stays. */
+const FR_M = 0.1361;      // m' = ∇ / (½ L² d): 86 kg model, 3.048 m, 0.136 m
+const FRIGATE_MMG: MmgHull = {
+  xG: FR_XG, kzz: 0.25, my: 0.1111, Jz: 0.0070,
+  Xvv: -0.1528 / 2, Xvr: 0.0300, Xrr: -0.0282 / 2, Xvvvv: 0,
+  Yv: -0.2961, Yr: -0.0485 + FR_M, Yvvv: -1.9456 / 6, Yvvr: -1.7067 / 2, Yvrr: -1.3683 / 2, Yrrr: -0.4520 / 6,
+  Nv: -0.1667, Nr: -0.0485, Nvvv: -0.4355 / 6, Nvvr: -0.5512 / 2, Nvrr: -0.4011 / 2, Nrrr: -0.0505 / 6,
+  // drift to 20° (|v'| 0.34) and yaw rate to r' 0.75 were tested, at Fn 0.138–0.41 (about 10–30 kn)
+  range: { u: [2.5, 5], v: [0.34, 0.5], r: [0.75, 1.0] },
+  source: 'DTMB 5512 captive tests, Fn 0.28 (Yoon 2009; Hajivand & Mousavizadegan 2015, Tables 12–18)',
+};
 export const FRIGATE: ShipSpec = {
   ...POD_DEFAULTS,
   id: 'frigate', name: 'Frigate · DTMB 5415 hull', type: 'naval', station: 'cpp', load: 'full load',
-  note: 'Surface combatant on the DTMB 5415 hull (142 × 19.06 × 6.15 m, Cb 0.507), the open benchmark of the SIMMAN workshops: twin controllable-pitch propellers on gas turbines and diesels (2 × 37.5 MW), twin spade rudders. Particulars of the benchmark hull; propulsion, steering and windage typical of the type. Hull forces from Clarke\'s regression.',
+  note: 'Surface combatant on the DTMB 5415 hull (142 × 19.06 × 6.15 m, Cb 0.507), the open benchmark of the SIMMAN workshops: twin controllable-pitch propellers on gas turbines and diesels (2 × 37.5 MW), twin spade rudders. Particulars of the benchmark hull; propulsion, steering and windage typical of the type. Bare-hull forces from the Iowa (IIHR) captive tests of the 5512 model, drift to 20°, yaw rate to r\' 0.75; the propulsion and rudder interaction are typical, not measured.',
   LOA: 153.3, vmaxKn: 29,
-  L: 142, B: 19.06, T: 6.15, Cb: 0.507, xg: FR_XG,
+  L: 142, B: 19.06, T: 6.15, Cb: 0.507, xg: 0,       // body origin at midship, the CG FR_XG ahead of it
+  mmg: FRIGATE_MMG,
+  hull: { model: 'unified', class: 'captive', shallow: 'published', source: 'DTMB 5512 bare-hull captive tests (Yoon 2009) within their range; Yoshimura et al. (2009) cross-flow beyond it' },
   pods: (['PORT', 'STBD'] as const).map((side, k) => shaftUnit(side, k ? 4.6 : -4.6, {
     D: 5.2, k0: 0.52, k1: -0.3, k2: -0.1, KQ0: 0.09, asternFrac: 0.6,
-    tP: 0.08, wP0: 0.06, xP: -0.43 * 142 - FR_XG, hand: k ? 1 : -1, kTTah: 0.005, kTTas: 0.03,
+    tP: 0.08, wP0: 0.06, xP: -0.43 * 142, hand: k ? 1 : -1, kTTah: 0.005, kTTas: 0.03,
     cpp: { pitchTime: 12, asternPitch: 0.75 },
   }, { type: 'turbine', P: 37.5e6, n: 168 / 60, nMin: 0.3, loadTime: 50, I: 1.4e5 },
-  rudder({ A: 15, H: 4.5, xR: -0.47 * 142 - FR_XG, rate: 4 * DEG }), LEVERS)),
+  rudder({ A: 15, H: 4.5, xR: -0.47 * 142, rate: 4 * DEG }), LEVERS)),
   bowThruster: { x: 0, Tmax: 0, P: 0 },
-  windage: { AF: 330, AL: 1700, cx: 0.75, cy: 0.9, cn: 0.08, xw: 4 },
+  windage: { AF: 330, AL: 1700, cx: 0.75, cy: 0.9, cn: 0.08, xw: 4 + FR_XG },
   wake: 0.06, tded: 0.08, Vzero: 20, Cd: 0.7, formFactor: 1.08, cwMul: 0.75,
-  btRpmTime: 5, powerAvail: 1e6, bridgeX: 0.2 * 142 - FR_XG,
+  btRpmTime: 5, powerAvail: 1e6, bridgeX: 0.2 * 142,
   look: {
     freeboard: 6, bridgeH: 16, bridgeLen: 6, wingOut: 0.8,
     decks: [{ x0: -30, x1: 28, h: 10, inset: 1.2 }, { x0: -18, x1: 26, h: 14, inset: 2.6 }],

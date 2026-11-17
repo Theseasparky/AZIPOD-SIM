@@ -96,7 +96,7 @@ function podThrust(Tb: number, asternFrac: number, Vz: number, n: number, Va: nu
 export class Model {
   h: Hydro;
   private sf: ShaftForce = { X: 0, Y: 0, N: 0, T: 0, FN: 0, uR: 0, TT: 0, Q: 0 };
-  private mm = { X: 0, Y: 0, N: 0, w: 0 };
+  private mm = { X: 0, Y: 0, N: 0, w: 0, keepR: false };
   private jf: JetForce = { X: 0, Y: 0, N: 0, T: 0, Vj: 0, mdot: 0 };
   rotorsOn = true;                            // rotor sails spinning (engine-room switch)
   /** Damage: thrust left on each unit and the bow thruster (1 = intact). */
@@ -165,7 +165,7 @@ export class Model {
       const m = mmgHull(s, h, ur, vr, r, this.mm);
       if (m.w > 0) {
         const munk = (h.Yvd - h.Xud) * ur * vr;
-        Xh += m.w * (m.X - Xh); Yh += m.w * (m.Y - Yh); Nh += m.w * (m.N - munk - Nh);
+        Xh += m.w * (m.keepR ? m.X : m.X - Xh); Yh += m.w * (m.Y - Yh); Nh += m.w * (m.N - munk - Nh);
       }
     }
     // catamaran: the demi-hulls out at ±y meet different water speeds in a turn, and their resistance differs
