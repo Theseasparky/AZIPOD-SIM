@@ -933,19 +933,26 @@ console.log('specialised cards: what the notes on the model say');
     });
   });
 
-  test('ts-reverse: a stop or astern order cuts the fuel at once, with no load programme', () => {
+  test('ts-reverse: a stop from sea speed runs the load-down programme on fuel; astern cuts the fuel at once', () => {
     withShip(kv, () => {
-      const st = makeState(kv, 0, 0, 0, 0.97 * kv.vmaxKn);
-      primeRunning(kv, st, 1);
-      const cmd = { pods: kv.pods.map(() => ({ alpha: 0, rpm: 1 })), bt: 0 };
-      const rt = new Runtime(kv, st, cmd, calm, OPEN);
-      for (let t = 0; t < 5; t += DT) rt.step(DT);
-      assert.equal(st.pods[0].eng!.mode, 'run');
-      engines(kv, cmd, 0);
-      for (let t = 0; t < 1; t += DT) rt.step(DT);
-      assert.equal(st.pods[0].eng!.mode, 'stop');
-      assert.equal(st.pods[0].eng!.q, 0);
-      assert.ok(st.pods[0].rpm > 0.5, 'the shaft should still be turning');
+      const run = (order: number) => {
+        const st = makeState(kv, 0, 0, 0, 0.97 * kv.vmaxKn);
+        primeRunning(kv, st, 1);
+        const cmd = { pods: kv.pods.map(() => ({ alpha: 0, rpm: 1 })), bt: 0 };
+        const rt = new Runtime(kv, st, cmd, calm, OPEN);
+        for (let t = 0; t < 5; t += DT) rt.step(DT);
+        assert.equal(st.pods[0].eng!.mode, 'run');
+        engines(kv, cmd, order);
+        for (let t = 0; t < 1; t += DT) rt.step(DT);
+        return st;
+      };
+      const stop = run(0);
+      assert.equal(stop.pods[0].eng!.mode, 'run');
+      assert.ok(stop.pods[0].eng!.q > 0 && stop.pods[0].rpm > 0.9, `on fuel, rpm ${stop.pods[0].rpm.toFixed(2)}`);
+      const astern = run(-0.8);
+      assert.equal(astern.pods[0].eng!.mode, 'stop');
+      assert.equal(astern.pods[0].eng!.q, 0);
+      assert.ok(astern.pods[0].rpm > 0.5, 'the shaft should still be turning');
     });
   });
   test('ts-reverse: the camshaft change runs during the wait: at sea speed the shaft is the long part, at low speed the camshaft is', () => {

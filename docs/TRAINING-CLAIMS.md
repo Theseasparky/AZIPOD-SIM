@@ -409,7 +409,7 @@ Applies to: twostroke · tip when `astern-waiting` (hold 3 s, cool 120 s, priori
   - `rule` Once the rpm drops below 40 % of MCR, give brake air in the astern direction, a few times in a short time. When the rpm is zero the fuel cam comes round astern; give the start kick with the fuel lever at minimum. — *marinesite-crash*
   - `rule` Putting the telegraph from full ahead to stop does not stop the engine at once: the load programme brings the rpm down over time. — *marinesite-crash*
   - `published` In a full astern crash stop the track reach (measured along the path) should generally not exceed 15 ship lengths. For low-powered large-displacement vessels this may be modified, but in no case should exceed 20 ship lengths, subject to special consideration and approval. — *imo-msc137*
-- **In SHIPSHAPE:** The model cuts the fuel the moment you order stop or astern (no load programme), waits until the shaft is down to {brakeN} % of full rpm, then starts on air; the {camshaft} s camshaft change runs during the wait. The console reads REVERSING, WAITING · SHAFT TOO FAST, STARTING ASTERN.
+- **In SHIPSHAPE:** A stop from sea speed stays on fuel while the load-down programme brings her to {loadDownN} % rpm (STOP · LOAD-DOWN), then cuts it; a lower stop or any astern order cuts it at once. Astern waits for {brakeN} % rpm, then starts on air during the {camshaft} s camshaft change.
 
 ### `dp-classes` · DP equipment classes 1, 2 and 3 · draft
 

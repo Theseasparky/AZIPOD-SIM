@@ -162,6 +162,8 @@ export const qMcr = (e: EngineSpec) => e.P / (2 * Math.PI * e.n);
 export const AIR_BRAKE_N = 0.4;
 /** Seconds the camshaft takes to change over before a start the other way, when the engine spec does not say. */
 export const CAMSHAFT_T = 20;
+/** Direct-reversing engines: shaft speed (fraction of MCR rpm) the load-down programme brings her to on a STOP from sea speed before the fuel is taken off (manoeuvring full). */
+export const LOAD_DOWN_N = 0.8;
 
 /** Highest torque the fuel limiters allow at shaft speed fraction |n| (scavenge-air limiter at low rpm). */
 function torqueCap(e: EngineSpec, nf: number) {
@@ -200,12 +202,15 @@ export function stepEngine(e: EngineSpec, es: EngineState, rpm: number, demand: 
     const nFire = air.firing;
     switch (es.mode) {
       case 'run': {
-        if (ord !== es.dir) {                                 // stop, or reverse: fuel off first
+        // STOP from above manoeuvring full: the load-down programme first brings her down to manoeuvring full
+        // on fuel (minutes from sea speed), and only then is the fuel taken off. Astern cuts it at once (crash stop).
+        const loadDown = ord === 0 && es.target * es.dir > LOAD_DOWN_N + 1e-3;
+        if (ord !== es.dir && !loadDown) {                    // stop, or reverse: fuel off first
           es.mode = 'stop'; es.t = 0; es.tries = 0; es.msg = ord === 0 ? 'STOP' : 'REVERSING';
           break;
         }
         // governor with load programme and minimum running speed
-        let tgt = Math.max(e.nMin, Math.min(limit, Math.abs(demand)));
+        let tgt = loadDown ? LOAD_DOWN_N : Math.max(e.nMin, Math.min(limit, Math.abs(demand)));
         if (e.barred) {
           const [lo, hi] = e.barred;
           if (tgt > lo && tgt < hi) tgt = lo - 0.005;           // never settle inside the barred range
@@ -221,7 +226,7 @@ export function stepEngine(e: EngineSpec, es: EngineState, rpm: number, demand: 
         es.lowT = es.dir * n < 0.8 * e.air!.firing && es.dir * qEng >= 0.99 * torqueCap(e, Math.abs(n)) ? es.lowT + dt : 0;
         if (es.lowT > 3) { es.mode = 'wait'; es.t = 0; es.lowT = 0; es.msg = 'ENGINE STALLED'; qEng = 0; break; }
         if (e.barred && Math.abs(n) > e.barred[0] && Math.abs(n) < e.barred[1]) es.barredT += dt; else es.barredT = 0;
-        es.msg = es.barredT > 6 ? 'IN BARRED RANGE' : '';
+        es.msg = es.barredT > 6 ? 'IN BARRED RANGE' : loadDown ? 'STOP · LOAD-DOWN' : '';
         break;
       }
       case 'stop':

@@ -104,9 +104,10 @@ golden regression fixtures, so each needs its own decision).
 3. **Response times** of the Voith Schneider (2.5 s) and waterjet (2 s) units are unverified.
 4. **Berthing speeds.** The Brolsma curve behind `approachSpeed` dates from the 1970s and later PIANC
    work questions it; the card cites both.
-5. **Stop and astern orders on a direct-reversing engine.** The model cuts the fuel the moment a stop
-   or astern order is given; a real engine runs its load programme on a stop order from full ahead
-   (marinesite.info). It also merges the brake-air kicks and the astern start into one air start once
+5. **Stop and astern orders on a direct-reversing engine.** A stop order from above manoeuvring full
+   runs the load-down programme to 80 % of full rpm before the fuel is cut, as a real engine does
+   (marinesite.info); a stop from lower down, or an astern order, cuts the fuel at once. The model
+   merges the brake-air kicks and the astern start into one air start once
    the shaft is down to 40 % of full rpm. The card says both.
 6. **Waterjet crash stop.** From 70 % of top speed the fast ferry stops in about a ship length and
    twelve seconds with the buckets down; no published crash-stop figure for waterjet craft was found

@@ -3,7 +3,7 @@
 // ν = [u v r] over ground in body axes, ν_r = ν − ν_c (water-relative),
 // ν̇_c = [r v_c, −r u_c, 0] for an earth-fixed current seen from rotating axes.
 import { DEG, Hydro, RHO, RHO_AIR, ShipSpec, deriveHydro, resistanceCt } from './ship';
-import { Obstacle, Fender, contactForces, ContactInfo, Pt } from './contact';
+import { Obstacle, Fender, contactForces, ContactInfo, Pt, type ShipFender } from './contact';
 import type { HarbourIndex } from './spatial';
 import { MooringLine, lineForces } from './mooring';
 import { type Anchor, anchorsForce } from './anchor';
@@ -44,6 +44,7 @@ export function emptyStatus(n: number): ActStatus {
 
 export interface World {
   obstacles: Obstacle[]; fenders: Fender[];
+  shipFenders?: ShipFender[];                 // fenders she carries herself, hung over her side
   contact?: boolean;                          // false: skip hull contact (predictor)
   lines?: MooringLine[]; bollards?: Pt[];     // mooring lines (force evaluated inside RK4)
   /** Heights of the fairleads and of each bollard [m above datum], where water levels change (a lock):
@@ -291,8 +292,8 @@ export class Model {
     if (bd) { bd.contact.X = bd.contact.Y = bd.contact.N = 0; }
     if (obstacles) {
       const w = obstacles;
-      if (w.contact !== false && (w.obstacles.length || w.fenders.length)) {
-        const c = contactForces(st, w.obstacles, w.fenders, ci, w.index);
+      if (w.contact !== false && (w.obstacles.length || w.fenders.length)) {   // (her own fenders only ever touch obstacles)
+        const c = contactForces(st, w.obstacles, w.fenders, ci, w.index, w.shipFenders);
         X += c.X; Y += c.Y; N += c.N;
         if (bd) { bd.contact.X = c.X; bd.contact.Y = c.Y; bd.contact.N = c.N; }
       }

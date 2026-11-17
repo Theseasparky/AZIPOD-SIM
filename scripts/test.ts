@@ -548,6 +548,19 @@ import { engines, helm, primeRunning } from '../src/physics/pilot';
     const n = st.pods[0].rpm, [lo, hi] = VL.pods[0].shaft!.engine.barred!;
     assert.ok(n < lo || n > hi, `rpm ${n}`);
   });
+  test('STOP from sea speed: the load-down programme brings her to manoeuvring full on fuel before the fuel comes off', () => {
+    const a = go(VL.vmaxKn, 1, c => engines(VL, c, 0), 60);
+    assert.ok(a.st.pods[0].rpm > 0.85, `rpm after 60 s ${a.st.pods[0].rpm.toFixed(2)}`);
+    assert.ok(a.st.pods[0].eng!.mode === 'run' && a.out.msg[0] === 'STOP · LOAD-DOWN', `${a.st.pods[0].eng!.mode} ${a.out.msg[0]}`);
+    const b = go(VL.vmaxKn, 1, c => engines(VL, c, 0), 900);
+    assert.ok(b.st.pods[0].eng!.mode === 'stop', `mode after 15 min ${b.st.pods[0].eng!.mode}`);
+  });
+  test('STOP from manoeuvring speeds and astern from sea speed still take the fuel off at once', () => {
+    const a = go(8, 0.6, c => engines(VL, c, 0), 1);
+    assert.ok(a.st.pods[0].eng!.mode === 'stop', `stop from 0.6: ${a.st.pods[0].eng!.mode}`);
+    const b = go(VL.vmaxKn, 1, c => engines(VL, c, -0.8), 1);
+    assert.ok(b.st.pods[0].eng!.mode !== 'run', `astern from sea: ${b.st.pods[0].eng!.mode}`);
+  });
   test('starting air below the minimum receiver pressure: no start, the engine room says so', () => {
     const { out, st } = go(0, 0, c => engines(VL, c, 0.3), 0.2);
     st.pods[0].eng!.air = 11; st.pods[0].eng!.mode = 'stop'; st.pods[0].rpm = 0;
@@ -1700,6 +1713,36 @@ console.log('lines on both sides');
     assert.ok(Math.abs(rt.state.e) < 4, `off centre ${rt.state.e.toFixed(1)} m (the walls are 8 m off)`);
     assert.ok(Math.abs(rt.state.e - e2) < 0.5, `still moving: ${(rt.state.e - e2).toFixed(2)} m`);
     assert.ok(rt.lines.every(l => l.state === 'fast'));
+  });
+}
+
+console.log('ship fenders and a start chosen on the chart');
+import { hullPointNear, SHIP_FENDER_SIZES } from '../src/physics/contact';
+import { safeStart, startDepthOk } from '../src/scenarios';
+{
+  test('a fender hung over her side meets the quay first: she is pushed off on it, no steel touches', () => {
+    setShip(SHIP.id); setHull(buildHull(SHIP.L, SHIP.B, SHIP.xg, SHIP.LOA));
+    const z = SHIP_FENDER_SIZES[1], p = hullPointNear(0, SHIP.B / 2 + 1);
+    assert.ok(Math.abs(p.y - SHIP.B / 2) < 0.5 && p.ny > 0.9, `snapped ${p.x.toFixed(1)}, ${p.y.toFixed(1)} n ${p.nx.toFixed(2)}, ${p.ny.toFixed(2)}`);
+    const sf = [{ x: p.x, y: p.y, nx: p.nx, ny: p.ny, width: z.width, height: z.height, Rr: z.Rr, Er: z.Er, dRated: 0.6, mu: 0.3 }];
+    // a quay face 1.5 m off her starboard side, heading north: the fender (2.5 m) is squeezed 1 m, the hull clear
+    const quay = [{ poly: [[-300, SHIP.B / 2 + 1.5], [300, SHIP.B / 2 + 1.5], [300, 400], [-300, 400]] as [number, number][], k: 6e6, c: 1.5e6, mu: 0.45, unload: 0.04, kind: 'quay' as const }];
+    const st = makeState(SHIP, 0, 0, 0, 0);
+    const ci = { active: false, points: [], fenders: [], shipFenders: [] } as Parameters<typeof contactForces>[3] & object;
+    const f = contactForces(st, quay, [], ci, undefined, sf);
+    assert.ok(ci.active && ci.shipFenders!.length === 1 && ci.points.length === 1, `points ${ci.points.length}`);
+    assert.ok(Math.abs(ci.shipFenders![0].defl - 1) < 0.05, `deflection ${ci.shipFenders![0].defl}`);
+    assert.ok(f.Y < 0 && ci.points[0].with === undefined, `Y ${f.Y}`);
+    contactForces(st, quay, [], ci);
+    assert.ok(!ci.active, 'without the fender nothing touches');
+  });
+  test('a start chosen on the chart: water enough where the usual start is safe, none in a quay', () => {
+    const sc = SCENARIOS.find(s => s.id === 'miami-cargo')!, kcs = SHIPS.kcs;
+    const s0 = safeStart(sc, kcs.LOA, kcs.B, kcs.T);
+    assert.ok(startDepthOk(sc, s0, kcs.LOA, kcs.B, kcs.T).ok, 'safe start passes');
+    const q = sc.obstacles.find(o => o.poly.length > 2)!, [n, e] = q.poly.reduce(([a, b], p) => [a + p[0] / q.poly.length, b + p[1] / q.poly.length], [0, 0]);
+    const w = startDepthOk(sc, { n, e, psi: 0 }, 20, 6, 2);
+    assert.ok(!w.ok, `at a structure: least ${w.least}`);
   });
 }
 

@@ -593,26 +593,9 @@ export function berthFor(sc: Scenario, B: number, xg: number) {
  * to the deeper side of it instead of starting aground.
  */
 export function safeStart(sc: Scenario, L: number, B: number, T: number) {
-  const d = depthAt(sc), { n, e, psi } = sc.start, c = Math.cos(psi * DEG), sn = Math.sin(psi * DEG), need = T + Math.max(0.3, 0.03 * T);
-  const idx = indexOf(sc);
-  const inSolid = (pn: number, pe: number) => {
-    for (const i of idx.obs.query(pn, pe, pn, pe)) {
-      const o = sc.obstacles[i], b = o.bbox!;
-      if (pn >= b[0] && pn <= b[2] && pe >= b[1] && pe <= b[3] && pip(o.poly, pn, pe)) return true;
-    }
-    return false;
-  };
-  // least water anywhere under her (−∞ if any of her lies in a quay)
-  const least = (dx: number, dy: number) => {
-    let m = Infinity;
-    for (let x = -L / 2; x <= L / 2 + 1e-6; x += Math.max(10, L / 12)) for (const y of [-B / 2, 0, B / 2]) {
-      const pn = n + c * (x + dx) - sn * (y + dy), pe = e + sn * (x + dx) + c * (y + dy);
-      if (inSolid(pn, pe)) return -Infinity;
-      m = Math.min(m, d(pn, pe));
-    }
-    return m;
-  };
-  const ok = (dx: number, dy: number) => least(dx, dy) >= need;
+  const { n, e, psi } = sc.start, c = Math.cos(psi * DEG), sn = Math.sin(psi * DEG), need = T + Math.max(0.3, 0.03 * T);
+  const least = footprint(sc, L, B);
+  const ok = (dx: number, dy: number) => least(n + c * dx - sn * dy, e + sn * dx + c * dy, psi) >= need;
   if (ok(0, 0)) return { ...sc.start, moved: 0 };
   // nearest first: sideways across the channel, then along it
   const tries: [number, number][] = [];
@@ -621,9 +604,36 @@ export function safeStart(sc: Scenario, L: number, B: number, T: number) {
   const at = ([dx, dy]: [number, number]) => ({ n: n + c * dx - sn * dy, e: e + sn * dx + c * dy, psi, kn: sc.start.kn, moved: Math.hypot(dx, dy) });
   for (const t of tries) if (ok(t[0], t[1])) return at(t);
   // nowhere deep enough: the deepest water nearby, if it is better than where she was
-  let best: [number, number] = [0, 0], bm = least(0, 0);
-  for (const t of tries) { const m = least(t[0], t[1]); if (m > bm + 0.2) { bm = m; best = t; } }
+  const lt = ([dx, dy]: [number, number]) => least(n + c * dx - sn * dy, e + sn * dx + c * dy, psi);
+  let best: [number, number] = [0, 0], bm = lt([0, 0]);
+  for (const t of tries) { const m = lt(t); if (m > bm + 0.2) { bm = m; best = t; } }
   return at(best);
+}
+/** Least water anywhere under a hull L × B centred at (n, e) heading psi° (−∞ if any of her lies in a quay). */
+function footprint(sc: Scenario, L: number, B: number) {
+  const d = depthAt(sc), idx = indexOf(sc);
+  const inSolid = (pn: number, pe: number) => {
+    for (const i of idx.obs.query(pn, pe, pn, pe)) {
+      const o = sc.obstacles[i], b = o.bbox!;
+      if (pn >= b[0] && pn <= b[2] && pe >= b[1] && pe <= b[3] && pip(o.poly, pn, pe)) return true;
+    }
+    return false;
+  };
+  return (n: number, e: number, psi: number) => {
+    const c = Math.cos(psi * DEG), sn = Math.sin(psi * DEG);
+    let m = Infinity;
+    for (let x = -L / 2; x <= L / 2 + 1e-6; x += Math.max(10, L / 12)) for (const y of [-B / 2, 0, B / 2]) {
+      const pn = n + c * x - sn * y, pe = e + sn * x + c * y;
+      if (inSolid(pn, pe)) return -Infinity;
+      m = Math.min(m, d(pn, pe));
+    }
+    return m;
+  };
+}
+/** A start the player chose: is there water enough under her, stem to stern? least: the least depth under her [m] (−∞ in a quay). */
+export function startDepthOk(sc: Scenario, at: { n: number; e: number; psi: number }, L: number, B: number, T: number) {
+  const least = footprint(sc, L, B)(at.n, at.e, at.psi);
+  return { ok: least >= T + Math.max(0.3, 0.03 * T), least };
 }
 function pip(p: Pt[], n: number, e: number) {
   let r = false;

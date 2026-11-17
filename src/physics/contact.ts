@@ -22,6 +22,7 @@ export interface ContactInfo {
   active: boolean;
   points: { n: number; e: number; vn: number; F: number; with?: string; slide?: number }[];   // with: what was hit (none: a fender doing its job); slide: friction force × sliding speed [W]
   fenders: { i: number; defl: number; F: number }[];    // loaded fenders this step
+  shipFenders?: { i: number; defl: number; F: number }[];   // loaded fenders hung from her own side this step
 }
 
 /** Discrete fender unit (cone/cell type) on a quay face. */
@@ -49,6 +50,58 @@ export function fenderReaction(f: Fender, defl: number): number {
   }
   const [xa, ya] = CURVE[CURVE.length - 2], [xb, yb] = CURVE[CURVE.length - 1];
   return f.Rr * (yb + (yb - ya) / (xb - xa) * (x - xb));
+}
+
+/**
+ * A fender carried by the ship herself (a pneumatic fender hung over the side, as for ship-to-ship work or a
+ * berth with no fenders of its own): body frame about the CG, on the waterline outline, pointing outboard.
+ */
+export interface ShipFender {
+  x: number; y: number;            // where it hangs on the hull, body frame [m]
+  nx: number; ny: number;          // unit normal, outboard
+  width: number;                   // length along the hull [m]
+  height: number;                  // diameter: how far it stands off the hull [m]
+  Rr: number;                      // reaction at rated deflection [N]
+  Er: number;                      // energy absorbed at rated deflection [J]
+  dRated: number;                  // rated deflection, fraction of the diameter (60 % for a pneumatic fender)
+  mu: number;
+}
+// Normalised reaction of a pneumatic (Yokohama-type) fender, R/Rr vs δ/δrated: soft at first, stiffening, no plateau.
+const PNEU: [number, number][] = [[0, 0], [0.167, 0.05], [0.333, 0.14], [0.5, 0.27], [0.667, 0.45], [0.833, 0.68], [1.0, 1.0], [1.167, 1.55], [1.333, 3.0], [1.5, 9.0]];
+export function shipFenderReaction(f: ShipFender, defl: number): number {
+  const x = defl / (f.dRated * f.height);
+  if (x <= 0) return 0;
+  for (let i = 1; i < PNEU.length; i++) {
+    if (x <= PNEU[i][0]) {
+      const [x0, y0] = PNEU[i - 1], [x1, y1] = PNEU[i];
+      return f.Rr * (y0 + (y1 - y0) * (x - x0) / (x1 - x0));
+    }
+  }
+  const [xa, ya] = PNEU[PNEU.length - 2], [xb, yb] = PNEU[PNEU.length - 1];
+  return f.Rr * (yb + (yb - ya) / (xb - xa) * (x - xb));
+}
+/** Pneumatic fender sizes (ISO 17357, 50 kPa initial pressure): diameter × length, rated reaction and energy at 60 % deflection. */
+export const SHIP_FENDER_SIZES = [
+  { id: 's', label: 'Ø1.5 × 3.0 m', height: 1.5, width: 3.0, Rr: 308e3, Er: 63e3 },
+  { id: 'm', label: 'Ø2.5 × 5.5 m', height: 2.5, width: 5.5, Rr: 1315e3, Er: 491e3 },
+  { id: 'l', label: 'Ø3.3 × 6.5 m', height: 3.3, width: 6.5, Rr: 2145e3, Er: 1028e3 },
+] as const;
+/** The point of the waterline outline nearest a body-frame point (x, y), with the outboard normal there. */
+export function hullPointNear(x: number, y: number, hull: [number, number][] = HULL) {
+  let best = Infinity, bx = 0, by = 0, nx = 0, ny = 1;
+  const mx = hull.reduce((a, p) => a + p[0], 0) / (hull.length || 1);
+  for (let i = 0, j = hull.length - 1; i < hull.length; j = i++) {
+    const [ax, ay] = hull[j], [cx, cy] = hull[i];
+    const dx = cx - ax, dy = cy - ay, l2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2));
+    const qx = ax + t * dx, qy = ay + t * dy, d = (x - qx) ** 2 + (y - qy) ** 2;
+    if (d < best) {
+      best = d; bx = qx; by = qy;
+      const l = Math.sqrt(l2); nx = dy / l; ny = -dx / l;
+      if (nx * (qx - mx) + ny * qy < 0) { nx = -nx; ny = -ny; }       // outboard: away from the middle of her
+    }
+  }
+  return { x: bx, y: by, nx, ny, d: Math.sqrt(best) };
 }
 
 // Waterline outline, body frame [x fwd, y stbd] about CG. Set by setHull().
@@ -105,10 +158,10 @@ export function hullWorld(st: ShipState): Pt[] {
   return HULL.map(([x, y]) => [st.n + x * c - y * s, st.e + x * s + y * c]);
 }
 
-export function contactForces(st: ShipState, obs: Obstacle[], fenders: Fender[] | null, ci?: ContactInfo, idx?: HarbourIndex) {
+export function contactForces(st: ShipState, obs: Obstacle[], fenders: Fender[] | null, ci?: ContactInfo, idx?: HarbourIndex, shipF?: ShipFender[]) {
   const c = Math.cos(st.psi), s = Math.sin(st.psi);
   let X = 0, Y = 0, N = 0;
-  if (ci) { ci.active = false; ci.points.length = 0; ci.fenders.length = 0; }
+  if (ci) { ci.active = false; ci.points.length = 0; ci.fenders.length = 0; if (ci.shipFenders) ci.shipFenders.length = 0; }
   const hw = hullWorld(st);
   const hb = bboxOf(hw);
   // ground velocity of a world point on the hull
@@ -161,6 +214,52 @@ export function contactForces(st: ShipState, obs: Obstacle[], fenders: Fender[] 
     for (const i of idx.obs.query(hb[0], hb[1], hb[2], hb[3])) visit(obs[i]);
     for (let i = idx.nObs; i < obs.length; i++) visit(obs[i]);
   } else for (const o of obs) visit(o);
+  // her own fenders, hung over the side: the face of each one (both ends and the middle) pressed into a quay,
+  // a pier or another ship pushes her off, on the fender's curve, before her plating gets there
+  if (shipF?.length) {
+    const reach = Math.max(...shipF.map(f => f.height)) + 1;
+    const near: Obstacle[] = [];
+    const take = (o: Obstacle) => {
+      const b = o.bbox ?? (o.bbox = bboxOf(o.poly));
+      if (!(b[0] > hb[2] + reach || b[2] < hb[0] - reach || b[1] > hb[3] + reach || b[3] < hb[1] - reach)) near.push(o);
+    };
+    if (obsIndexed(idx, obs)) {
+      for (const i of idx.obs.query(hb[0] - reach, hb[1] - reach, hb[2] + reach, hb[3] + reach)) take(obs[i]);
+      for (let i = idx.nObs; i < obs.length; i++) take(obs[i]);
+    } else for (const o of obs) take(o);
+    if (near.length) shipF.forEach((f, k) => {
+      const oN = c * f.nx - s * f.ny, oE = s * f.nx + c * f.ny, tN = -oE, tE = oN;      // outboard and along the hull, world
+      const hn = st.n + c * f.x - s * f.y, he = st.e + s * f.x + c * f.y;
+      let best = 0, pn = 0, pe = 0, nN = 0, nE = 0, hit: Obstacle | null = null;
+      for (const s2 of [-0.5, 0, 0.5]) {
+        const p: Pt = [hn + oN * f.height + tN * f.width * s2, he + oE * f.height + tE * f.width * s2];
+        for (const o of near) {
+          const b = o.bbox!;
+          if (p[0] < b[0] || p[0] > b[2] || p[1] < b[1] || p[1] > b[3] || !inside(p, o.poly)) continue;
+          const [qn, qe, d] = closest(p, o.poly);
+          if (d <= best || d < 1e-6) continue;
+          best = d; hit = o; nN = (qn - p[0]) / d; nE = (qe - p[1]) / d;
+          pn = hn + tN * f.width * s2; pe = he + tE * f.width * s2;                     // it bears on her side here
+        }
+      }
+      if (!hit || best <= 0) return;
+      const defl = Math.min(best, f.height);
+      const [vN0, vE0] = vel(pn, pe), vN = vN0 - (hit.vel?.[0] ?? 0), vE = vE0 - (hit.vel?.[1] ?? 0);
+      const vn = vN * nN + vE * nE;                                                     // >0 moving off
+      // air-filled: little hysteresis (unloading ≈ 85 % of loading)
+      const R = shipFenderReaction(f, defl) * (0.85 + 0.15 / (1 + Math.exp(vn / 0.005)));
+      const Fn = Math.max(0, R - 0.02 * f.Rr * vn / 0.1);
+      if (Fn <= 0) return;
+      const tvN = vN - vn * nN, tvE = vE - vn * nE, tm = Math.hypot(tvN, tvE);
+      const fr = f.mu * Fn / (tm + 0.03);
+      apply(pn, pe, Fn * nN - fr * tvN, Fn * nE - fr * tvE);
+      if (ci) {
+        ci.active = true;
+        ci.points.push({ n: pn, e: pe, vn, F: Fn, with: best > 1.1 * f.dRated * f.height ? 'fender bottomed out' : undefined });
+        (ci.shipFenders ??= []).push({ i: k, defl, F: Fn });
+      }
+    });
+  }
   if (fenders) {
     const fi = fenIndexed(idx, fenders) ? idx.fen.query(hb[0] - 3.5, hb[1] - 3.5, hb[2] + 3.5, hb[3] + 3.5) : null;
     const nf = fi ? fi.length : fenders.length;
