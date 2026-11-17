@@ -1,5 +1,5 @@
 // VLCC on the KVLCC2 benchmark hull (KRISO, SIMMAN). Hull, rudder and propeller from the
-// MMG standard method paper (Yasukawa & Yoshimura 2015, Table of KVLCC2 coefficients):
+// MMG standard method paper (Yasukawa & Yoshimura 2015, J. Mar. Sci. Technol. 20:37–52, Tables 1–3 and p. 49):
 // Lpp 320 m, B 58 m, d 20.8 m, ∇ 312 600 m³, xG 11.2 m, k_zz 76.78 m, D_P 9.86 m, H_R 15.8 m, A_R 112.5 m².
 // Full-scale adjustments: R'0 0.022 (model) → 0.0088 (ITTC-57 friction, (1+k) 1.25, roughness and
 // air allowances), which puts the self-propulsion point near 74 rpm and ≈ 22 MW at 15.5 kn.
@@ -18,7 +18,9 @@ export const KVLCC2_MMG: MmgHull = {
 };
 export const KVLCC2_PROP: PropellerSpec = {
   D: 9.86, k0: 0.2931, k1: -0.2753, k2: -0.1385, KQ0: 0.032, asternFrac: 0.7,
-  tP: 0.22, wP0: 0.40, xP: -0.48 * L, hand: 1, kTTah: 0.02, kTTas: 0.08,
+  // K_T(J) and t_P from the paper (p. 49, Table 3); w_P0 0.35 is its full-scale value (0.40 is the 7 m model's);
+  // x'_P is not given in the paper and is the usual −0.48
+  tP: 0.22, wP0: 0.35, xP: -0.48 * L, hand: 1, kTTah: 0.02, kTTas: 0.08,
 };
 export const KVLCC2_RUDDER = rudder({
   A: 112.5, H: 15.8, xR: -0.5 * L, xH: -0.464 * L, fa: 2.747,

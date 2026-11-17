@@ -982,7 +982,9 @@ console.log('specialised cards: what the notes on the model say');
       run.ack(); tick(1); assert.equal(run.index, 1);
       engines(kv, cmd, fullAstern(kv)); tick(5);
       assert.deepEqual(run.states.slice(0, 4), ['done', 'done', 'done', 'now'], `astern ordered, the engine room waiting for the shaft: ${run.states.join()}`);
-      tick(60, () => run.index > 3); assert.equal(run.index, 4, 'the engine started astern');
+      // how long the shaft windmills above the 40 % brake-air limit depends on the wake (full-scale w_P0 0.35,
+      // Yasukawa & Yoshimura 2015) and the windmilling torque; the IMO track reach below is the sourced gate
+      tick(180, () => run.index > 3); assert.equal(run.index, 4, 'the engine started astern');
       tick(1500, () => run.index > 4); assert.equal(run.index, 5, 'the way is off her');
       engines(kv, cmd, 0); tick(2);
       assert.ok(run.finished && run.states.every(x => x === 'done'), run.states.join());

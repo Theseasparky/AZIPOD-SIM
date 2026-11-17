@@ -511,7 +511,7 @@ test('PortMiami: steaming out of the channel onto the charted flats runs her agr
 
 console.log('shaft + rudder ships (KVLCC2)');
 import { SHIPS } from '../src/physics/ship';
-import { runMmgValidation } from '../src/physics/validation-mmg';
+import { runMmgValidation, runPaperValidation } from '../src/physics/validation-mmg';
 import { engines, helm, primeRunning } from '../src/physics/pilot';
 {
   const VL = SHIPS.kvlcc2, vm = new Model(VL, Infinity);
@@ -558,6 +558,13 @@ import { engines, helm, primeRunning } from '../src/physics/pilot';
   test('KVLCC2: simulator reproduces the published MMG model (turning, zig-zag) within 3 %', () => {
     const { rows } = runMmgValidation(VL);
     for (const r of rows) assert.ok(Math.abs(r.sim - r.ref) <= 0.03 * Math.abs(r.ref) + 0.3, `${r.label}: ${r.sim.toFixed(2)} vs ${r.ref.toFixed(2)}`);
+  });
+  test('KVLCC2 matches the published full-scale MMG predictions (Yasukawa & Yoshimura 2015, Tables 6–7)', () => {
+    // turning indices within 6 % (the paper's own method sits within 5.8 % of its model tests), overshoots within 1.5°
+    for (const r of runPaperValidation(VL)) {
+      const tol = r.unit === 'L' ? 0.06 * r.paper : 1.5;
+      assert.ok(Math.abs(r.sim - r.paper) <= tol, `${r.label}: ${r.sim.toFixed(2)} vs paper ${r.paper}`);
+    }
   });
   test('KVLCC2 meets IMO MSC.137(76) in deep water (turning, initial turning, zig-zags, stopping)', () => {
     const { rows } = trialsOf(VL);

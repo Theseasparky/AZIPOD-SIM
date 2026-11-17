@@ -157,6 +157,17 @@ the tests reached (manoeuvring speed, moderate drift and yaw) and the unified mo
 measured on Esso Osaka up to 180° drift (Yoshimura 2009, Table 2), covers slow speed, large drift and sternway. In
 deep water KVLCC2's turning and zig-zags are unchanged; in shallow water both parts use the published factors.
 
+**KVLCC2 checked against the paper itself.** Yasukawa & Yoshimura (2015) was read in full. It confirms the full-scale
+D_P 9.86 m and A_R 112.5 m² (Table 1; the open-source codes that disagreed had copied 7 m model values), the hull and
+interaction coefficients (Tables 2–3) and K_T(J) = 0.2931 − 0.2753 J − 0.1385 J² (p. 49). Two corrections followed:
+the full-scale wake w_P0 is 0.35 (0.40 is the 7 m model's), and the added masses are Motora-chart estimates, not
+captive measurements. x'_P is not in the paper and stays at the usual −0.48. A new test runs KVLCC2 in the paper's
+conditions (15.5 kn, constant revolutions, rudder rate 1.76°/s, k_zz 0.25 L) against its published full-scale
+predictions (Tables 6–7): advance and tactical diameter within 1–5 %, zig-zag overshoots within 0.3–1.1°. The paper's
+own method sits within 5.8 % of its free-running 7 m model tests at MARIN (Tables 4–5), which are listed beside them.
+The corrected wake lets the propeller windmill faster with way on, so in a crash stop the shaft takes longer to fall
+below the 40 % brake-air limit (about 108 s from 15 kn instead of 29 s); the track reach still meets the IMO limit.
+
 **Open check.** At h/T 1.2 the published cross-flow factor makes KVLCC2's 90° drift force 6.7 × the deep value
 (today's power law gave 3 ×). Tanker current-force data (OCIMF) is usually quoted nearer 4–5 × at that depth; compare
 when that document is obtained.
