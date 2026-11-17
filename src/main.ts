@@ -165,7 +165,7 @@ async function openScenario(sc: Scenario, at?: { n: number; e: number; psi: numb
       if (data && !postedData.has(data.area)) { pw.postMessage({ kind: 'area', id: data.area, pack: data.pack.slice(0), specs: sc.berthSpecs?.map(({ match: _m, ...b }: BerthSpec & { match?: unknown }) => b) }); postedData.add(data.area); }
     } catch (err) {
       if (seq !== openSeq) return;
-      console.error(err); toast(`Could not load the chart for ${sc.name}.`); if (S.rt) return; sc = SCENARIOS.find(s => !s.needsData)!;
+      console.error(err); toast(`Could not load the chart for ${sc.name} (${navigator.onLine ? (err as Error)?.message ?? err : 'no connection'}). Check the connection and pick it again.`); if (S.rt) return; sc = SCENARIOS.find(s => !s.needsData)!;
     }
     if (seq !== openSeq) return;
   }
