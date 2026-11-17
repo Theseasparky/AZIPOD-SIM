@@ -59,9 +59,15 @@ export function kijimaLinear(s: ShipSpec, myPrime: number): Linear {
 export interface Shallow { Yv: number; Yr: number; Nv: number; Nr: number; CD: number; gv: number; gnr: number }
 export const DEEP: Shallow = { Yv: 1, Yr: 1, Nv: 1, Nr: 1, CD: 1, gv: 1, gnr: 1 };
 
-export function shallowFactors(s: ShipSpec, depth: number): Shallow {
+export function shallowFactors(s: ShipSpec, depth: number, set: 'published' | 'power-law' = 'published'): Shallow {
   const T = s.hullT ?? s.T;
   if (!isFinite(depth) || depth / T > 12) return DEEP;
+  if (set === 'power-law') {
+    // the simulator's own laws (not from a source), for hulls the published factors were never checked on:
+    // Taimuri's Kijima-type factor reaches 13 for a Cb·B/T 5.9 barge convoy at h/T 1.5
+    const rr = Math.min(T / depth, 0.92), fsh = Math.pow(1 - rr, -0.65), fam = Math.pow(1 - rr, -0.35);
+    return { Yv: fsh, Yr: 1, Nv: fsh ** 0.8, Nr: fsh ** 0.6, CD: fsh, gv: fam, gnr: fam };
+  }
   const hT = Math.max(1.2, depth / T), TH = 1 / hT, HT = hT - 1;
   const cbBT = s.Cb * s.B / T;
   const kij = (n: number) => -TH + Math.pow(1 - TH, -n);

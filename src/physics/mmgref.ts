@@ -14,7 +14,8 @@ export interface MmgState { u: number; v: number; r: number; x: number; y: numbe
 export function mmgDeriv(s: MmgShip, st: MmgState, nP: number): [number, number, number] {
   const { L, d } = s, c = s.hull, p = s.prop, rd = s.rud;
   const m = RHO * s.vol, xG = c.xG;
-  const mx = c.mx * 0.5 * RHO * L * L * d, my = c.my * 0.5 * RHO * L * L * d, Jz = c.Jz * 0.5 * RHO * L ** 4 * d;
+  // the reference model is only run on hulls with published added masses (KVLCC2)
+  const mx = c.mx! * 0.5 * RHO * L * L * d, my = c.my! * 0.5 * RHO * L * L * d, Jz = c.Jz! * 0.5 * RHO * L ** 4 * d;
   const IzG = m * ((c.kzz ?? 0.25) * L) ** 2;
   const { u, v, r, delta } = st;
   const U = Math.hypot(u, v), beta = Math.atan2(-v, u);

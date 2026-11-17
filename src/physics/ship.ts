@@ -163,7 +163,6 @@ export interface ShipSpec {
   hullT?: number;
 }
 
-/** MMG standard-method hull: non-dimensional derivatives about midship, ÷ ½ρ L d U² (forces), ÷ ½ρ L² d U² (moment). */
 /** How a ship's hull forces are modelled, and how good the data behind them is. */
 export interface HullModelSpec {
   model: 'unified';
@@ -172,12 +171,22 @@ export interface HullModelSpec {
   class: 'captive' | 'scaled' | 'empirical';
   /** Cross-flow coefficients measured on this or a sister hull; default: the Yoshimura (2009) regressions. */
   cross?: CrossFlow;
+  /** Shallow-water factors: the published set of Taimuri et al. (2020) (default; checked on VLCC, container and
+   *  frigate hulls, Cb·B/T about 2–3.5), or the older power laws for hulls far outside that range (barges). */
+  shallow?: 'published' | 'power-law';
   source: string;
 }
 
+/** MMG standard-method hull: non-dimensional derivatives about midship, ÷ ½ρ L d U² (forces), ÷ ½ρ L² d U² (moment). */
 export interface MmgHull {
   xG: number;                 // CG ahead of midship [m]
-  mx: number; my: number; Jz: number;   // added masses ÷ ½ρL²d, ½ρL²d, ½ρL⁴d
+  /** Added masses ÷ ½ρL²d, ½ρL²d, ½ρL⁴d; left out where the source's are not trusted (the Clarke values stay). */
+  mx?: number; my?: number; Jz?: number;
+  /** Length the coefficients are made non-dimensional with, where it is not Lpp (pusher–barge systems: overall length). */
+  Lref?: number;
+  /** Where the tests reached, as fade-out windows [from, to] in forward speed u [m/s], |v′| = |sin β| and |r′|;
+   *  outside them the low-speed model takes over (default: u 0.6–1.8, |v′| 0.55–0.85, |r′| 0.9–1.4). */
+  range?: { u?: [number, number]; v?: [number, number]; r?: [number, number] };
   R0: number; Xvv: number; Xvr: number; Xrr: number; Xvvvv: number;
   Yv: number; Yr: number; Yvvv: number; Yvvr: number; Yvrr: number; Yrrr: number;
   Nv: number; Nr: number; Nvvv: number; Nvvr: number; Nvrr: number; Nrrr: number;
@@ -395,26 +404,30 @@ export function deriveHydro(s: ShipSpec, depth: number): Hydro {
   if (s.mmg) {
     // published captive-test values: MMG non-dimensionals (÷ ½ρLd·U², ½ρL²d) → Clarke primes (× d/L).
     // Body origin is midship; the CG sits xG ahead of it, as in the MMG equations of motion.
-    const c = s.mmg, dL = T / L;
-    Yvd_p = -c.my * dL; Yrd_p = 0; Nvd_p = 0; Nrd_p = -c.Jz * dL;
-    Yv_p = c.Yv * dL; Yr_p = c.Yr * dL; Nv_p = c.Nv * dL; Nr_p = c.Nr * dL;
+    const c = s.mmg, dL = T / L, rl = (c.Lref ?? L) / L;      // coefficients may be made non-dimensional with another length
+    if (c.my !== undefined && c.Jz !== undefined) { Yvd_p = -c.my * dL; Yrd_p = 0; Nvd_p = 0; Nrd_p = -c.Jz * dL; }
+    Yv_p = c.Yv * rl * dL; Yr_p = c.Yr * rl * rl * dL; Nv_p = c.Nv * rl * rl * dL; Nr_p = c.Nr * rl ** 3 * dL;
     xgDyn = c.xG;
     Iz = m * ((c.kzz ?? 0.25) * L) ** 2 + m * c.xG ** 2;
-    XudM = -c.mx * 0.5 * RHO * L * L * T;
+    if (c.mx !== undefined) XudM = -c.mx * 0.5 * RHO * L * L * T;
   }
 
   // Unified hull: linear derivatives from captive tests or Kijima's regression, shallow water from the
   // published factors (replacing the fsh/fam power laws), cross-flow drag from Yoshimura (2009).
   const uni = s.hull?.model === 'unified';
-  const sh = uni ? shallowFactors(s, depth) : DEEP;
+  const sh = uni ? shallowFactors(s, depth, s.hull!.shallow) : DEEP;
   let cross: CrossFlow | null = null, XvrP = 0;
   if (uni) {
     const dL = T / L;
-    const lin = s.mmg
-      ? { Yv: s.mmg.Yv, Yr: s.mmg.Yr - s.mmg.mx, Nv: s.mmg.Nv, Nr: s.mmg.Nr, Xvr: s.mmg.Xvr }
-      : kijimaLinear(s, -Yvd_p / dL);
-    Yv_p = lin.Yv * sh.Yv * dL; Yr_p = lin.Yr * sh.Yr * dL; Nv_p = lin.Nv * sh.Nv * dL; Nr_p = lin.Nr * sh.Nr * dL;
-    XvrP = lin.Xvr * 0.5 * RHO * L * T * L;
+    if (s.mmg) {
+      // captive derivatives (already in Yv_p … Nr_p above), now with the published shallow-water factors
+      Yv_p *= sh.Yv; Yr_p *= sh.Yr; Nv_p *= sh.Nv; Nr_p *= sh.Nr;
+      XvrP = s.mmg.Xvr * 0.5 * RHO * (s.mmg.Lref ?? L) * T * (s.mmg.Lref ?? L);
+    } else {
+      const lin = kijimaLinear(s, -Yvd_p / dL);
+      Yv_p = lin.Yv * sh.Yv * dL; Yr_p = lin.Yr * sh.Yr * dL; Nv_p = lin.Nv * sh.Nv * dL; Nr_p = lin.Nr * sh.Nr * dL;
+      XvrP = lin.Xvr * 0.5 * RHO * L * T * L;
+    }
     cross = s.hull!.cross ?? crossFlowRegression(s);
   }
   const famY = uni ? sh.gv : fam, famN = uni ? sh.gnr : fam;

@@ -107,7 +107,7 @@ Deep, calm water, from full speed. Turning at hard over (35°; 45° for the Voit
 | Platform supply vessel | 81 | 13.7 kn | 2.48 L | 2.51 L | 5.1° | 2.95 L | 0.21 L |
 | Anchor-handling tug supply | 72 | 16.3 kn | 2.33 L | 2.22 L | 7.1° | 2.54 L | 0.14 L |
 | Icebreaker · 3 Azipods | 96 | 16.7 kn | 2.32 L | 2.42 L | 4.1° | 1.76 L | 0.17 L |
-| Push convoy | 190 | 11.1 kn | 2.32 L | 2.22 L | 2.5° | 3.02 L | 0.24 L |
+| Push convoy | 190 | 7.0 kn | 1.49 L | 1.49 L | 2.8° | 1.35 L | 0.69 L (transfer) |
 | Frigate · DTMB 5415 hull | 142 | 28.8 kn | 2.38 L | 2.48 L | 4.5° | 2.28 L | 0.21 L |
 | Superyacht | 80 | 20.4 kn | 2.57 L | 2.60 L | 4.7° | 4.29 L | 0.17 L |
 | Bulk carrier · rotor sails | 222 | 15.7 kn | 4.01 L | 4.47 L | 3.5° | 16.08 L | 0.14 L |
@@ -167,6 +167,17 @@ predictions (Tables 6–7): advance and tactical diameter within 1–5 %, zig-za
 own method sits within 5.8 % of its free-running 7 m model tests at MARIN (Tables 4–5), which are listed beside them.
 The corrected wake lets the propeller windmill faster with way on, so in a crash stop the shaft takes longer to fall
 below the 40 % brake-air limit (about 108 s from 15 kn instead of 29 s); the track reach still meets the IMO limit.
+
+**Push convoy, second ship moved.** The Hiroshima University pusher–barge captive tests (Koh, Yasukawa, Hirata & Kose
+2008, 22BP 2 × 2 system) replace the strip hull inside their range (|β| ≤ 25°, |r′| ≤ 0.2): resistance X′0 0.0642,
+Y′β, Y′r, N′β, N′r with the cubic couplings, and the paper's assumed pusher interaction values (t_P 0.164, w_P0 0.34,
+ε 0.987, t_R 0.055, a_H 0.194, x′_H −0.427, γ_R 0.23, l′_R −1.033). Beyond that range strip-theory cross-flow (C_D 1.1)
+carries the hull, and shallow water uses the simulator's own power laws, because the published Kijima-type factor
+reaches about 13 for a convoy (Cb·B/T 5.9) at h/T 1.5. Consequences: the measured resistance is 2.4 times the strip
+estimate, so the 4.5 MW pushboat now makes 7 kn through the water (it made 11 kn), and she turns tighter (tactical
+diameter 1.49 L against 2.22 L). The 10/10 zig-zag overshoots are 2.8°/3.3°, against the paper's predicted 1.7°/1.9°
+for the same pusher at 7 kn. The paper's tabulated added masses are about 14× below strip theory and look mis-scaled;
+Clarke's are kept. Class: scaled (one model-scale pusher, not the Rhine convoy itself).
 
 **Open check.** At h/T 1.2 the published cross-flow factor makes KVLCC2's 90° drift force 6.7 × the deep value
 (today's power law gave 3 ×). Tanker current-force data (OCIMF) is usually quoted nearer 4–5 × at that depth; compare
