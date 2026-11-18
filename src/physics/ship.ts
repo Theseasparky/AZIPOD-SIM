@@ -191,6 +191,8 @@ export interface MmgHull {
   R0?: number; Xvv: number; Xvr: number; Xrr: number; Xvvvv: number;
   Yv: number; Yr: number; Yvvv: number; Yvvr: number; Yvrr: number; Yrrr: number;
   Nv: number; Nr: number; Nvvv: number; Nvvr: number; Nvrr: number; Nrrr: number;
+  /** Quadratic |v|v and |r|r damping terms, for sources that fit those instead of the cubics (all default 0). */
+  Yvav?: number; Yrar?: number; Nvav?: number; Nrar?: number;
   kzz?: number;               // yaw radius of gyration ÷ L (default 0.25)
   source: string;
 }
@@ -248,6 +250,23 @@ export const BECANCOUR: ShipSpec = {
   },
 };
 
+/** Kim, Yoon, Kim & Son (2013), J. Soc. Nav. Archit. Korea 50(6):429–435, Table 4: captive tests (KRISO towing tank, 1:52)
+ *  of a 243 × 36 × 8.3 m twin-pod cruise ship, drift to 20°, circular motion to r′ 1.0, pure yaw to r′ 2.2, at 8 kn.
+ *  The paper non-dimensionalises with ½ρL²U² (and ½ρL³U²), the table values times L/T (4.673/0.160 = 29.2) give the MMG
+ *  form used here. Its hull model has |v|v and |r|r damping instead of cubics. The cross-flow coefficients
+ *  (C_D0 0.695, C_rY 1.134, C_rN 1.316) are the paper's own, from crabbing and still-turn tests. Applied to the
+ *  Lady-class hull (L/B 6.6 and B/T 4.7 against 6.75 and 4.3) as a scaled model, not as measured on this ship.
+ *  No resistance is tabulated: the simulator's stays. Added mass: Y′v̇ and N′ṙ; mass and X added mass stay Clarke's. */
+const LADY_MMG: MmgHull = {
+  xG: -4, my: 0.14428, Jz: 0.00371, kzz: 0.25,
+  Xvv: -0.01592, Xvr: 0.09288, Xrr: 0.00318, Xvvvv: 0,
+  Yv: -0.13905, Yr: 0.02699, Yvvv: 0, Yvvr: 0.07839, Yvrr: -0.10292, Yrrr: 0,
+  Nv: -0.0896, Nr: -0.029, Nvvv: 0, Nvvr: -0.01393, Nvrr: 0.00686, Nrrr: 0,
+  Yvav: -0.6758, Yrar: -0.04171, Nvav: -0.06785, Nrar: -0.03756,
+  range: { u: [2, 4], v: [0.34, 0.55], r: [1, 1.6] },
+  source: 'Kim et al. (2013) twin-pod cruise ship captive tests (Table 4)',
+};
+
 /**
  * Lady-class 278 m cruise ship, modelled on the published particulars of Valiant Lady
  * (Fincantieri 2021): 278 m LOA, 38 m beam, 8.05 m draught, 110,000 GT, 2 × 16 MW ABB Azipod XO,
@@ -258,13 +277,15 @@ export const LADY: ShipSpec = {
   id: 'lady', LOA: 278, vmaxKn: 22.4,
   name: 'Lady-class 278 m',
   note: 'Modelled on Valiant Lady\'s published particulars (278 m, 38 m beam, 8.05 m draught, 2 × 16 MW Azipods). Bow thrusters, hull form and windage are estimates; this is not the real ship\'s manoeuvring data.',
-  L: 250, B: 38, T: 8.05, Cb: 0.68, xg: -4,
+  L: 250, B: 38, T: 8.05, Cb: 0.68, xg: 0,       // body origin at midship, the CG 4 m aft of it
+  mmg: LADY_MMG,
+  hull: { model: 'unified', class: 'scaled', cross: { CD: 0.69537, CrY: 1.13405, CrN: 1.3155, source: 'Kim et al. (2013) crabbing and still-turn tests' }, source: 'Kim et al. (2013) twin-pod cruise ship captive tests, scaled to this hull' },
   pods: [
-    { label: 'PORT', x: -113, y: -9.5, Tb: 1.9e6, asternFrac: 0.75, strutArea: 55, D: 6.0, P: 16e6, slewMul: 1, thrustMul: 1, alphaOffset: 0 },
-    { label: 'STBD', x: -113, y: 9.5, Tb: 1.9e6, asternFrac: 0.75, strutArea: 55, D: 6.0, P: 16e6, slewMul: 1.04, thrustMul: 0.98, alphaOffset: 0.4 * DEG },
+    { label: 'PORT', x: -117, y: -9.5, Tb: 1.9e6, asternFrac: 0.75, strutArea: 55, D: 6.0, P: 16e6, slewMul: 1, thrustMul: 1, alphaOffset: 0 },
+    { label: 'STBD', x: -117, y: 9.5, Tb: 1.9e6, asternFrac: 0.75, strutArea: 55, D: 6.0, P: 16e6, slewMul: 1.04, thrustMul: 0.98, alphaOffset: 0.4 * DEG },
   ],
-  bowThruster: { x: 112, Tmax: 3 * 330e3, P: 3 * 3e6 },
-  windage: { AF: 1650, AL: 10200, cx: 0.7, cy: 0.9, cn: 0.1, xw: 4 },
+  bowThruster: { x: 108, Tmax: 3 * 330e3, P: 3 * 3e6 },
+  windage: { AF: 1650, AL: 10200, cx: 0.7, cy: 0.9, cn: 0.1, xw: 0 },
   wake: 0.1, tded: 0.1, Vzero: 20, Cd: 0.72, formFactor: 1.2,
   podSlew: 6 * DEG,
   podRpmTime: 30,
@@ -272,7 +293,7 @@ export const LADY: ShipSpec = {
   revInterlock: 0.28,
   btRpmTime: 10,
   powerAvail: 38e6,
-  bridgeX: 98,
+  bridgeX: 94,
   ramK: 0.85,
   look: {
     freeboard: 11, bridgeH: 36, bridgeLen: 10, wingOut: 1.5,

@@ -90,7 +90,7 @@ Deep, calm water, from full speed. Turning at hard over (35°; 45° for the Voit
 | Ship | L (m) | Speed | Advance | Tactical diam. | 10/10 1st overshoot | Crash stop (track reach) | Pivot point (from bow) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | MV Bécancour | 130 | 16.6 kn | 2.85 L | 3.52 L | 1.9° | 2.56 L | 0.11 L |
-| Lady-class 278 m | 250 | 22.4 kn | 2.82 L | 3.47 L | 1.7° | 2.76 L | 0.08 L |
+| Lady-class 278 m | 250 | 22.4 kn | 2.24 L | 2.22 L | 2.6° | 2.24 L | 0.05 L (pivot) |
 | Spirit-class 293 m | 260.6 | 23.6 kn | 2.63 L | 3.38 L | 1.5° | 2.15 L | 0.12 L |
 | VLCC · KVLCC2 hull | 320 | 15.8 kn | 3.60 L | 3.71 L | 5.8° | 14.37 L | 0.11 L |
 | VLCC · KVLCC2 hull, ballast | 320 | 17.2 kn | 3.81 L | 4.32 L | 2.1° | 13.20 L | −0.03 L |
@@ -192,6 +192,19 @@ typical values. Nonlinear terms were also measured at Fn 0.138 and 0.41 (Y′vvv
 Fn 0.28 set is used at all speeds, so the frigate at 29 kn has weaker nonlinear sway damping than the model had. Results:
 tactical diameter 2.20 L (was 2.48), 10/10 zig-zag overshoot 6.0° (was 4.5°), 20/20 first overshoot 20.9°; the 5415's
 published free-running manoeuvres were not available to check against.
+
+**Lady-class (Azipod), fourth ship moved, hull only.** Kim, Yoon, Kim & Son (2013), J. Soc. Nav. Archit. Korea 50(6),
+Table 4: captive tests of a 243 × 36 × 8.3 m twin-pod cruise ship (KRISO, 1:52, 8 kn; drift to 20°, circular motion to
+r′ 1.0, pure yaw to r′ 2.2). Read from the page images; the paper non-dimensionalises with ½ρL²U², so the table values
+times L/T give the MMG form. Its hull model has |v|v and |r|r damping in place of cubics (new optional terms in
+`MmgHull`), and its own cross-flow coefficients from crabbing and still-turn tests (C_D0 0.695, C_rY 1.134, C_rN 1.316)
+are used in the unified low-speed hull. The data are applied to the Lady-class hull as a scaled model (L/B 6.6 against
+6.75, B/T 4.7 against 4.3). The pod model (thrust, strut force, hull–pod interaction) is still the simulator's own:
+the paper's pod model has its own constants (t, κ, ε, a_H, x_H; K_T with pod angle) that are not yet built in, and
+its Table 2 pod open-water coefficients could not be read from the page. Result in deep water: advance 2.24 L and
+tactical diameter 2.22 L at 35° (were 2.82 and 3.47); the paper's free-running model at 16 kn: 2.25 L and 2.20 L.
+The 10/10 zig-zag overshoot is 2.6°/3.5° against the model's 5.0°/7.25°: the ship checks yaw too readily, probably
+the pod model's. Golden: only the 30 Lady records changed (`npm run golden` was re-recorded once for this).
 
 **Open check.** At h/T 1.2 the published cross-flow factor makes KVLCC2's 90° drift force 6.7 × the deep value
 (today's power law gave 3 ×). Tanker current-force data (OCIMF) is usually quoted nearer 4–5 × at that depth; compare

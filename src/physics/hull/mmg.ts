@@ -22,7 +22,7 @@ export function mmgHull(s: ShipSpec, h: Hydro, ur: number, vr: number, r: number
   const fv = h.unified ? h.sh.Yv : h.fsh, fnv = h.unified ? h.sh.Nv : h.fsh ** 0.8, fnr = h.unified ? h.sh.Nr : h.fsh ** 0.6;
   out.keepR = c.R0 === undefined;
   out.X = q * (-(c.R0 ?? 0) * h.rShallow + c.Xvv * v * v + c.Xvr * v * rp + c.Xrr * rp * rp + c.Xvvvv * v ** 4);
-  out.Y = q * (fv * (c.Yv * v + c.Yvvv * v ** 3 + c.Yvvr * v * v * rp) + c.Yr * rp + c.Yvrr * v * rp * rp + c.Yrrr * rp ** 3);
-  out.N = q * L * (fnv * (c.Nv * v + c.Nvvv * v ** 3 + c.Nvvr * v * v * rp) + fnr * (c.Nr * rp + c.Nvrr * v * rp * rp + c.Nrrr * rp ** 3));
+  out.Y = q * (fv * (c.Yv * v + (c.Yvav ?? 0) * v * Math.abs(v) + c.Yvvv * v ** 3 + c.Yvvr * v * v * rp) + c.Yr * rp + (c.Yrar ?? 0) * rp * Math.abs(rp) + c.Yvrr * v * rp * rp + c.Yrrr * rp ** 3);
+  out.N = q * L * (fnv * (c.Nv * v + (c.Nvav ?? 0) * v * Math.abs(v) + c.Nvvv * v ** 3 + c.Nvvr * v * v * rp) + fnr * (c.Nr * rp + (c.Nrar ?? 0) * rp * Math.abs(rp) + c.Nvrr * v * rp * rp + c.Nrrr * rp ** 3));
   return out;
 }
