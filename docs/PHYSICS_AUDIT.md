@@ -206,6 +206,13 @@ tactical diameter 2.22 L at 35° (were 2.82 and 3.47); the paper's free-running 
 The 10/10 zig-zag overshoot is 2.6°/3.5° against the model's 5.0°/7.25°: the ship checks yaw too readily, probably
 the pod model's. Golden: only the 30 Lady records changed (`npm run golden` was re-recorded once for this).
 
+**Looked for and not usable (so these ships stay estimated).** KCS: the open papers found give only linear derivatives
+from FORCE/SIMMAN 2014 captive tests (Khan et al. 2022, J. Marit. Res. 19(3), Table 5: Y′v, N′v, Y′v̇, N′v̇, N′δ, Y′δ),
+in a normalisation and sign convention the paper does not define, with no nonlinear terms and no propeller or rudder
+interaction values; a set built on that would be guessed, not measured. The Hiroshima KCS 1/75.24 report and Sung & Park
+(2015) were not reachable. DTMB 5415 pod, tug, PSV/AHTS and twin-screw passenger ships: no open captive data found
+(Khanfir et al. 2011 and Piaggio et al. 2020/22 are paywalled).
+
 **Open check.** At h/T 1.2 the published cross-flow factor makes KVLCC2's 90° drift force 6.7 × the deep value
 (today's power law gave 3 ×). Tanker current-force data (OCIMF) is usually quoted nearer 4–5 × at that depth; compare
 when that document is obtained.
