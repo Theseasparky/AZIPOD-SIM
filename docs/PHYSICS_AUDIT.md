@@ -107,8 +107,8 @@ Deep, calm water, from full speed. Turning at hard over (35°; 45° for the Voit
 | Platform supply vessel | 81 | 13.7 kn | 2.48 L | 2.51 L | 5.1° | 2.95 L | 0.21 L |
 | Anchor-handling tug supply | 72 | 16.3 kn | 2.33 L | 2.22 L | 7.1° | 2.54 L | 0.14 L |
 | Icebreaker · 3 Azipods | 96 | 16.7 kn | 2.32 L | 2.42 L | 4.1° | 1.76 L | 0.17 L |
-| Push convoy | 190 | 11.1 kn | 2.32 L | 2.22 L | 2.5° | 3.02 L | 0.24 L |
-| Frigate · DTMB 5415 hull | 142 | 28.8 kn | 2.38 L | 2.48 L | 4.5° | 2.28 L | 0.21 L |
+| Push convoy | 190 | 7.0 kn | 1.49 L | 1.49 L | 2.8° | 1.35 L | 0.69 L (transfer) |
+| Frigate · DTMB 5415 hull | 142 | 28.8 kn | 1.97 L | 2.20 L | 6.0° | 2.28 L | 0.96 L (transfer) |
 | Superyacht | 80 | 20.4 kn | 2.57 L | 2.60 L | 4.7° | 4.29 L | 0.17 L |
 | Bulk carrier · rotor sails | 222 | 15.7 kn | 4.01 L | 4.47 L | 3.5° | 16.08 L | 0.14 L |
 | Paspaley Pearl | 47 | 12.6 kn | 2.41 L | 2.73 L | 2.9° | 1.89 L | 0.18 L |
@@ -133,6 +133,69 @@ She is set up from her pilot card, wheelhouse poster, particulars and loading co
 | Crash stop, laden, head reach | 1 428 m (pilot card), 1 821 m (poster) | | 1 496 m |
 
 The lever is her bridge programme: each order sets shaft speed and pitch as on the pilot card (dead slow 56.3 rpm and 40 % pitch up to navigation full 89.3 rpm and 100 %; astern −28 % to −100 % pitch). Clarke's regression gives her a tactical diameter about 15 % larger than the poster's in the laden condition, even with a large rudder; the advance and the ballast circle match. The propeller curves, the rudder area and type (taken as a high-lift rudder, since a plain one stalls before her 45°) are assumed.
+
+## Hull model: moving the fleet onto published data
+
+A literature review (2026) classified every ship by the data behind its hull model. Only the laden KVLCC2 has a
+published captive-test MMG set (Yasukawa & Yoshimura 2015); the other ships use Clarke's regression, and every
+shaft ship borrows KVLCC2's propeller–rudder interaction constants. The fleet is being moved ship by ship onto:
+
+- **Unified hull** (`src/physics/hull/unified.ts`): Yoshimura, Nakao & Ishibashi (2009), MARSIM'09. Linear MMG
+  derivatives plus one cross-flow drag integral with C_D, C_rY, C_rN, valid from zero speed to 180° drift. The paper
+  prints C_rY in the yaw integral; its zero-speed turning equation (Eq. 10) holds only with C_rN, which is used. The
+  C_D, C_rY, C_rN regressions (Eq. 19–21) are evaluated only inside their database (L/d 13.07–21.95, L/B 4.79–6.90).
+- **Linear derivatives without captive data**: Kijima et al. (1990), Eq. (7), in Yoshimura's MMG form.
+- **Shallow water**: Taimuri et al. (2020), Table 7: Kijima-type factors for Y'v, N'r and the cross-flow drag, the
+  A1–A3 polynomial for Y'r, Ankudinov's factors for N'v and the added masses; held at their h/T 1.2 value below that
+  depth. Ankudinov's K2 is taken as 0.0342/(h/T − 1) for every hull: the printed B/T > 4 branch gives factors above 50.
+
+**KVLCC2, first ship moved.** The unified model alone, even with cross-flow coefficients fitted to KVLCC2's own
+captive nonlinear terms, does not reproduce the captive model at sea speed: it lacks the drift and turn drag terms
+(speed in a 35° turn fell from 4.6 to 2.3–2.9 kn) and its single integral cannot match the captive cubic couplings
+(zig-zag overshoots 25–55 % low). So for a ship with captive data the captive MMG polynomials stay in charge where
+the tests reached (manoeuvring speed, moderate drift and yaw) and the unified model, with cross-flow coefficients
+measured on Esso Osaka up to 180° drift (Yoshimura 2009, Table 2), covers slow speed, large drift and sternway. In
+deep water KVLCC2's turning and zig-zags are unchanged; in shallow water both parts use the published factors.
+
+**KVLCC2 checked against the paper itself.** Yasukawa & Yoshimura (2015) was read in full. It confirms the full-scale
+D_P 9.86 m and A_R 112.5 m² (Table 1; the open-source codes that disagreed had copied 7 m model values), the hull and
+interaction coefficients (Tables 2–3) and K_T(J) = 0.2931 − 0.2753 J − 0.1385 J² (p. 49). Two corrections followed:
+the full-scale wake w_P0 is 0.35 (0.40 is the 7 m model's), and the added masses are Motora-chart estimates, not
+captive measurements. x'_P is not in the paper and stays at the usual −0.48. A new test runs KVLCC2 in the paper's
+conditions (15.5 kn, constant revolutions, rudder rate 1.76°/s, k_zz 0.25 L) against its published full-scale
+predictions (Tables 6–7): advance and tactical diameter within 1–5 %, zig-zag overshoots within 0.3–1.1°. The paper's
+own method sits within 5.8 % of its free-running 7 m model tests at MARIN (Tables 4–5), which are listed beside them.
+The corrected wake lets the propeller windmill faster with way on, so in a crash stop the shaft takes longer to fall
+below the 40 % brake-air limit (about 108 s from 15 kn instead of 29 s); the track reach still meets the IMO limit.
+
+**Push convoy, second ship moved.** The Hiroshima University pusher–barge captive tests (Koh, Yasukawa, Hirata & Kose
+2008, 22BP 2 × 2 system) replace the strip hull inside their range (|β| ≤ 25°, |r′| ≤ 0.2): resistance X′0 0.0642,
+Y′β, Y′r, N′β, N′r with the cubic couplings, and the paper's assumed pusher interaction values (t_P 0.164, w_P0 0.34,
+ε 0.987, t_R 0.055, a_H 0.194, x′_H −0.427, γ_R 0.23, l′_R −1.033). Beyond that range strip-theory cross-flow (C_D 1.1)
+carries the hull, and shallow water uses the simulator's own power laws, because the published Kijima-type factor
+reaches about 13 for a convoy (Cb·B/T 5.9) at h/T 1.5. Consequences: the measured resistance is 2.4 times the strip
+estimate, so the 4.5 MW pushboat now makes 7 kn through the water (it made 11 kn), and she turns tighter (tactical
+diameter 1.49 L against 2.22 L). The 10/10 zig-zag overshoots are 2.8°/3.3°, against the paper's predicted 1.7°/1.9°
+for the same pusher at 7 kn. The paper's tabulated added masses are about 14× below strip theory and look mis-scaled;
+Clarke's are kept. Class: scaled (one model-scale pusher, not the Rhine convoy itself).
+
+**Frigate (DTMB 5415), third ship moved.** The bare-hull captive tests of the 5512 model (the 1:46.6 geosim of the 5415)
+in the Iowa (IIHR) tank, Yoon (2009), enter as tabulated by Hajivand & Mousavizadegan (2015, Tables 12–18, experimental
+columns, Fn 0.28 ≈ 20 kn): Y′v −0.296, N′v −0.167, Y′r, N′r −0.0485, the cubic and cross-coupling terms, and the added
+masses Y′v̇ −0.111, N′ṙ −0.0070. Two readings are ours and stated in the code: the tabulated nonlinear terms are Taylor
+derivatives, so the polynomial coefficients are Y′vvv/6, Y′vvr/2 and so on (Eq. 33 of that paper); and the tabulated
+Y′r is the measured Y′r − m′ (m′ 0.136), because only that makes the hull course-stable as the 5415 is (read as a hull-only
+Y′r the same data give a 10/10 zig-zag overshoot of 12.8°/25.6° and an unstable ship). The polynomials hold where the
+tests reached (drift to 20°, r′ to 0.75, u above 5 m/s); the unified hull covers the rest. No bare-hull resistance is
+tabulated, so the simulator's own stays. Rudder and propeller interaction are not measured on this hull and remain
+typical values. Nonlinear terms were also measured at Fn 0.138 and 0.41 (Y′vvv −1.63 and −3.80 against −1.95): the
+Fn 0.28 set is used at all speeds, so the frigate at 29 kn has weaker nonlinear sway damping than the model had. Results:
+tactical diameter 2.20 L (was 2.48), 10/10 zig-zag overshoot 6.0° (was 4.5°), 20/20 first overshoot 20.9°; the 5415's
+published free-running manoeuvres were not available to check against.
+
+**Open check.** At h/T 1.2 the published cross-flow factor makes KVLCC2's 90° drift force 6.7 × the deep value
+(today's power law gave 3 ×). Tanker current-force data (OCIMF) is usually quoted nearer 4–5 × at that depth; compare
+when that document is obtained.
 
 ## Open questions
 

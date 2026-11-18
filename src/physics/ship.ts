@@ -4,6 +4,7 @@
 // ideal-fluid (added-mass, handled by C_A incl. Munk moment) and viscous remainder (D).
 
 import { RHO, NU_W, G, DEG } from './consts';
+import { DEEP, crossFlowRegression, kijimaLinear, shallowFactors, type CrossFlow } from './hull/unified';
 import { KVLCC2 } from '../ships/kvlcc2';
 import { KCS, PANAMAX, KVLCC2_BALLAST } from '../ships/cargo';
 import { CB_BALTIC, CB_BALTIC_BALLAST } from '../ships/cbbaltic';
@@ -139,6 +140,9 @@ export interface ShipSpec {
   sternThruster?: { x: number; Tmax: number; P: number };
   station?: StationKind;      // default 'azipod'
   mmg?: MmgHull;              // published MMG hull derivatives (replace Clarke at manoeuvring speeds)
+  /** The unified hull model (Yoshimura et al. 2009) and where its coefficients come from; ships without it
+   *  keep the Clarke + cross-flow strip model. */
+  hull?: HullModelSpec;
   type?: string;              // ship type for the fleet picker (cruise, tanker, container…)
   hullForm?: 'ship' | 'tug' | 'cat' | 'barge';
   /** Catamaran demi-hulls: beam and block coefficient of one hull, centreline offset of each hull [m]. */
@@ -159,11 +163,32 @@ export interface ShipSpec {
   hullT?: number;
 }
 
+/** How a ship's hull forces are modelled, and how good the data behind them is. */
+export interface HullModelSpec {
+  model: 'unified';
+  /** captive: published captive-test coefficients for this hull; scaled: taken from a near-sister hull;
+   *  empirical: published regression formulas from the main dimensions. */
+  class: 'captive' | 'scaled' | 'empirical';
+  /** Cross-flow coefficients measured on this or a sister hull; default: the Yoshimura (2009) regressions. */
+  cross?: CrossFlow;
+  /** Shallow-water factors: the published set of Taimuri et al. (2020) (default; checked on VLCC, container and
+   *  frigate hulls, Cb·B/T about 2–3.5), or the older power laws for hulls far outside that range (barges). */
+  shallow?: 'published' | 'power-law';
+  source: string;
+}
+
 /** MMG standard-method hull: non-dimensional derivatives about midship, ÷ ½ρ L d U² (forces), ÷ ½ρ L² d U² (moment). */
 export interface MmgHull {
   xG: number;                 // CG ahead of midship [m]
-  mx: number; my: number; Jz: number;   // added masses ÷ ½ρL²d, ½ρL²d, ½ρL⁴d
-  R0: number; Xvv: number; Xvr: number; Xrr: number; Xvvvv: number;
+  /** Added masses ÷ ½ρL²d, ½ρL²d, ½ρL⁴d; left out where the source's are not trusted (the Clarke values stay). */
+  mx?: number; my?: number; Jz?: number;
+  /** Length the coefficients are made non-dimensional with, where it is not Lpp (pusher–barge systems: overall length). */
+  Lref?: number;
+  /** Where the tests reached, as fade-out windows [from, to] in forward speed u [m/s], |v′| = |sin β| and |r′|;
+   *  outside them the low-speed model takes over (default: u 0.6–1.8, |v′| 0.55–0.85, |r′| 0.9–1.4). */
+  range?: { u?: [number, number]; v?: [number, number]; r?: [number, number] };
+  /** Bare-hull resistance ÷ ½ρLdU²; left out where the source gives none (the simulator's own resistance stays). */
+  R0?: number; Xvv: number; Xvr: number; Xrr: number; Xvvvv: number;
   Yv: number; Yr: number; Yvvv: number; Yvvr: number; Yvrr: number; Yrrr: number;
   Nv: number; Nr: number; Nvvv: number; Nvvr: number; Nvrr: number; Nrrr: number;
   kzz?: number;               // yaw radius of gyration ÷ L (default 0.25)
@@ -310,6 +335,10 @@ export interface Hydro {
   S: number; strips: { x: number; dx: number }[]; cfK: number;
   fsh: number; fam: number; hT: number; rShallow: number;
   catY: number;                // catamaran: offset of each demi-hull (yaw damping from their resistance)
+  /** Unified hull (Yoshimura 2009): cross-flow yaw factors, and the x of midship rel. the reference point. */
+  unified: boolean; CrY: number; CrN: number; xMid: number; Xvr: number;
+  /** Published shallow-water multipliers (unified hulls; all 1 otherwise). */
+  sh: import('./hull/unified').Shallow;
   prime: Record<string, number>;
 }
 
@@ -376,19 +405,38 @@ export function deriveHydro(s: ShipSpec, depth: number): Hydro {
   if (s.mmg) {
     // published captive-test values: MMG non-dimensionals (÷ ½ρLd·U², ½ρL²d) → Clarke primes (× d/L).
     // Body origin is midship; the CG sits xG ahead of it, as in the MMG equations of motion.
-    const c = s.mmg, dL = T / L;
-    Yvd_p = -c.my * dL; Yrd_p = 0; Nvd_p = 0; Nrd_p = -c.Jz * dL;
-    Yv_p = c.Yv * dL; Yr_p = c.Yr * dL; Nv_p = c.Nv * dL; Nr_p = c.Nr * dL;
+    const c = s.mmg, dL = T / L, rl = (c.Lref ?? L) / L;      // coefficients may be made non-dimensional with another length
+    if (c.my !== undefined && c.Jz !== undefined) { Yvd_p = -c.my * dL; Yrd_p = 0; Nvd_p = 0; Nrd_p = -c.Jz * dL; }
+    Yv_p = c.Yv * rl * dL; Yr_p = c.Yr * rl * rl * dL; Nv_p = c.Nv * rl * rl * dL; Nr_p = c.Nr * rl ** 3 * dL;
     xgDyn = c.xG;
     Iz = m * ((c.kzz ?? 0.25) * L) ** 2 + m * c.xG ** 2;
-    XudM = -c.mx * 0.5 * RHO * L * L * T;
+    if (c.mx !== undefined) XudM = -c.mx * 0.5 * RHO * L * L * T;
   }
 
+  // Unified hull: linear derivatives from captive tests or Kijima's regression, shallow water from the
+  // published factors (replacing the fsh/fam power laws), cross-flow drag from Yoshimura (2009).
+  const uni = s.hull?.model === 'unified';
+  const sh = uni ? shallowFactors(s, depth, s.hull!.shallow) : DEEP;
+  let cross: CrossFlow | null = null, XvrP = 0;
+  if (uni) {
+    const dL = T / L;
+    if (s.mmg) {
+      // captive derivatives (already in Yv_p … Nr_p above), now with the published shallow-water factors
+      Yv_p *= sh.Yv; Yr_p *= sh.Yr; Nv_p *= sh.Nv; Nr_p *= sh.Nr;
+      XvrP = s.mmg.Xvr * 0.5 * RHO * (s.mmg.Lref ?? L) * T * (s.mmg.Lref ?? L);
+    } else {
+      const lin = kijimaLinear(s, -Yvd_p / dL);
+      Yv_p = lin.Yv * sh.Yv * dL; Yr_p = lin.Yr * sh.Yr * dL; Nv_p = lin.Nv * sh.Nv * dL; Nr_p = lin.Nr * sh.Nr * dL;
+      XvrP = lin.Xvr * 0.5 * RHO * L * T * L;
+    }
+    cross = s.hull!.cross ?? crossFlowRegression(s);
+  }
+  const famY = uni ? sh.gv : fam, famN = uni ? sh.gnr : fam;
   const q3 = 0.5 * RHO * L ** 3, q4 = q3 * L, q5 = q4 * L;
   const Xud = XudM;
-  const Yvd = Yvd_p * q3 * fam;
-  const Ycross = 0.5 * (Yrd_p + Nvd_p) * q4 * fam; // symmetric M
-  const Nrd = Nrd_p * q5 * fam;
+  const Yvd = Yvd_p * q3 * famY;
+  const Ycross = 0.5 * (Yrd_p + Nvd_p) * q4 * famY; // symmetric M
+  const Nrd = Nrd_p * q5 * famN;
   const Xud_p = Xud / q3;
   const symX_p = 0.5 * (Yrd_p + Nvd_p);
 
@@ -416,12 +464,13 @@ export function deriveHydro(s: ShipSpec, depth: number): Hydro {
   return {
     m, Iz, xg: xgDyn, Xud, Yvd, Yrd: Ycross, Nvd: Ycross, Nrd,
     M, Minv: inv3(M),
-    kYv: q2 * YvD * fsh, kYr: q3 * YrD, kNv: q3 * NvD, kNr: q4 * NrD * fsh,
+    kYv: q2 * YvD * (uni ? 1 : fsh), kYr: q3 * YrD, kNv: q3 * NvD, kNr: q4 * NrD * (uni ? 1 : fsh),
     // Tiny residual linear damping (wave radiation / laminar creep). Kept an order of
     // magnitude below the quadratic terms at berthing speeds; surge term fades out above 1 m/s.
     Xlin: m / 4000, Ylin: (m - Yvd) / 3000, Nlin: (Iz - Nrd) / 3000,
-    S, strips, cfK: 0.5 * RHO * T * s.Cd * fsh,
+    S, strips, cfK: cross ? 0.5 * RHO * T * cross.CD * sh.CD : 0.5 * RHO * T * s.Cd * fsh,
     fsh, fam, hT, rShallow: isFinite(hT) ? 1 + 0.6 / (hT * hT) : 1, catY: s.demi?.y ?? 0,
+    unified: uni, CrY: cross?.CrY ?? 1, CrN: cross?.CrN ?? 1, xMid: -s.xg, Xvr: XvrP, sh,
     prime: { Yvd_p, Yrd_p, Nvd_p, Nrd_p, Yv_p, Yr_p, Nv_p, Nr_p, YvD, YrD, NvD, NrD, munk: Yvd_p - Xud_p },
   };
 }

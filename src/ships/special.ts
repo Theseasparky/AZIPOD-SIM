@@ -2,7 +2,7 @@
 // forces from Clarke's regression (the push convoy and the icebreaker sit at the edge of its range).
 // Origin at the CG (positions from midship minus xg).
 import { DEG } from '../physics/consts';
-import type { PodSpec, ShipSpec } from '../physics/ship';
+import type { MmgHull, PodSpec, ShipSpec } from '../physics/ship';
 import { POD_DEFAULTS, rudder, shaftUnit } from './base';
 import { PANAMAX } from './cargo';
 
@@ -65,23 +65,55 @@ export const PASPALEY_PEARL: ShipSpec = {
 };
 
 /** European push convoy: pushboat and 2 × 2 barges (class Vb), three propellers with steering and flanking rudders. */
-const PC_XG = -10;
+const PC_XG = -10;      // CG of the convoy, 10 m aft of midship (the pushboat's weight is aft)
+const PC_LOA = 193;
+
+/**
+ * Hull of a 2 × 2 pusher–barge system: the derivatives measured on the 22BP system (pusher 40 m, four 60.96 m
+ * barges, 161.9 × 21.3 × 2.74 m, 7 knots, deep water) in circular-motion tests at the Hiroshima University
+ * towing tank, Koh, Yasukawa, Hirata & Kose (2008), J. Mar. Sci. Technol. 13:256–268 (Table 3) and
+ * "Maneuvering simulations of pusher–barge systems", J. Mar. Sci. Technol. (2008) (Table 3). Made
+ * non-dimensional with the overall length and the draught, in the paper's form (β = atan(−v/u)),
+ *   Y′ = Y′β β + Y′r r′ + Y′βββ β³ + Y′ββr β² r′, X′ = X′0 cos²β + X′ββ β² + X′βr β r′ + X′rr r′²,
+ * written here in the MMG form of the rest of the fleet (v′ = −sin β). The Rhine convoy is 193 × 22.8 × 3.5 m
+ * (L/B 8.5, B/d 6.5; the tested system 7.6 and 7.8): similar in shape, not the same hull. The tests reached
+ * |β| ≤ 25° and |r′| ≤ 0.2 (their circular-motion runs); beyond that the low-speed model takes over. The
+ * paper's added masses are about 14 times below Clarke's and strip theory for the same hull and look mis-scaled,
+ * so they are not used (Clarke's stay). Y′r − m′x and X′βr − m′y are taken back to Y′r and X′βr with the
+ * paper's own m′x 0.00076 and m′y 0.00741.
+ */
+export const PUSH_CONVOY_MMG: MmgHull = {
+  xG: PC_XG, Lref: PC_LOA, kzz: 0.25,
+  R0: 0.0642, Xvv: -0.0609 + 0.0642, Xvr: -(-0.113 + 0.00741), Xrr: -0.0085, Xvvvv: 0,
+  Yv: -0.2544, Yr: 0.0122 + 0.00076, Yvvv: -0.2795, Yvvr: -0.0777, Yvrr: 0, Yrrr: 0,
+  Nv: -0.0397, Nr: -0.0497, Nvvv: -0.1381, Nvvr: -0.0789, Nvrr: 0, Nrrr: 0,
+  range: { v: [0.42, 0.62], r: [0.2, 0.4] },
+  source: 'Koh, Yasukawa, Hirata & Kose (2008), Hiroshima University towing tank, 22BP system (2 × 2 barges), Table 3',
+};
 export const PUSH_CONVOY: ShipSpec = {
   ...POD_DEFAULTS,
   id: 'push-convoy', name: 'Push convoy · 4 barges, 193 m', type: 'inland', station: 'cpp', load: 'laden, 3.5 m',
-  note: 'Rhine-type push convoy: a 40 m pushboat with three 1.5 MW propellers in nozzles, each with twin steering rudders behind and twin flanking rudders ahead, pushing four laden Europe IIa barges (2 × 2, 193 × 22.8 m overall). On a river the water under her is rarely more than half her draught again. The flanking rudders sit in the propeller slipstream when going astern and steer the stern while backing and stopping. Hull forces from Clarke\'s regression at the edge of its range (B/T 6.5).',
-  LOA: 193, vmaxKn: 11,
-  L: 190, B: 22.8, T: 3.5, Cb: 0.9, xg: PC_XG,
+  note: 'Rhine-type push convoy: a 40 m pushboat with three 1.5 MW propellers in nozzles, each with twin steering rudders behind and twin flanking rudders ahead, pushing four laden Europe IIa barges (2 × 2, 193 × 22.8 m overall). On a river the water under her is rarely more than half her draught again. The flanking rudders sit in the propeller slipstream when going astern and steer the stern while backing and stopping. Hull forces from the Hiroshima University pusher–barge captive tests (Koh et al. 2008), strip-theory cross-flow beyond the 25° they reached.',
+  LOA: 193, vmaxKn: 7,
+  L: 190, B: 22.8, T: 3.5, Cb: 0.9, xg: 0,        // body origin at midship, the CG PC_XG ahead of it (as for KVLCC2)
+  mmg: PUSH_CONVOY_MMG,
+  hull: {
+    model: 'unified', class: 'scaled', shallow: 'power-law',
+    cross: { CD: 1.1, CrY: 1, CrN: 1, source: 'strip theory with Hoerner\'s cross-flow drag; no circular-motion data beyond 25° drift' },
+    source: 'Koh et al. (2008) pusher–barge captive tests (22BP) within their range; strip-theory cross-flow beyond it',
+  },
   pods: ([-3.6, 0, 3.6]).map((y, k) => shaftUnit(['PORT', 'CENTRE', 'STBD'][k], y, {
+    // t_P and w_P0 as assumed for the pusher in the same paper (Table 4, after a conventional twin-screw vessel)
     D: 2.0, k0: 0.6, k1: -0.4, k2: -0.12, KQ0: 0.09, asternFrac: 0.7,
-    tP: 0.15, wP0: 0.25, xP: -0.49 * 190 - PC_XG, hand: k === 0 ? -1 : 1, kTTah: 0.01, kTTas: 0.04,
+    tP: 0.164, wP0: 0.34, xP: -0.49 * 190, hand: k === 0 ? -1 : 1, kTTah: 0.01, kTTas: 0.04,
   }, { type: 'geared', P: 1.5e6, n: 350 / 60, nMin: 0.25, loadTime: 15, I: 3e3, clutch: true },
-  { ...rudder({ type: 'schilling', A: 2 * 4.2, H: 2.4, xR: -0.49 * 190 - PC_XG - 0.8 * 2.0, max: 60 * DEG, rate: 8 * DEG }), flank: { A: 2 * 3.5, xF: -0.49 * 190 - PC_XG + 2.6, max: 45 * DEG } },
+  // rudder–hull interaction as assumed for the pusher in the same paper (Table 4): t_R, a_H, x'_H, γ_R, l'_R, ε
+  { ...rudder({ type: 'schilling', A: 2 * 4.2, H: 2.4, xR: -0.49 * 190 - 0.8 * 2.0, xH: -0.427 * PC_LOA, tR: 0.055, aH: 0.194, gammaP: 0.23, gammaM: 0.23, lR: -1.033, eps: 0.987, kappa: 0.6 / 0.987, max: 60 * DEG, rate: 8 * DEG }), flank: { A: 2 * 3.5, xF: -0.49 * 190 + 2.6, max: 45 * DEG } },
   LEVERS)),
-  bowThruster: { x: 0.5 * 190 - PC_XG - 4, Tmax: 60e3, P: 0.5e6 },
-  windage: { AF: 120, AL: 900, cx: 0.8, cy: 0.9, cn: 0.06, xw: -60 },
+  bowThruster: { x: 0.5 * 190 - 4, Tmax: 60e3, P: 0.5e6 },
+  windage: { AF: 120, AL: 900, cx: 0.8, cy: 0.9, cn: 0.06, xw: -60 + PC_XG },
   wake: 0.25, tded: 0.15, Vzero: 20, Cd: 1.1, formFactor: 2.2,
-  btRpmTime: 5, powerAvail: 0.6e6, bridgeX: -0.44 * 190 - PC_XG,
+  btRpmTime: 5, powerAvail: 0.6e6, bridgeX: -0.44 * 190,
   look: {
     freeboard: 1.2, bridgeH: 9, bridgeLen: 5, wingOut: 0.5,
     decks: [{ x0: -0.5 * 190 + 4, x1: -0.5 * 190 + 30, h: 5.5, inset: 2 }, { x0: -0.5 * 190 + 8, x1: -0.5 * 190 + 24, h: 9, inset: 4 }],
@@ -92,22 +124,41 @@ export const PUSH_CONVOY: ShipSpec = {
 
 /** Frigate on the DTMB 5415 hull (the open benchmark surface combatant), twin CPP, twin rudders, 30 kn. */
 const FR_XG = -2.5;
+/** DTMB 5512 (1:46.6 geosim of the 5415) bare-hull captive tests, Fn 0.28, IIHR 100 m tank (Yoon 2009, PhD thesis,
+ *  University of Iowa), values as tabulated by Hajivand & Mousavizadegan (2015), Int. J. Nav. Archit. Ocean Eng. 7:
+ *  Tables 12–18 (EFD columns). The tabulated nonlinear terms are Taylor derivatives (the paper's Eq. 33 has 1/6 and 1/2
+ *  in front of them), so the polynomial coefficients are Yvvv/6, Yvvr/2 and so on. The tabulated Y'r equals the
+ *  measured Y'r − m' (with m' = 0.136, the PMM balance carries the model's inertia): that is the only reading that
+ *  leaves the hull course-stable, as the 5415 is, so m' is added back to get the hull-only MMG derivative. No resistance
+ *  is tabulated: the simulator's own stays. */
+const FR_M = 0.1361;      // m' = ∇ / (½ L² d): 86 kg model, 3.048 m, 0.136 m
+const FRIGATE_MMG: MmgHull = {
+  xG: FR_XG, kzz: 0.25, my: 0.1111, Jz: 0.0070,
+  Xvv: -0.1528 / 2, Xvr: 0.0300, Xrr: -0.0282 / 2, Xvvvv: 0,
+  Yv: -0.2961, Yr: -0.0485 + FR_M, Yvvv: -1.9456 / 6, Yvvr: -1.7067 / 2, Yvrr: -1.3683 / 2, Yrrr: -0.4520 / 6,
+  Nv: -0.1667, Nr: -0.0485, Nvvv: -0.4355 / 6, Nvvr: -0.5512 / 2, Nvrr: -0.4011 / 2, Nrrr: -0.0505 / 6,
+  // drift to 20° (|v'| 0.34) and yaw rate to r' 0.75 were tested, at Fn 0.138–0.41 (about 10–30 kn)
+  range: { u: [2.5, 5], v: [0.34, 0.5], r: [0.75, 1.0] },
+  source: 'DTMB 5512 captive tests, Fn 0.28 (Yoon 2009; Hajivand & Mousavizadegan 2015, Tables 12–18)',
+};
 export const FRIGATE: ShipSpec = {
   ...POD_DEFAULTS,
   id: 'frigate', name: 'Frigate · DTMB 5415 hull', type: 'naval', station: 'cpp', load: 'full load',
-  note: 'Surface combatant on the DTMB 5415 hull (142 × 19.06 × 6.15 m, Cb 0.507), the open benchmark of the SIMMAN workshops: twin controllable-pitch propellers on gas turbines and diesels (2 × 37.5 MW), twin spade rudders. Particulars of the benchmark hull; propulsion, steering and windage typical of the type. Hull forces from Clarke\'s regression.',
+  note: 'Surface combatant on the DTMB 5415 hull (142 × 19.06 × 6.15 m, Cb 0.507), the open benchmark of the SIMMAN workshops: twin controllable-pitch propellers on gas turbines and diesels (2 × 37.5 MW), twin spade rudders. Particulars of the benchmark hull; propulsion, steering and windage typical of the type. Bare-hull forces from the Iowa (IIHR) captive tests of the 5512 model, drift to 20°, yaw rate to r\' 0.75; the propulsion and rudder interaction are typical, not measured.',
   LOA: 153.3, vmaxKn: 29,
-  L: 142, B: 19.06, T: 6.15, Cb: 0.507, xg: FR_XG,
+  L: 142, B: 19.06, T: 6.15, Cb: 0.507, xg: 0,       // body origin at midship, the CG FR_XG ahead of it
+  mmg: FRIGATE_MMG,
+  hull: { model: 'unified', class: 'captive', shallow: 'published', source: 'DTMB 5512 bare-hull captive tests (Yoon 2009) within their range; Yoshimura et al. (2009) cross-flow beyond it' },
   pods: (['PORT', 'STBD'] as const).map((side, k) => shaftUnit(side, k ? 4.6 : -4.6, {
     D: 5.2, k0: 0.52, k1: -0.3, k2: -0.1, KQ0: 0.09, asternFrac: 0.6,
-    tP: 0.08, wP0: 0.06, xP: -0.43 * 142 - FR_XG, hand: k ? 1 : -1, kTTah: 0.005, kTTas: 0.03,
+    tP: 0.08, wP0: 0.06, xP: -0.43 * 142, hand: k ? 1 : -1, kTTah: 0.005, kTTas: 0.03,
     cpp: { pitchTime: 12, asternPitch: 0.75 },
   }, { type: 'turbine', P: 37.5e6, n: 168 / 60, nMin: 0.3, loadTime: 50, I: 1.4e5 },
-  rudder({ A: 15, H: 4.5, xR: -0.47 * 142 - FR_XG, rate: 4 * DEG }), LEVERS)),
+  rudder({ A: 15, H: 4.5, xR: -0.47 * 142, rate: 4 * DEG }), LEVERS)),
   bowThruster: { x: 0, Tmax: 0, P: 0 },
-  windage: { AF: 330, AL: 1700, cx: 0.75, cy: 0.9, cn: 0.08, xw: 4 },
+  windage: { AF: 330, AL: 1700, cx: 0.75, cy: 0.9, cn: 0.08, xw: 4 + FR_XG },
   wake: 0.06, tded: 0.08, Vzero: 20, Cd: 0.7, formFactor: 1.08, cwMul: 0.75,
-  btRpmTime: 5, powerAvail: 1e6, bridgeX: 0.2 * 142 - FR_XG,
+  btRpmTime: 5, powerAvail: 1e6, bridgeX: 0.2 * 142,
   look: {
     freeboard: 6, bridgeH: 16, bridgeLen: 6, wingOut: 0.8,
     decks: [{ x0: -30, x1: 28, h: 10, inset: 1.2 }, { x0: -18, x1: 26, h: 14, inset: 2.6 }],

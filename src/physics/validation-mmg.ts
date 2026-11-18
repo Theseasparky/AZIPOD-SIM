@@ -102,3 +102,26 @@ export function runMmgValidation(spec: ShipSpec) {
   }
   return { rows, nP, tracks };
 }
+
+/**
+ * KVLCC2 against the published full-scale predictions of the MMG standard method itself:
+ * Yasukawa & Yoshimura (2015), J. Mar. Sci. Technol. 20:37–52, Table 6 (turning, δ = ±35°) and Table 7
+ * (zig-zags, starboard first), run in the paper's conditions (p. 49): 15.5 kn, propeller revolutions held
+ * constant, rudder rate 1.76°/s, yaw radius of gyration 0.25 L. The paper's free-running tests on the 7 m
+ * model (MARIN, Tables 4–5) are listed beside them; the paper finds full scale turns about 10 % wider.
+ */
+export const KVLCC2_PAPER = {
+  fullScale: { advstbd: 3.62, tactstbd: 3.71, advport: 3.56, tactport: 3.59, zz10a: 5.8, zz10b: 20.5, zz20a: 11.8 } as Record<string, number>,
+  modelTest: { advstbd: 3.25, tactstbd: 3.34, advport: 3.11, tactport: 3.08, zz10a: 8.2, zz10b: 21.9, zz20a: 13.7 } as Record<string, number>,
+};
+
+export function runPaperValidation(spec: ShipSpec) {
+  const sh = spec.pods[0].shaft!;
+  const paperSpec: ShipSpec = {
+    ...spec, mmg: { ...spec.mmg!, kzz: 0.25 },
+    pods: [{ ...spec.pods[0], shaft: { ...sh, rudder: { ...sh.rudder!, rate: 1.76 * DEG } } }],
+  };
+  return runMmgValidation(paperSpec).rows
+    .filter(r => r.key in KVLCC2_PAPER.fullScale)
+    .map(r => ({ ...r, paper: KVLCC2_PAPER.fullScale[r.key], model: KVLCC2_PAPER.modelTest[r.key] }));
+}
